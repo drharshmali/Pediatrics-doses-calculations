@@ -5,368 +5,239 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Pediatric & NICU/PICU Dose Calculator</title>
     <style>
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 10px; max-width: 750px; margin: auto; background-color: #f4f7fa; color: #2d3748; }
-        h2 { color: #1a365d; text-align: center; margin-bottom: 15px; font-size: 22px; font-weight: 800;}
-        .sticky-header { position: sticky; top: 0; background: #f4f7fa; padding-top: 5px; padding-bottom: 10px; z-index: 100; }
-        .header-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
-        .input-group div { flex: 1; }
-        .age-container { display: flex; gap: 5px; }
-        label { display:block; font-size: 14px; margin-bottom: 5px; font-weight:bold; color: #4a5568;}
-        input[type="number"], input[type="text"], select { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; box-sizing: border-box; background: #fdfdfd; }
-        input:focus, select:focus { border-color: #3182ce; outline: none; background: white;}
+        body { font-family:'Segoe UI',Roboto,sans-serif; padding:10px; max-width:750px; margin:auto; background:#f4f7fa; color:#2d3748; }
+        h2 { color:#1a365d; text-align:center; margin-bottom:15px; font-size:22px; font-weight:800; }
+        .sticky-header { position:sticky; top:0; background:#f4f7fa; padding-top:5px; padding-bottom:10px; z-index:100; }
+        .header-card { background:white; padding:15px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08); }
+        .input-group { display:flex; gap:10px; margin-bottom:10px; } .input-group div { flex:1; } .age-container { display:flex; gap:5px; }
+        label { display:block; font-size:14px; margin-bottom:5px; font-weight:bold; color:#4a5568; }
+        input, select { width:100%; padding:12px; font-size:16px; border:2px solid #e2e8f0; border-radius:8px; text-align:center; box-sizing:border-box; background:#fdfdfd; }
+        input:focus, select:focus { border-color:#3182ce; outline:none; }
+        .category-tabs { display:flex; gap:8px; overflow-x:auto; padding-bottom:5px; margin-bottom:10px; scrollbar-width:none; }
+        .tab-btn { background:#edf2f7; color:#4a5568; border:none; padding:8px 14px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer; white-space:nowrap; transition:0.2s; }
+        .tab-btn.active { background:#3182ce; color:white; box-shadow:0 2px 5px rgba(49,130,206,0.4); }
+        .tab-btn.protocol { background:#ebf8ff; color:#553c9a; } .tab-btn.protocol.active { background:#6b46c1; color:white; }
+        .tab-btn.tools { background:#c6f6d5; color:#22543d; } .tab-btn.tools.active { background:#2f855a; color:white; }
+        .card { background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04); margin-bottom:12px; border-left:5px solid #3182ce; }
+        .drug-name { font-weight:800; font-size:17px; color:#2b6cb0; margin-bottom:8px; }
+        .card.emergency { border-left-color:#e53e3e; } .card.emergency .drug-name { color:#c53030; }
+        .card.fluids { border-left-color:#38a169; } .card.fluids .drug-name { color:#2f855a; }
+        .card.neuro { border-left-color:#805ad5; } .card.neuro .drug-name { color:#6b46c1; }
+        .card.protocol { border-left-color:#6b46c1; background:#faf5ff; } .card.protocol .drug-name { color:#553c9a; font-size:19px; }
+        .card.tools { border-left-color:#2f855a; background:#f0fff4; } .card.tools .drug-name { color:#22543d; font-size:19px; }
+        .copy-all-btn { width:100%; margin-top:10px; padding:12px; background:#3182ce; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; }
+        .calc-inputs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0; }
         
-        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: none; }
-        .category-tabs::-webkit-scrollbar { display: none; }
-        .tab-btn { background: #edf2f7; color: #4a5568; border: none; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; transition: 0.2s; border: 1px solid transparent; }
-        .tab-btn.active { background: #3182ce; color: white; box-shadow: 0 2px 5px rgba(49, 130, 206, 0.4);}
-        .tab-btn.protocol { background: #ebf8ff; color: #553c9a; border: 1px solid #d6bcfa; }
-        .tab-btn.protocol.active { background: #6b46c1; color: white; }
-        .tab-btn.tools { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
-        .tab-btn.tools.active { background: #2f855a; color: white; }
-        
-        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); margin-bottom: 12px; border-left: 5px solid #3182ce; }
-        .drug-name { font-weight: 800; font-size: 17px; color: #2b6cb0; margin-bottom: 8px; }
-        .calc-result { font-size: 15px; margin-bottom: 4px; color: #2d3748;}
-        .highlight { font-size: 15px; font-weight: bold; color: #c53030; background-color: #fff5f5; padding: 5px 8px; border-radius: 6px; display: inline-block; margin-top:4px; border: 1px solid #fed7d7;}
-        .note { font-size: 13px; color: #718096; margin-top: 8px; font-style: italic; background: #edf2f7; padding: 8px; border-radius: 6px;}
-        
-        .card.emergency { border-left-color: #e53e3e; } .card.emergency .drug-name { color: #c53030; }
-        .card.fluids { border-left-color: #38a169; } .card.fluids .drug-name { color: #2f855a; }
-        .card.neuro { border-left-color: #805ad5; } .card.neuro .drug-name { color: #6b46c1; }
-        .card.protocol { border-left: 5px solid #6b46c1; background: #faf5ff;} .card.protocol .drug-name { color: #553c9a; font-size: 19px;}
-        .card.tools { border-left: 5px solid #2f855a; background: #f0fff4;} .card.tools .drug-name { color: #22543d; font-size: 19px;}
-
-        .copy-btn { margin-top:10px; padding:8px 12px; border:none; border-radius:6px; background:#38a169; color:white; font-weight:bold; cursor:pointer; width:100%; transition: background 0.2s; }
-        .copy-btn:hover { background: #2f855a; }
-        .copy-all-btn { width:100%; margin-top:10px; padding:12px; background:#3182ce; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; transition: background 0.2s; }
-        .copy-all-btn:hover { background: #2b6cb0; }
-
-        .calc-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
-        .calc-inputs input { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; text-align: center; }
+        /* Optimized String Classes */
+        .b { display:inline-block; font-size:12px; font-weight:bold; background:#e2e8f0; padding:4px 8px; border-radius:4px; color:#2d3748; margin-bottom:6px; letter-spacing:0.5px; }
+        .h { font-size:15px; font-weight:bold; color:#c53030; background-color:#fff5f5; padding:6px 10px; border-radius:6px; display:block; margin-bottom:4px; border:1px solid #fed7d7; }
+        .n { font-size:13px; color:#4a5568; margin-top:6px; font-style:italic; background:#edf2f7; padding:8px; border-radius:6px; border-left:3px solid #a0aec0; }
     </style>
 </head>
 <body>
-
     <div class="sticky-header">
         <h2>Pediatric Dose Calculator</h2>
-        
-        <div id="patientModeBadge" style="text-align: center; margin-bottom: 8px; font-weight: 800; font-size: 18px; color: #6b46c1; display: none;"></div>
-
+        <div id="patientModeBadge" style="text-align:center; margin-bottom:8px; font-weight:800; font-size:18px; color:#6b46c1; display:none;"></div>
         <div class="header-card">
             <div class="input-group">
                 <div>
-                    <label for="weight">Weight (kg) - દર્દીનું વજન</label>
-                    <input type="number" id="weight" step="0.1" placeholder="e.g., 10" oninput="calculate()">
+                    <label>Weight (kg) - વજન</label>
+                    <input type="number" id="weight" step="0.1" placeholder="e.g., 10" oninput="calcAll()">
                 </div>
                 <div>
-                    <label for="age">Age - દર્દીની ઉંમર</label>
+                    <label>Age - ઉંમર</label>
                     <div class="age-container">
-                        <input type="number" id="age" step="1" placeholder="Value" style="width: 50%;" oninput="calculate()">
-                        <select id="ageUnit" style="width: 50%;" onchange="calculate()">
-                            <option value="Days">Days</option>
-                            <option value="Months">Months</option>
-                            <option value="Years" selected>Years</option>
+                        <input type="number" id="age" step="1" placeholder="Value" oninput="calcAll()">
+                        <select id="ageUnit" onchange="calcAll()">
+                            <option value="Days">Days</option><option value="Months">Months</option><option value="Years" selected>Years</option>
                         </select>
                     </div>
                 </div>
             </div>
-            <input type="text" id="search" placeholder="🔍 Search medicine, antibiotic, fluid..." onkeyup="calculate()">
-            
-            <button onclick="copyAllResults()" class="copy-all-btn">📋 Copy All Results</button>
+            <input type="text" id="search" placeholder="🔍 Search medicine, antibiotic, emergency..." onkeyup="calcAll()">
+            <button onclick="copyAll()" class="copy-all-btn">📋 Copy All Results</button>
 
             <div class="category-tabs" id="tabs" style="margin-top:15px;">
-                <button class="tab-btn active" onclick="setCategory('All', this)">All</button>
-                <button class="tab-btn tools" onclick="setCategory('Calculators', this)">🧮 Calculators & ABG</button>
-                <button class="tab-btn protocol" onclick="setCategory('NICU', this)">👶 NICU</button>
-                <button class="tab-btn protocol" onclick="setCategory('PICU', this)">🛏️ PICU</button>
-                <button class="tab-btn" onclick="setCategory('Emergency', this)">🚨 Emergency</button>
-                <button class="tab-btn" onclick="setCategory('Antibiotic', this)">💊 Antibiotics</button>
-                <button class="tab-btn" onclick="setCategory('Neuro', this)">🧠 Neuro</button>
-                <button class="tab-btn" onclick="setCategory('Fluids', this)">💧 Fluids/DKA</button>
-                <button class="tab-btn" onclick="setCategory('Syrup', this)">🥄 Syrups</button>
-                <button class="tab-btn" onclick="setCategory('Drops', this)">💧 Drops</button>
-                <button class="tab-btn" onclick="setCategory('GI', this)">🩺 GI / Tabs</button>
+                <button class="tab-btn active" onclick="setCat('All', this)">All</button>
+                <button class="tab-btn" onclick="setCat('Emergency', this)">🚨 Emergency & Airway</button>
+                <button class="tab-btn tools" onclick="setCat('Calculators', this)">🧮 Calculators/ABG</button>
+                <button class="tab-btn protocol" onclick="setCat('NICU', this)">👶 NICU/PICU</button>
+                <button class="tab-btn" onclick="setCat('Antibiotic', this)">💊 Antibiotics</button>
+                <button class="tab-btn" onclick="setCat('Neuro', this)">🧠 Neuro</button>
+                <button class="tab-btn" onclick="setCat('Fluids', this)">💧 Fluids/DKA</button>
+                <button class="tab-btn" onclick="setCat('Syrup', this)">🥄 Syrups</button>
+                <button class="tab-btn" onclick="setCat('Drops', this)">💧 Drops</button>
+                <button class="tab-btn" onclick="setCat('GI', this)">🩺 GI/Tabs</button>
             </div>
         </div>
     </div>
-
-    <div id="results">
-        <p style="text-align:center; color:#718096; margin-top: 30px;">Please enter weight to see calculated doses.</p>
-    </div>
+    <div id="results"><p style="text-align:center; color:#718096; margin-top:30px;">Please enter weight.</p></div>
 
     <script>
-        function getPatientMode(age, ageUnit){
-            let days = 0;
-            if(ageUnit === "Days") days = age;
-            else if(ageUnit === "Months") days = age * 30;
-            else if(ageUnit === "Years") days = age * 365;
-            return days < 28 ? "NICU" : "PICU";
-        }
+        const b = (t, bg="#e2e8f0", c="#2d3748") => `<div class='b' style='background:${bg}; color:${c};'>${t}</div>`;
+        const h = (t, bg="#fff5f5", c="#c53030", bc="#fed7d7") => `<div class='h' style='background:${bg}; color:${c}; border-color:${bc};'>${t}</div>`;
+        const n = (t) => `<div class='n'>${t}</div>`;
+        
+        function runGIR(){ let w=parseFloat(document.getElementById('weight').value), d=parseFloat(document.getElementById('girDex').value), r=parseFloat(document.getElementById('girRate').value), e=document.getElementById('girRes'); if(!isNaN(d)&&!isNaN(r)&&w>0){ let g=(d*r*0.167)/w; e.innerHTML=h(`GIR: ${g.toFixed(2)} mg/kg/min`)+n(g<4?"Increase glucose":g>12?"Reduce glucose":"Acceptable"); } else e.innerHTML=h("Enter values"); }
+        function runABG(){ let w=parseFloat(document.getElementById('weight').value), ph=parseFloat(document.getElementById('abgPh').value), pco2=parseFloat(document.getElementById('abgPco2').value), hco3=parseFloat(document.getElementById('abgHco3').value), na=parseFloat(document.getElementById('abgNa').value), cl=parseFloat(document.getElementById('abgCl').value); if(!isNaN(ph)&&!isNaN(pco2)&&!isNaN(hco3)) document.getElementById('rPh').innerHTML=h("ABG: "+(ph<7.35?(pco2>45?"Respiratory Acidosis":"Metabolic Acidosis"):(ph>7.45?(pco2<35?"Respiratory Alkalosis":"Metabolic Alkalosis"):"Normal/Mixed"))); if(!isNaN(na)&&!isNaN(cl)&&!isNaN(hco3)){ let ag=na-(cl+hco3); document.getElementById('rAg').innerHTML=h("Anion Gap: "+ag.toFixed(1)+" ("+(ag>12?"High":ag>=8?"Normal":"Low")+")"); } if(!isNaN(hco3)&&w>0) document.getElementById('rBi').innerHTML=h("HCO3 Deficit: "+(0.3*w*(24-hco3)).toFixed(1)+" mEq"); }
 
-        function calculateAnionGap(na, cl, hco3){
-            let ag = na - (cl + hco3);
-            let interpretation = ag > 12 ? "High Anion Gap Metabolic Acidosis" : (ag >= 8 ? "Normal" : "Low Anion Gap");
-            return { gap: ag.toFixed(1), result: interpretation };
-        }
+        const arr = [
+            // ================= TOOLS & AIRWAY =================
+            { n:"Airway & ET Tube Size Calculator", c:"Emergency", t:"airway et tube intubation", v:(w,a,u) => { if(u==="Days"||u==="Months"||w<=4.0) return b("NEONATE AIRWAY","#fed7d7","#9b2c2c")+h(`ET Size: ${w<=1.0?"2.0":w<=1.5?"2.5 or 3.0":"3.0 or 3.5"} mm`)+h(`Fixation Depth: ${(w+6).toFixed(1)} cm (At Lip)`)+n("⚠️ Check bilateral air entry!"); if(isNaN(a)||a<=0) return n("Enter age in years"); return b("PEDIATRIC AIRWAY")+h(`Uncuffed ET: ${(a/4+4).toFixed(1)} mm | Cuffed: ${(a/4+3.5).toFixed(1)} mm`)+h(`Depth at Lip: ${(a/2+12).toFixed(1)} cm`); } },
+            { n:"UVC Line Fixation", c:"Calculators", t:"uvc line umbilical", v:w => b("PROCEDURE")+h(`Depth: ${(1.5*w+5.5).toFixed(1)} cm`)+n("(1.5 * Wt) + 5.5") },
+            { n:"GIR Calculator", c:"Calculators", t:"gir glucose dextrose", v:w => b("CALCULATOR")+`<div class="calc-inputs"><input type="number" id="girDex" placeholder="% Dextrose" oninput="runGIR()"><input type="number" id="girRate" placeholder="Rate (ml/hr)" oninput="runGIR()"></div><div id="girRes">${h('Enter Details')}</div>` },
+            { n:"ABG, Anion Gap & Bicarb", c:"Calculators", t:"abg anion gap hco3", v:w => b("CALCULATOR")+`<div class="calc-inputs" style="grid-template-columns:1fr 1fr 1fr;"><input type="number" id="abgPh" placeholder="pH" oninput="runABG()"><input type="number" id="abgPco2" placeholder="pCO2" oninput="runABG()"><input type="number" id="abgHco3" placeholder="HCO3" oninput="runABG()"></div><div class="calc-inputs"><input type="number" id="abgNa" placeholder="Na+" oninput="runABG()"><input type="number" id="abgCl" placeholder="Cl-" oninput="runABG()"></div><div id="rPh">${h('ABG: ...')}</div><div id="rAg">${h('Gap: ...')}</div><div id="rBi">${h('Deficit: ...')}</div>` },
 
-        function calculateUVC(weight){ return ((1.5 * weight) + 5.5).toFixed(1); }
+            // ================= PROTOCOLS =================
+            { n:"👶 COMPLETE NICU PROTOCOL", c:"NICU", t:"nicu protocol", v:w => { let p=w<=10?`${w.toFixed(2)}ml IV TDS (1.125g/10ml)`:`${(w/2).toFixed(2)}ml IV TDS (4.5g/20ml)`; return b("IV FLUIDS","#c6f6d5","#22543d")+h(w<1?"D1:100|D2:120|D3:130|D4:140|D5:150 ml/kg":w<=1.5?"D1:80|D2:100|D3:120|D4:130|D5:140|D6:150 ml/kg":"D1:60|D2:80|D3:100|D4:120|D5:130|D6:140|D7:150 ml/kg","#ebf8ff","#2b6cb0","#bee3f8")+n("Day 1-3: D10% | Day >3: 0.45 DNS")+b("FIXED MEDS","#bee3f8","#2a4365")+h(`1. Piptaz: ${p}`)+h(`2. Zostum: ${(w*0.5).toFixed(2)}ml IV BD/TDS`)+h(`3. Dobutamine: ${((w*30)/50).toFixed(2)}ml + ${(50-(w*30)/50).toFixed(2)}ml D5% @ 1 ml/hr`)+b("CONDITIONAL","#feebc8","#7b341e")+h(`Capnea: LD ${w.toFixed(2)}ml | MD ${(w/4).toFixed(2)}ml OD`)+h(`Gardinal: LD ${w.toFixed(2)}ml Stat | MD ${(w/8).toFixed(2)}ml BD`); } },
+            { n:"🛏️ COMPLETE PICU PROTOCOL", c:"NICU", t:"picu protocol", v:w => { let f=w<=10?(w*100):w<=20?(1000+(w-10)*50):(1500+(w-20)*20); let ak=w*15<=100?100:w*15<=250?250:500; let aml=(w*15)/(ak===100?50:ak===250?125:250); return b("IV FLUIDS","#c6f6d5","#22543d")+h(`Total 24h: ${f.toFixed(0)} ml | Rate: ${(f/24).toFixed(1)} ml/hr`)+b("PICU MEDS","#bee3f8","#2a4365")+h(`1. Monocef: ${(w*0.5).toFixed(2)}ml BD`)+h(`2. Amikacin: ${aml.toFixed(2)}ml OD (${ak}mg/2ml)`)+h(`3. Piptaz: ${w<=10?w.toFixed(2):(w/2).toFixed(2)}ml IV TDS`)+h(`4. Vancomycin: ${(w*15/50).toFixed(2)}ml TDS`); } },
+            { n:"🩸 DKA MASTER PROTOCOL", c:"Fluids", t:"dka insulin", v:w => { let f=w<=10?(w*100):w<=20?(1000+(w-10)*50):(1500+(w-20)*20); let rem=(w*85+f)-(w*20); return b("DKA FLUIDS","#fed7d7","#9b2c2c")+h(`Bolus: ${(w*20).toFixed(1)} ml Stat`)+h(`Total 24H Remaining: ${rem.toFixed(1)} ml`)+h(`Rate: ${(rem/24).toFixed(1)} ml/hr`)+b("RBS INDEX","#feebc8","#7b341e")+h("RBS < 250: 0.45% DNS + 5ml KCl")+h("RBS > 250: 0.45% NS + 5ml KCl")+b("MEDICINES","#e2e8f0","#44337a")+h(`Monocef: ${(w*0.5).toFixed(2)}ml BD`)+h(`Emset: ${(w*0.07).toFixed(2)}ml TDS | Rantac: ${(w*0.1).toFixed(2)}ml BD | Febrinil: ${((w*15)/150).toFixed(2)}ml QDS`)+h("Insulin (Atrapid): 1ml in 40ml D5 @ 1ml/hr"); } },
+            { n:"🟨 JAUNDICE PROTOCOL", c:"Fluids", t:"jaundice hepatitis", v:w => b("PROTOCOL","#fefcbf","#744210")+h("1. IVF: 0.45 DNS + 5ml KCl + 10ml CaGluconate + MVI")+h("2. Inj Taxim")+h("3. Syp Helamerz BD | 4. Syp Udilive BD | Tab Udisafe 75mg BD") },
 
-        function calculateGIR(dextrosePercent, rateMlHr, weightKg){ return ((dextrosePercent * rateMlHr * 0.167) / weightKg).toFixed(2); }
+            // ================= EMERGENCY =================
+            { n:"Inj Adrenaline / Noradrenaline (Neomate)", c:"Emergency", t:"adrenaline norad neomate", v:w => b("INFUSION")+h(`Adrenaline: ${(w*0.3).toFixed(2)}mg in 50ml NS/D5 @ 1ml/hr`)+h(`Norad: Wt acc. Ex: 3kg=0.9mg in 50ml D5`)+n("4mg/2ml vial logic: 4.5kg = 1.35mg = 0.675ml + 49ml D5")+b("STAT")+h(`Adrenaline IV(1:10k): ${(w*0.1).toFixed(2)}ml`)+h(`Adrenaline SC(1:1k): ${(w*0.01).toFixed(2)}ml q15m`) },
+            { n:"Inj Atropine", c:"Emergency", t:"atropine", v:w => b("STAT")+h(`Dose: ${(w*0.2).toFixed(2)}mg | Vol: ${(w*0.2/0.6).toFixed(2)}ml (0.6mg/1ml)`) },
+            { n:"Inj Adenosine", c:"Emergency", t:"adenosine svt", v:w => b("SVT")+h(`1st: ${(w*0.1/3).toFixed(2)}ml push | 2nd: ${(w*0.2/3).toFixed(2)}ml (3mg/ml)`) },
+            { n:"Inj Trenexa (Tranexamic Acid)", c:"Emergency", t:"trenexa bleeding", v:w => b("HEMOSTATIC")+h(`Dose: ${(w*20).toFixed(1)}mg TDS | Vol: ${(w*20/100).toFixed(2)}ml TDS (100mg/ml)`) },
+            { n:"Inj Magnesium Sulphate (MgSO4)", c:"Emergency", t:"mgso4", v:w => b("ANTICONVULSANT")+h(`Dose: ${(w*50).toFixed(1)}mg BD | Vol: ${(w*50/500).toFixed(2)}ml BD (half karvu) (500mg/ml)`) },
+            { n:"Inj Lasix (Furosemide)", c:"Emergency", t:"lasix diuretic", v:w => b("DIURETIC")+h(`Dose: ${(w*1).toFixed(1)} to ${(w*2).toFixed(1)}mg | Vol: ${(w*1/10).toFixed(2)} to ${(w*2/10).toFixed(2)}ml`) },
+            { n:"Inj Hydrocortisone (Primacort)", c:"Emergency", t:"primacort steroid", v:w => b("STEROID")+h(`Dose: ${(w*2).toFixed(1)}mg | Vol: ${(w*2/50).toFixed(2)}ml BD/TDS`) },
+            { n:"Inj Dexona", c:"Emergency", t:"dexona steroid", v:w => b("STEROID")+h(`Stat: ${(w*0.4/4).toFixed(2)}ml | TDS: ${(w*0.2/4).toFixed(2)}ml (or ${ (0.15*w/4).toFixed(2)} direct)`) },
+            { n:"Inj Clexane", c:"Emergency", t:"clexane enoxaparin", v:w => b("ANTICOAGULANT")+h(`Vol: ${(w*1/100).toFixed(2)}ml (40mg/0.4ml -> 100mg/ml)`) },
+            { n:"Inj Ca Gluconate", c:"Emergency", t:"calcium", v:w => b("EMERGENCY")+h(`Give: ${(w*2).toFixed(1)}ml/kg slow IV in 2ml DW`) },
+            { n:"Inj Amiodarone", c:"Emergency", t:"amiodarone", v:w => b("ANTIARRHYTHMIC")+h(`Vol: ${(w*5/50).toFixed(2)}ml over 1hr (50mg/ml)`) },
+            { n:"Inj Lidocaine / Xylocard", c:"Emergency", t:"lidocaine", v:w => b("EMERGENCY")+h(`Give: ${(w*1).toFixed(1)}mg IV/IO`) },
+            { n:"Inj Sodium Bicarbonate", c:"Emergency", t:"bicarb", v:w => b("EMERGENCY")+h(`Give: ${(w*1).toFixed(1)}ml (Dilute 1:1)`) },
+            { n:"Inj Avil", c:"Emergency", t:"avil allergy", v:w => b("ANTIHISTAMINE")+h(`Dose: ${(w*0.5).toFixed(2)}mg/kg/day (TDS severe)`) },
+            { n:"Inj Tramadol", c:"Emergency", t:"tramadol", v:w => b("ANALGESIC")+h(`1amp in 100ml NS -> 30ml IV TDS`) },
+            { n:"Inj Fentanyl", c:"Emergency", t:"fentanyl", v:w => b("ANALGESIC")+h(`Dose: 1-5 micro/kg (50mcg/ml)`) },
+            { n:"Inj Sildenafil", c:"Emergency", t:"sildenafil", v:w => b("VASODILATOR")+h(`LD: ${(w*0.3).toFixed(2)}ml/kg (2hr) | MD: ${(w*0.2).toFixed(2)}ml/kg`) },
+            { n:"Inj Octreotide Acetate", c:"Emergency", t:"octreotide", v:w => b("INFUSION")+h(`Rate: 1 mcg/kg/hr (1amp=1ml=100mcg) in D5`) },
+            { n:"Inj Glycopyrrolate", c:"Emergency", t:"glycopyrrolate", v:w => b("IV TDS")+h(`Vol: ${(w*0.004).toFixed(3)} to ${(w*0.01).toFixed(3)}mg/dose`) },
+            { n:"Inj Robivax (Methocarbamol)", c:"Emergency", t:"robivax", v:w => b("RELAXANT")+h(`Vol: ${(w*15/100).toFixed(2)}ml q8h (100mg/ml)`) },
+            { n:"Inj Aminoven 10%", c:"Emergency", t:"aminoven nutrition", v:w => b("NUTRITION")+h(`Dose: 2.5-3.5 gm/kg/day (100ml=10gm)`) },
+            { n:"Inj Vitamin K (Kenadion)", c:"Emergency", t:"kenadion", v:w => b("COAGULANT")+h(`Give: ${(w*0.02).toFixed(3)}ml slow IV`) },
+            { n:"Inj Febrinil / Paracetamol", c:"Emergency", t:"febrinil pcm", v:w => b("ANTIPYRETIC")+h(`Vol (150mg/ml): ${(w*10/150).toFixed(2)} to ${(w*15/150).toFixed(2)}ml QDS`)+n(`Standard PCM: ${(w*0.1).toFixed(2)}ml in 20ml NS over 20m`) },
+            { n:"Inj Mucomix (Acetylcysteine)", c:"Emergency", t:"mucomix antidote", v:w => b("ANTIDOTE")+h(`Load: ${(w*150).toFixed(1)}mg in ${(w*3).toFixed(1)}ml D5W`) },
+            { n:"Inj Anti Snake Venom (ASV)", c:"Emergency", t:"asv", v:w => b("PROTOCOL")+h(`5 Ampules in 500ml D5 over 24hr`) },
+            { n:"Inj Dobutamine Infusion", c:"Emergency", t:"dobutamine inotrope", v:w => b("INOTROPE")+h(`Mix ${((w*30)/50).toFixed(2)}ml + ${(50-(w*30)/50).toFixed(2)}ml NS/D5 @1ml/hr`) },
+            { n:"Inj Dopamine Infusion", c:"Emergency", t:"dopamine inotrope", v:w => b("INOTROPE")+h(`Mix ${((w*30)/50).toFixed(2)}ml + ${(50-(w*30)/50).toFixed(2)}ml NS/D5 @1ml/hr`) },
+            { n:"Inj Milrinone Infusion", c:"Emergency", t:"milrinone inotrope", v:w => b("INOTROPE")+h(`Mix 1.5mg/kg in 50ml D5W @1ml/hr`) },
+            { n:"Hypoglycemia (RBS < 50)", c:"Emergency", t:"hypoglycemia rbs", v:w => b("GLUCOSE")+h(`D10%: ${(w*2).toFixed(2)}ml IV Stat`) },
 
-        function bicarbonateCorrection(weight, currentHco3, targetHco3 = 24){ return (0.3 * weight * (targetHco3 - currentHco3)).toFixed(1); }
+            // ================= ANTIBIOTICS =================
+            { n:"Inj Piperacillin & Tazobactam (Piptaz)", c:"Antibiotic", t:"piptaz pipzo", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*100).toFixed(1)}mg TDS`)+h(`Vol: ${w<=10?w.toFixed(2):(w/2).toFixed(2)}ml TDS`)+n(w<=10?"Dilute 1.125g in 10ml":"Dilute 4.5g in 20ml") },
+            { n:"Inj Amikacin (Smart Auto-Select)", c:"Antibiotic", t:"amikacin mikacin", v:w => { let k=w*15<=100?100:w*15<=250?250:500; return b("ANTIBIOTIC")+h(`Dose: ${(w*15).toFixed(1)}mg OD | Vol: ${(w*15/(k===100?50:k===250?125:250)).toFixed(2)}ml OD`)+n(`Auto-vial: ${k}mg/2ml`); } },
+            { n:"Inj Cefoperazone & Sulbactam (Zostum)", c:"Antibiotic", t:"zostum", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*50).toFixed(1)}mg BD/TDS | Vol: ${(w*0.5).toFixed(2)}ml (1g/10ml)`)+n("Or 500mg in 5ml DW") },
+            { n:"Inj Ceftriaxone (Monocef)", c:"Antibiotic", t:"monocef", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*50).toFixed(1)}mg | Vol: ${(w*0.5).toFixed(2)}ml (1g/10ml)`) },
+            { n:"Inj Cefotaxime (Taxim)", c:"Antibiotic", t:"taxim", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*50).toFixed(1)}mg | Vol: ${(w*0.5).toFixed(2)}ml TDS`) },
+            { n:"Inj Meropenem", c:"Antibiotic", t:"meropenem", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*20).toFixed(1)}mg TDS | Vol: ${(w*20/50).toFixed(2)}ml (500mg/10ml)`) },
+            { n:"Inj Vancomycin", c:"Antibiotic", t:"vancomycin", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*15).toFixed(1)}mg TDS | Vol: ${(w*15/50).toFixed(2)}ml`)+n("NICU: 10ml NS. PICU: 50ml NS over 1hr.") },
+            { n:"Inj Xylistin (Colistin)", c:"Antibiotic", t:"colistin", v:w => b("ANTIBIOTIC")+h(`Vol: ${(w*0.2).toFixed(2)}ml BD (25000 IU/kg)`)+n("1 MIU + 10ml DW") },
+            { n:"Inj Levofloxacin (Loxof)", c:"Antibiotic", t:"loxof levoflox", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*10).toFixed(1)}mg BD | Vol: ${(w*2).toFixed(2)}ml BD (5mg/ml)`) },
+            { n:"Inj Clindamycin", c:"Antibiotic", t:"clindamycin", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*10).toFixed(1)}mg TDS`)+n(`Formula: ${(w*10/150).toFixed(2)}ml + 9ml NS over 1hr`) },
+            { n:"Inj Tigecycline", c:"Antibiotic", t:"tigecycline", v:w => b("ANTIBIOTIC")+h(`LD: ${(w*2).toFixed(1)}mg -> ${(w*2/10).toFixed(2)}ml | MD: ${(w*1).toFixed(1)}mg -> ${(w*1/10).toFixed(2)}ml BD`)+n("50mg+5ml D5 -> 10ml D5") },
+            { n:"Inj Polymyxin-B", c:"Antibiotic", t:"polymyxin b", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*10000).toLocaleString()} IU BD | Vol: ${(w/5).toFixed(2)}ml`)+n("500k iu + 10ml NS. 5ml D5 ma over 1hr") },
+            { n:"Inj Magnex / Magnova", c:"Antibiotic", t:"magnex magnova", v:w => b("ANTIBIOTIC")+h(`Vol: ${w.toFixed(2)}ml IV BD`)+n("500mg in 10ml DW (Give Wt jetlu)") },
+            { n:"Inj Linezolid (Linospan)", c:"Antibiotic", t:"linezolid", v:w => b("ANTIBIOTIC")+h(`Vol: ${(w*5).toFixed(1)}ml IV TDS (2mg/ml)`) },
+            { n:"Inj Gentamycin", c:"Antibiotic", t:"gentamicin", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*5).toFixed(1)}mg OD | Vol: ${(w*5/40).toFixed(2)}ml (40mg/ml)`) },
+            { n:"Inj Ofloxacin", c:"Antibiotic", t:"ofloxacin", v:w => b("ANTIBIOTIC")+h(`Vol: ${(w*8).toFixed(1)}ml OD OR ${(w*2.5).toFixed(1)}ml BD`) },
+            { n:"Inj Ciprofloxacin", c:"Antibiotic", t:"ciprofloxacin", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*10).toFixed(1)}mg BD OR ${(w*5).toFixed(1)}ml BD`) },
+            { n:"Inj Metronidazole (Metrogyl)", c:"Antibiotic", t:"metrogyl", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*10).toFixed(1)}mg TDS | Vol: ${(w*2).toFixed(1)}ml TDS (Wt*2)`) },
+            { n:"Inj Ampiclox", c:"Antibiotic", t:"ampiclox", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*100).toFixed(1)}mg/day OR ${(w*0.5).toFixed(2)}ml QDS`) },
+            { n:"Inj Amoxycillin - Clavulanic Acid", c:"Antibiotic", t:"augmentin amoxycillin", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*90).toFixed(1)}mg OR ${(w*0.5).toFixed(2)}ml TDS`) },
+            { n:"Inj Netilmicin Sulphate", c:"Antibiotic", t:"netilmicin", v:w => b("ANTIBIOTIC")+h(`Dose: ${(w*5).toFixed(1)} to ${(w*7.5).toFixed(1)}mg/day`) },
+            { n:"Inj Fluconazole (Forcan)", c:"Antibiotic", t:"forcan", v:w => b("ANTIFUNGAL")+h(`LD: ${(w*5).toFixed(1)}ml Stat | MD: ${(w*2.5).toFixed(1)}ml OD`) },
+            { n:"Inj Ampho B Conventional", c:"Antibiotic", t:"ampho b", v:w => b("ANTIFUNGAL")+h(`Dose: ${(w*1).toFixed(1)}mg OD`)+n("50mg in 10ml D5. Calc dose in 10ml D10/1hr") },
+            { n:"Inj Acyclovir (Acivir)", c:"Antibiotic", t:"acyclovir acivir", v:w => b("ANTIVIRAL")+h(`Dose: ${(w*10).toFixed(1)}mg TDS | Vol: ${(w*10/25).toFixed(2)}ml TDS`)+n("Dilute in 20ml NS") },
+            { n:"Inj Falcigo (Artesunate)", c:"Antibiotic", t:"falcigo artesunate", v:w => b("ANTIMALARIAL")+h(`Dose: ${(w*4).toFixed(1)}mg`)+n("@0,12,24h then OD. 60mg+1ml bicarb+5ml ns") },
 
-        function acidBaseAnalysis(ph, pco2, hco3){
-            if(ph < 7.35){
-                if(pco2 > 45) return "Respiratory Acidosis";
-                if(hco3 < 22) return "Metabolic Acidosis";
-            }
-            if(ph > 7.45){
-                if(pco2 < 35) return "Respiratory Alkalosis";
-                if(hco3 > 26) return "Metabolic Alkalosis";
-            }
-            return "Near Normal / Mixed Disorder";
-        }
+            // ================= NEURO =================
+            { n:"Inj Fosolin (Fosphenytoin)", c:"Neuro", t:"fosolin", v:w => b("ANTICONVULSANT")+h(`LD: ${(w*20/50).toFixed(2)}ml + 20ml NS Stat`)+h(`MD: ${(w*5/50).toFixed(2)}ml BD`) },
+            { n:"Inj Levipil / Levera", c:"Neuro", t:"levipil", v:w => b("ANTICONVULSANT")+h(`LD: ${(w*0.2).toFixed(2)}ml Stat | MD: ${(w*0.1).toFixed(2)}ml BD`) },
+            { n:"Inj Valproate Sodium", c:"Neuro", t:"valproat", v:w => b("ANTICONVULSANT")+h(`LD: ${(w*0.2).toFixed(2)}ml | MD: ${(w*0.1).toFixed(2)}ml BD (100mg/ml)`) },
+            { n:"Inj Midaz (Midazolam)", c:"Neuro", t:"midaz", v:w => b("SEDATIVE")+h(`Vol: ${(w/10).toFixed(2)}ml IV Stat`) },
+            { n:"Inj Lopex (Lorazepam)", c:"Neuro", t:"lopex", v:w => b("ANTICONVULSANT")+h(`Vol: ${(w*0.05).toFixed(2)}ml (0.1mg/kg)`) },
+            { n:"Inj Mannitol", c:"Neuro", t:"mannitol", v:w => b("DIURETIC")+h(`LD: ${(w*5).toFixed(1)}ml/kg Stat | MD: ${(w*2).toFixed(1)}ml/kg Q6H`) },
+            { n:"Inj Gardinal (Phenobarbital)", c:"Neuro", t:"gardinal", v:w => b("ANTICONVULSANT")+h(`LD: ${w.toFixed(2)}ml Stat | MD: ${(w/8).toFixed(2)}ml BD`) },
+            { n:"Tab Haloperidol / Syp Beclof", c:"Neuro", t:"haloperidol trembling", v:w => b("TREMBLING")+h("Tab Haloperidol: 0.25mg BD")+h("Syp Beclof: According to wt") },
 
-        function amikacinDose(weight, strength){
-            let doseMg = weight * 15;
-            let concentration = strength === 100 ? 50 : (strength === 250 ? 125 : 250);
-            return { mg: doseMg.toFixed(1), ml: (doseMg / concentration).toFixed(2) };
-        }
+            // ================= SYRUPS =================
+            { n:"Syp Calpol / Sumol (Paracetamol)", c:"Syrup", t:"calpol sumol pcm", v:w => b("ANALGESIC")+h(`Dose: ${(w*15).toFixed(1)}mg TDS/QDS`)+h(`Vol(120/5): ${(w*0.6).toFixed(2)}ml | Vol(250/5): ${(w*0.3).toFixed(2)}ml`) },
+            { n:"Syp Ibuprofen (Ibugesic)", c:"Syrup", t:"ibuprofen", v:w => b("NSAID")+h(`Vol: ${(w*0.5).toFixed(2)}ml TDS (100mg/5ml)`) },
+            { n:"Syp Ibugesic PLUS", c:"Syrup", t:"ibugesic plus", v:w => b("NSAID")+h(`Vol: ${(w*0.4).toFixed(2)}ml TDS`) },
+            { n:"Syp Meftal-P", c:"Syrup", t:"meftal p", v:w => b("NSAID")+h(`Vol: ${(w*0.5).toFixed(2)}ml TDS`) },
+            { n:"Syp Furoped", c:"Syrup", t:"furoped lasix", v:w => b("DIURETIC")+h(`Vol: ${(w/10).toFixed(2)}ml (10mg/ml)`) },
+            { n:"Syp Fluvir", c:"Syrup", t:"fluvir oseltamivir", v:w => b("ANTIVIRAL")+h(`Vol: ${(w*3/12).toFixed(2)}ml PO BD`) },
+            { n:"Syp Septran", c:"Syrup", t:"septran", v:w => b("ANTIBIOTIC")+h(`Dose: 5-8 mg/kg/day BD`) },
+            { n:"Syp Evict (Lactulose)", c:"Syrup", t:"evict constipation", v:w => b("LAXATIVE")+h(`Vol: 5 ml H/S`) },
+            { n:"Syp Uplan Gel", c:"Syrup", t:"uplan acidity", v:w => b("ANTACID")+h(`Severe Acidity: 10ml BD`) },
+            { n:"Syp Promethazine", c:"Syrup", t:"promethazine rotu", v:w => b("SEDATIVE")+h(`Use: rotu/kankan kare tyare`) },
+            { n:"Syp Helamerz", c:"Syrup", t:"helamerz jaundice", v:w => b("HEPATOPROTECTIVE")+h(`According to Wt - BD`) },
+            { n:"Syp Udilive", c:"Syrup", t:"udilive", v:w => b("HEPATOPROTECTIVE")+h(`According to Wt - BD (125mg/5ml)`) },
+            { n:"Syp Bethadixin L", c:"Syrup", t:"bethadixin", v:w => b("SUPPLEMENT")+h(`Multivitamin Syrup`) },
+            { n:"Syp B Folidol / B Folcin", c:"Syrup", t:"folidol folcin", v:w => b("SUPPLEMENT")+h(`B-Complex / Folic Acid`) },
+            { n:"Syp Pedicrest", c:"Syrup", t:"pedicrest", v:w => b("ANALGESIC")+h(`Vol: ${(w*0.5).toFixed(2)}ml TDS`) },
+            { n:"Syp Dilo-Dx", c:"Syrup", t:"dilo dx cough", v:w => b("COUGH")+h(`Vol: ${(w*0.25).toFixed(2)}ml BD/TDS`) },
+            { n:"Syp Claribid", c:"Syrup", t:"claribid clarithromycin", v:w => b("ANTIBIOTIC")+h(`Dose: 7.5mg/kg BD | Vol(125/5): ${(w*7.5*5/125).toFixed(2)}ml BD`) },
+            { n:"Syp Calcimax-P", c:"Syrup", t:"calcimax calcium", v:w => b("SUPPLEMENT")+h(`Vol: 2.5 to 5 ml BD`) },
+            { n:"Syp KEP-D (Cefpodoxime)", c:"Syrup", t:"kep d", v:w => b("ANTIBIOTIC")+h(`Dose: 10mg/kg/day (Divide in BD)`) },
+            { n:"Syp Allegra", c:"Syrup", t:"allegra allergy", v:w => b("ANTIHISTAMINE")+h(`Vol: ${(w*0.5).toFixed(2)}ml BD (30mg/5ml)`) },
+            { n:"Syp Ascoril LS / Bricarex A", c:"Syrup", t:"ascoril ls bricarex cough", v:w => b("COUGH")+h(`Vol: ${(w*0.25).toFixed(2)} to ${(w*0.3).toFixed(2)}ml TDS`) },
+            { n:"Syp Cyclopam", c:"Syrup", t:"cyclopam spasm", v:w => b("ANTISPASMODIC")+h(`Vol: ${(w*0.4).toFixed(2)}ml TDS`) },
+            { n:"Syp Triclofos (Pedicloryl)", c:"Syrup", t:"triclofos pedicloryl sedation", v:w => b("SEDATIVE")+h(`Dose: 50mg/kg Stat | Vol: ${(w*50/100).toFixed(2)}ml (500mg/5ml)`) },
+            { n:"Syp LCF Kid / Zyrcol", c:"Syrup", t:"lcf kid zyrcol cold", v:w => b("COUGH/COLD")+h(`Vol: ${(w*0.25).toFixed(2)}ml BD`) },
 
-        function mgToMl(requiredMg, availableMg, availableMl){ return ((requiredMg * availableMl) / availableMg).toFixed(2); }
+            // ================= DROPS =================
+            { n:"Adonis Vernalis 200 or 1M", c:"Drops", t:"adonis ascites retention", v:w => b("HOMEOPATHIC")+h(`Water retention (kidney, lungs, ascites)<br>Dose: 200 or 1M dose`) },
+            { n:"Cap Depin Drops", c:"Drops", t:"depin bp", v:w => b("HYPERTENSION")+h(`2 drops sub lingual (jib niche) -> repeat 1/2 hr`) },
+            { n:"Drop Vitazyme", c:"Drops", t:"vitazyme candida", v:w => b("ANTIFUNGAL")+h(`Fungal oral candida care`) },
+            { n:"Drop Pru / Atarax (Hydroxyzine)", c:"Drops", t:"atarax pru allergy", v:w => b("ANTIHISTAMINE")+h(`Give: ${(w*1).toFixed(1)} drop/dose`) },
+            { n:"Ear Drop Otodac-dx", c:"Drops", t:"otodac ear", v:w => b("EAR DROP")+h(`For ear pus or infection`) },
+            { n:"Domstal Drops", c:"Drops", t:"domstal vomiting", v:w => b("ANTIEMETIC")+h(`Give: ${(w*1).toFixed(1)} drop TDS`) },
+            { n:"Sumol / Calpol Drops", c:"Drops", t:"sumol calpol", v:w => b("ANALGESIC")+h(`Give: ${(w*3).toFixed(1)} drops TDS (0.15 ml/dose)`) },
+            { n:"Z & D / Vitanova drops", c:"Drops", t:"zinc vitanova d3", v:(w,a,u) => b("SUPPLEMENT")+h(`Give: ${(!isNaN(a)&&((u==='Months'&&a>=6)||u==='Years'))?'10 drops BD':'5 drops BD'}`) },
 
-        function getSuggestion(gir, ag){
-            let msg = [];
-            if(gir < 4) msg.push("Increase glucose infusion");
-            if(gir > 12) msg.push("Reduce glucose infusion");
-            if(ag > 12) msg.push("Evaluate metabolic acidosis");
-            if(msg.length === 0) msg.push("Parameters acceptable");
-            return msg.join(" | ");
-        }
+            // ================= GI / TABS / TOPICAL =================
+            { n:"Inj Drotrin (Drotaverine)", c:"GI", t:"drotrin spasm", v:(w,a,u) => b("ANTISPASMODIC")+h((!isNaN(a)&&u==='Years'&&a>6)?"40mg/2ml TDS (>6 yrs)":"20mg/1ml TDS (1-6 yrs)") },
+            { n:"Inj Pantocid (Pantoprazole)", c:"GI", t:"pantocid", v:w => b("ANTACID")+h(`Vol: ${(w*1/10).toFixed(2)}ml IV BD (40mg+4ml DW)`) },
+            { n:"Inj Rantac (Ranitidine)", c:"GI", t:"rantac", v:w => b("ANTACID")+h(`Vol: ${(w*0.1).toFixed(2)}ml IV BD`)+n("NICU: 1amp in 10ml NS give wt jetlu BD") },
+            { n:"Inj Ondansetron (Periset/Ondem)", c:"GI", t:"ondansetron ondem", v:w => b("ANTIEMETIC")+h(`Vol: ${(w*0.07).toFixed(2)}ml BD/TDS (0.15mg/kg)`) },
+            { n:"Tab Vasosure", c:"GI", t:"vasosure", v:w => b("TABLET")+h(`1 tab in 20ml dw -> give wt jetlu TDS`) },
+            { n:"Tab Cabergolin 0.5mg", c:"GI", t:"cabergolin", v:w => b("TABLET")+h(`2 tab only for 2 days`) },
+            { n:"Tab Genpro-L", c:"GI", t:"genpro l breast", v:w => b("SUPPLEMENT")+h(`For breast milk: 7 days TDS`) },
+            { n:"Tab Udisafe 75mg", c:"GI", t:"udisafe", v:w => b("TABLET")+h(`BD`) },
+            { n:"Permatine 5% Lotion", c:"GI", t:"permatine scabies", v:w => b("TOPICAL")+h(`Apply for Scabies`) },
+            { n:"Fucidin Ointment", c:"GI", t:"fucidin dermatitis", v:w => b("TOPICAL")+h(`Dermatitis pediatric cream`) },
+            { n:"Lacto Calamine Lotion", c:"GI", t:"calamine itching", v:w => b("TOPICAL")+h(`Anti itching lotion`) },
 
-        function smartSearch(drug, search){
-            return (drug.name + " " + drug.tags).toLowerCase().includes(search.toLowerCase());
-        }
-
-        window.runGIR = function() {
-            let wt = parseFloat(document.getElementById('weight').value);
-            let dex = parseFloat(document.getElementById('girDex').value);
-            let rate = parseFloat(document.getElementById('girRate').value);
-            let res = document.getElementById('girResText');
-            if(!isNaN(dex) && !isNaN(rate) && wt > 0) {
-                let gir = calculateGIR(dex, rate, wt);
-                res.innerHTML = `GIR: ${gir} mg/kg/min <br><span style="font-size:12px; color:#4a5568;">${getSuggestion(gir, 0).split('|')[0]}</span>`;
-            } else { res.innerHTML = "Enter Dextrose % and Rate to calculate"; }
-        };
-
-        window.runABG = function() {
-            let wt = parseFloat(document.getElementById('weight').value);
-            let ph = parseFloat(document.getElementById('abgPh').value);
-            let pco2 = parseFloat(document.getElementById('abgPco2').value);
-            let hco3 = parseFloat(document.getElementById('abgHco3').value);
-            let na = parseFloat(document.getElementById('abgNa').value);
-            let cl = parseFloat(document.getElementById('abgCl').value);
-
-            if(!isNaN(ph) && !isNaN(pco2) && !isNaN(hco3)) document.getElementById('abgResText').innerHTML = `ABG Analysis: ${acidBaseAnalysis(ph, pco2, hco3)}`;
-            if(!isNaN(na) && !isNaN(cl) && !isNaN(hco3)) { let ag = calculateAnionGap(na, cl, hco3); document.getElementById('agResText').innerHTML = `Anion Gap: ${ag.gap} (${ag.result})`; }
-            if(!isNaN(hco3) && wt > 0) document.getElementById('bicarbResText').innerHTML = `HCO3 Deficit: ${bicarbonateCorrection(wt, hco3)} mEq`;
-        };
-
-        const drugs = [
-            // ================== TOOLS ==================
-            {
-                name: "UVC Line Fixation", category: "Calculators", tags: "uvc line fixation depth nicu umbilical",
-                calc: (wt) => `<div class="badge">PROCEDURE</div><br><div class="highlight">Fixation Depth: ${calculateUVC(wt)} cm</div>`
-            },
-            {
-                name: "GIR (Glucose Infusion Rate) Calculator", category: "Calculators", tags: "gir glucose infusion rate dextrose",
-                calc: (wt) => `<div class="badge">CALCULATOR</div><br><div class="calc-inputs"><input type="number" id="girDex" placeholder="% Dextrose" oninput="runGIR()"><input type="number" id="girRate" placeholder="Rate (ml/hr)" oninput="runGIR()"></div><div class="highlight" id="girResText" style="display:block; width:100%;">Enter Details to Calculate</div>`
-            },
-            {
-                name: "ABG, Anion Gap & Bicarb Calculator", category: "Calculators", tags: "abg anion gap acid base bicarbonate deficit hco3",
-                calc: (wt) => `<div class="badge">CALCULATOR</div><br><div class="calc-inputs" style="grid-template-columns:1fr 1fr 1fr;"><input type="number" id="abgPh" placeholder="pH" oninput="runABG()"><input type="number" id="abgPco2" placeholder="pCO2" oninput="runABG()"><input type="number" id="abgHco3" placeholder="HCO3" oninput="runABG()"></div><div class="calc-inputs" style="grid-template-columns:1fr 1fr;"><input type="number" id="abgNa" placeholder="Na+" oninput="runABG()"><input type="number" id="abgCl" placeholder="Cl-" oninput="runABG()"></div><div class="highlight" id="abgResText" style="display:block; margin-top:5px;">ABG: ...</div><div class="highlight" id="agResText" style="display:block; margin-top:5px;">Anion Gap: ...</div><div class="highlight" id="bicarbResText" style="display:block; margin-top:5px;">HCO3 Deficit: ...</div>`
-            },
-
-            // ================== MASTER DKA PROTOCOL (UPDATED) ==================
-            {
-                name: "🩸 DKA MASTER PROTOCOL (Fluid & Medication Guide)", category: "Fluids", tags: "dka insulin actrapid protocol diabetic ketoacidosis fluids",
-                calc: (wt) => {
-                    let bolus = wt * 20;
-                    let deficit = wt * 85;
-                    let maintenance = wt <= 10 ? (wt * 100) : (wt <= 20 ? (1000 + (wt-10)*50) : (1500 + (wt-20)*20));
-                    let totalFluid = deficit + maintenance;
-                    let remainingFluid = totalFluid - bolus;
-                    let rateHr = remainingFluid / 24;
-
-                    return `
-                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">DKA FLUID DYNAMICS</div><br>
-                    <div class="calc-result">• Initial Bolus (20 ml/kg): <b>${bolus.toFixed(1)} ml</b> Stat</div>
-                    <div class="calc-result">• Deficit Fluid (85 x Wt): <b>${deficit.toFixed(1)} ml</b></div>
-                    <div class="calc-result">• Maintenance Fluid: <b>${maintenance.toFixed(1)} ml</b></div>
-                    <div class="highlight" style="display:block; margin:5px 0;">👉 Total 24-Hr Remaining Fluid: ${remainingFluid.toFixed(1)} ml</div>
-                    <div class="highlight" style="display:block; background:#ebf8ff; color:#2b6cb0; border-color:#bee3f8;">⚡ Fluid Infusion Rate: ${rateHr.toFixed(1)} ml / hr</div>
-                    
-                    <div class="badge" style="background:#feebc8; color:#7b341e; margin-top:10px;">SUGAR MATRIX (RBS PINT SELECTION)</div>
-                    <div class="calc-result"><b>RBS < 250 mg/dl:</b> Give <b>0.45% DNS + 5ml KCl</b> pint</div>
-                    <div class="calc-result"><b>RBS > 250 mg/dl:</b> Give <b>0.45% NS + 5ml KCl</b> pint</div>
-                    
-                    <div class="badge" style="background:#e2e8f0; color:#44337a; margin-top:10px;">DKA MANDATORY MEDICINES</div>
-                    <div class="calc-result"><b>Antibiotic:</b> Inj Monocef (Ceftriaxone) ${((wt * 50)/100).toFixed(2)} ml BD (50mg/kg)</div>
-                    <div class="calc-result"><b>Supportive Care:</b></div>
-                    <div class="calc-result">- Inj Emset: ${(wt * 0.07).toFixed(2)} ml BD/TDS (0.15 mg/kg)</div>
-                    <div class="calc-result">- Inj Rantac: ${(wt * 0.1).toFixed(2)} ml IV BD (1 mg/kg)</div>
-                    <div class="calc-result">- Inj Febrinil: ${((wt * 10)/150).toFixed(2)} to ${((wt * 15)/150).toFixed(2)} ml/dose QDS</div>
-                    
-                    <hr style="border-top:1px dashed #cbd5e0; margin:10px 0;">
-                    <div class="badge" style="background:#e9d8fd; color:#44337a;">INSULIN PROTOCOL</div>
-                    <div class="calc-result">Mix 1ml (40 Unit) Actrapid Insulin in 40ml D5/NS -> Start Infusion @ 1 ml/hr</div>`;
-                }
-            },
-
-            // ================== NICU PROTOCOL ==================
-            {
-                name: "👶 COMPLETE NICU PROTOCOL", category: "NICU", tags: "nicu protocol intensive care",
-                calc: (wt) => {
-                    let fluidMatrix = wt < 1 ? "D1: 100 | D2: 120 | D3: 130 | D4: 140 | D5+: 150 ml/kg/day" : (wt <= 1.5 ? "D1: 80 | D2: 100 | D3: 120 | D4: 130 | D5: 140 | D6+: 150 ml/kg/day" : "D1: 60 | D2: 80 | D3: 100 | D4: 120 | D5: 130 | D6: 140 | D7+: 150 ml/kg/day");
-                    let piptaz = wt <= 10 ? `${wt.toFixed(2)} ml IV TDS (1.125g in 10ml)` : `${(wt/2).toFixed(2)} ml IV TDS (4.5g in 20ml)`;
-                    return `<div class="badge" style="background:#c6f6d5; color:#22543d;">IV FLUIDS</div><div class="highlight" style="font-size:13px; display:block;">${fluidMatrix}</div><div class="note">Day 1-3: D10% | Day >3: 0.45 DNS</div><div class="badge" style="background:#bee3f8; color:#2a4365; margin-top:10px;">FIXED MEDICINES</div><div class="highlight" style="display:block;">1. Piptaz: ${piptaz}</div><div class="highlight" style="display:block;">2. Zostum: ${(wt * 0.5).toFixed(2)} ml IV BD/TDS (from 1gm/10ml)</div><div class="highlight" style="display:block;">3. Dobutamine: ${((wt * 30)/50).toFixed(2)} ml + ${(50 - (wt*30)/50).toFixed(2)} ml D5% @ 1 ml/hr</div><div class="badge" style="background:#feebc8; color:#7b341e; margin-top:10px;">CONDITIONAL</div><div class="highlight" style="display:block;">Inj Capnea: LD ${wt.toFixed(2)} ml | MD ${(wt/4).toFixed(2)} ml OD</div><div class="highlight" style="display:block; margin-top:5px;">Inj Gardinal: LD ${wt.toFixed(2)} ml IV Stat | MD ${(wt/8).toFixed(2)} ml IV BD</div>`;
-                }
-            },
-
-            // ================== PICU PROTOCOL ==================
-            {
-                name: "🛏️ COMPLETE PICU PROTOCOL", category: "PICU", tags: "picu protocol intensive care",
-                calc: (wt) => {
-                    let fluid = wt <= 10 ? (wt * 100) : (wt <= 20 ? (1000 + (wt-10)*50) : (1500 + (wt-20)*20));
-                    let piptaz = wt <= 10 ? `${wt.toFixed(2)} ml IV TDS` : `${(wt/2).toFixed(2)} ml IV TDS`;
-                    let amikRes = amikacinDose(wt, wt*15 <= 100 ? 100 : (wt*15 <= 250 ? 250 : 500));
-                    return `<div class="badge" style="background:#c6f6d5; color:#22543d;">IV FLUIDS</div><div class="highlight" style="display:block;">Total 24 hr: ${fluid.toFixed(0)} ml | Rate: ${(fluid/24).toFixed(1)} ml/hr</div><div class="badge" style="background:#bee3f8; color:#2a4365; margin-top:10px;">PICU MEDICINES</div><div class="highlight" style="display:block;">1. Monocef: ${((wt * 50)/100).toFixed(2)} ml BD</div><div class="highlight" style="display:block;">2. Amikacin: ${amikRes.ml} ml OD</div><div class="highlight" style="display:block;">3. Piptaz: ${piptaz}</div><div class="highlight" style="display:block;">4. Vancomycin: ${((wt * 15)/50).toFixed(2)} ml TDS</div>`;
-                }
-            },
-
-            // ================== ANTIBIOTICS ==================
-            {
-                name: "Inj Piperacillin & Tazobactam (Piptaz / Pipzo)", category: "Antibiotic", tags: "piperacillin tazobactam pipzo piptaz",
-                calc: (wt) => {
-                    let mg = wt * 100;
-                    return wt <= 10 ? `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${mg.toFixed(1)} mg TDS</div><div class="highlight">Volume: ${wt.toFixed(2)} ml TDS</div><div class="note">Dilute 1.125gm in 10 ml SW. Give ${wt.toFixed(2)} ml.</div>` : `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${mg.toFixed(1)} mg TDS</div><div class="highlight">Volume: ${(wt/2).toFixed(2)} ml TDS</div><div class="note">Dilute 4.5gm in 20ml or 2.25gm in 10ml.</div>`;
-                }
-            },
-            {
-                name: "Inj Amikacin (Smart Auto-Select)", category: "Antibiotic", tags: "amikacin mikacin",
-                calc: (wt) => {
-                    let mg = wt * 15; let strength = mg <= 100 ? 100 : (mg <= 250 ? 250 : 500); let res = amikacinDose(wt, strength);
-                    return `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${res.mg} mg OD</div><div class="highlight">Volume: ${res.ml} ml OD</div><div class="note">Auto-selected <b>${strength}mg/2ml</b> vial.</div>`;
-                }
-            },
-            { name: "Inj Cefoperazone & Sulbactam (Zostum)", category: "Antibiotic", tags: "zostum", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD/TDS</div><div class="highlight">Volume: ${(wt*0.5).toFixed(2)} ml BD/TDS (from 1g/10ml)</div>` },
-            { name: "Inj Levofloxacin (Loxof)", category: "Antibiotic", tags: "loxof", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*10).toFixed(1)} mg BD</div><div class="highlight">Volume: ${(wt*2).toFixed(2)} ml BD (from 5mg/ml)</div>` },
-            { name: "Inj Gentamycin", category: "Antibiotic", tags: "gentamicin", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*5).toFixed(1)} mg OD</div><div class="highlight">Volume: ${(wt*5/40).toFixed(2)} ml OD (40mg/ml)</div>` },
-            { name: "Inj Ceftriaxone (Monocef)", category: "Antibiotic", tags: "monocef", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg/dose</div><div class="highlight">Volume: ${(wt*50/100).toFixed(2)} ml (1g/10ml)</div>` },
-            { name: "Inj Cefotaxime (Taxim)", category: "Antibiotic", tags: "taxim", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg/dose</div><div class="highlight">Volume: ${(wt*50/100).toFixed(2)} ml TDS</div>` },
-            { name: "Inj Meropenem", category: "Antibiotic", tags: "meropenem", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*20).toFixed(1)} mg TDS</div><div class="highlight">Volume: ${(wt*20/50).toFixed(2)} ml (500mg/10ml)</div>` },
-            { name: "Inj Vancomycin", category: "Antibiotic", tags: "vancomycin", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS</div><div class="highlight">Volume: ${(wt*15/50).toFixed(2)} ml</div>` },
-            { name: "Inj Xylistin (Colistin)", category: "Antibiotic", tags: "colistin", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Volume: ${(wt*0.2).toFixed(2)} ml BD (25000 IU/kg)</div>` },
-
-            // ================== EMERGENCY ==================
-            { name: "Inj Magnesium Sulphate (MgSO4)", category: "Emergency", tags: "mgso4", calc: (wt) => `<div class="badge">ANTICONVULSANT</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD</div><div class="highlight">Volume: ${(wt*50/500).toFixed(2)} ml BD (500mg/ml)</div>` },
-            { name: "Inj Hydrocortisone (Primacort)", category: "Emergency", tags: "primacort", calc: (wt) => `<div class="badge">STEROID</div><br><div class="highlight">Dose: ${(wt*2).toFixed(1)} mg</div><div class="highlight">Volume: ${(wt*2/50).toFixed(2)} ml (100mg/2ml)</div>` },
-            { name: "Inj Dexona", category: "Emergency", tags: "dexona", calc: (wt) => `<div class="badge">STEROID</div><br><div class="highlight">Stat: ${(wt*0.4/4).toFixed(2)} ml</div><div class="highlight" style="margin-top:5px;">TDS: ${(wt*0.2/4).toFixed(2)} ml TDS (4mg/ml)</div>` },
-            { name: "Inj Clexane", category: "Emergency", tags: "clexane", calc: (wt) => `<div class="badge">ANTICOAGULANT</div><br><div class="highlight">Volume: ${(wt*1/100).toFixed(2)} ml (40mg/0.4ml)</div>` },
-            { name: "Inj Fluconazole (Forcan)", category: "Antibiotic", tags: "forcan", calc: (wt) => `<div class="badge">ANTIFUNGAL</div><br><div class="highlight">LD: ${(wt*5).toFixed(1)} ml Stat</div><div class="highlight" style="margin-top:5px;">MD: ${(wt*2.5).toFixed(1)} ml OD</div>` },
-            { name: "Inj Acyclovir", category: "Antibiotic", tags: "acyclovir", calc: (wt) => `<div class="badge">ANTIVIRAL</div><br><div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS</div><div class="highlight">Volume: ${(wt*10/25).toFixed(2)} ml TDS (25mg/ml)</div>` },
-            { name: "Inj Calcium Gluconate", category: "Emergency", tags: "calcium", calc: (wt) => `<div class="badge">EMERGENCY</div><br><div class="highlight">Give: ${(wt*2).toFixed(1)} ml/kg slow IV in 2ml DW dilution</div>` },
-            { name: "Inj Amiodarone", category: "Emergency", tags: "amiodarone", calc: (wt) => `<div class="badge">ANTIARRHYTHMIC</div><br><div class="highlight">Volume: ${(wt*5/50).toFixed(2)} ml over 1 hr (50mg/ml)</div>` },
-            { name: "Inj Robivax", category: "Emergency", tags: "robivax", calc: (wt) => `<div class="badge">MUSCLE RELAXANT</div><br><div class="highlight">Volume: ${(wt*15/100).toFixed(2)} ml every 8 hr (100mg/ml)</div>` },
-            { name: "Inj Fentanyl", category: "Emergency", tags: "fentanyl", calc: (wt) => `<div class="badge">ANALGESIC</div><br><div class="highlight">Dose: ${(wt*1).toFixed(1)} to ${(wt*5).toFixed(1)} mcg/hr (50mcg/ml)</div>` },
-            { name: "Inj Sildenafil", category: "Emergency", tags: "sildenafil", calc: (wt) => `<div class="badge">VASODILATOR</div><br><div class="highlight">LD: ${(wt*0.3).toFixed(2)} ml/kg for 2 hr</div><div class="highlight" style="margin-top:5px;">MD: ${(wt*0.2).toFixed(2)} ml/kg</div>` },
-            { name: "Inj Anti Snake Venom (ASV)", category: "Emergency", tags: "asv", calc: (wt) => `<div class="badge">PROTOCOL</div><br><div class="highlight">Infuse 5 Ampules in 500ml D5 over 24 hr</div>` },
-
-            // ================== JUNI DRUGS RESTORED ==================
-            { name: "Syp Calpol (Tylenol)", category: "Syrup", tags: "calpol", calc: (wt) => `<div class="badge">ANALGESIC</div><br><div class="highlight">Vol (120mg/5ml): ${(wt*0.6).toFixed(2)} ml TDS</div>` },
-            { name: "Syp Ibuprofen", category: "Syrup", tags: "ibuprofen", calc: (wt) => `<div class="badge">NSAID</div><br><div class="highlight">Give: ${(wt*0.5).toFixed(2)} ml TDS (100mg/5ml)</div>` },
-            { name: "Syp Meftal - P", category: "Syrup", tags: "meftal", calc: (wt) => `<div class="badge">NSAID</div><br><div class="highlight">Volume: ${(wt*0.5).toFixed(2)} ml TDS</div>` },
-            { name: "Sumol / Calpol Drops", category: "Drops", tags: "paracetamol", calc: (wt) => `<div class="badge">ANALGESIC</div><br><div class="highlight">Give: ${(wt*3).toFixed(1)} drops TDS (0.15 ml/dose)</div>` },
-            { name: "Domstal Drops", category: "Drops", tags: "domstal", calc: (wt) => `<div class="badge">ANTIEMETIC</div><br><div class="highlight">Give: ${(wt*1).toFixed(1)} drop TDS</div>` }
+            // ================= FORMULA =================
+            { n:"LBW Pre NAN, Similac", c:"Formula", t:"pre nan similac", v:w => b("FORMULA")+h("Weight: Below 2.5 kg") },
+            { n:"NAN-1, Dexolac-1, Lactogen-1", c:"Formula", t:"nan 1", v:w => b("FORMULA")+h("Age: 2.5kg to 6 months") },
+            { n:"NAN-2, Similac-2, Dexolac-2", c:"Formula", t:"nan 2", v:w => b("FORMULA")+h("Age: 6 months to 1 year") },
+            { n:"PediaSure, NAN Grow, Groviva", c:"Formula", t:"pediasure", v:w => b("FORMULA")+h("Age: 2 to 5 Years") }
         ];
 
-        function setCategory(cat, btn) {
-            currentCategory = cat;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            calculate();
-        }
+        let curCat = 'All';
+        function setCat(c, b){ curCat=c; document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); calcAll(); }
 
-        function calculate() {
-            let wt = parseFloat(document.getElementById('weight').value);
-            let age = parseFloat(document.getElementById('age').value);
-            let ageUnit = document.getElementById('ageUnit').value;
-            let search = document.getElementById('search').value.toLowerCase();
-            let resultsDiv = document.getElementById('results');
-            let modeBadge = document.getElementById('patientModeBadge');
-
-            if (!isNaN(age)) {
-                modeBadge.style.display = "block";
-                modeBadge.innerText = `👤 Patient Mode: ${getPatientMode(age, ageUnit)}`;
-            } else { modeBadge.style.display = "none"; }
-
-            if (isNaN(wt) || wt <= 0) {
-                resultsDiv.innerHTML = '<p style="text-align:center; color:#718096; margin-top: 30px;">Please enter weight to see calculated doses.</p>';
-                return;
-            }
-
-            let html = "";
-            drugs.forEach(drug => {
-                if (currentCategory !== 'All' && drug.category !== currentCategory) return;
-                if (search && !smartSearch(drug, search)) return;
-                
-                let cardClass = "card";
-                if(drug.category === "Emergency") cardClass += " emergency";
-                if(drug.category === "Fluids" || drug.category === "Drops" || drug.category === "Formula") cardClass += " fluids";
-                if(drug.category === "Neuro") cardClass += " neuro";
-                if(drug.category === "NICU" || drug.category === "PICU") cardClass += " protocol";
-                if(drug.category === "Calculators") cardClass += " tools";
-
-                html += `<div class="${cardClass}">
-                            <div class="drug-name">${drug.name}</div>
-                            ${drug.calc(wt, age, ageUnit)}
-                            <button class="copy-btn" onclick="copyDose(this)">📋 Copy Dose</button>
-                         </div>`;
+        function calcAll() {
+            let w=parseFloat(document.getElementById('weight').value), a=parseFloat(document.getElementById('age').value), u=document.getElementById('ageUnit').value, s=document.getElementById('search').value.toLowerCase(), d=document.getElementById('results'), mb=document.getElementById('patientModeBadge');
+            if(!isNaN(a)){ mb.style.display="block"; mb.innerText=`👤 Patient Mode: ${getPatientMode(a,u)}`; } else mb.style.display="none";
+            if(isNaN(w)||w<=0){ d.innerHTML='<p style="text-align:center; color:#718096; margin-top:30px;">Please enter weight.</p>'; return; }
+            let html="";
+            arr.forEach(x=>{
+                if(curCat!=='All' && x.c!==curCat) return;
+                if(s && !smartSearch(x,s)) return;
+                let cls="card";
+                if(x.c==="Emergency") cls+=" emergency"; else if(x.c==="Fluids"||x.c==="Drops"||x.c==="Formula") cls+=" fluids"; else if(x.c==="Neuro") cls+=" neuro"; else if(x.c==="NICU"||x.c==="PICU") cls+=" protocol"; else if(x.c==="Calculators") cls+=" tools";
+                html+=`<div class="${cls}"><div class="drug-name">${x.n}</div>${x.v(w,a,u)}<button class="copy-all-btn" style="margin-top:8px; padding:6px; font-size:14px;" onclick="cp(this)">📋 Copy Dose</button></div>`;
             });
-
-            if(html === "") html = '<p style="text-align:center; color:#718096; margin-top: 30px;">No medicines found.</p>';
-            resultsDiv.innerHTML = html;
+            d.innerHTML = html||'<p style="text-align:center; color:#718096; margin-top:30px;">No medicines found.</p>';
         }
 
-        function copyDose(btn) {
-            const card = btn.closest('.card');
-            let text = card.innerText.replace("📋 Copy Dose", "").replace("✅ Copied", "").trim();
-            navigator.clipboard.writeText(text).then(() => {
-                btn.innerText = "✅ Copied";
-                setTimeout(() => { btn.innerText = "📋 Copy Dose"; }, 1500);
-            });
-        }
-
-        function copyAllResults() {
-            const cards = document.querySelectorAll('.card');
-            let wt = document.getElementById('weight').value;
-            let age = document.getElementById('age').value;
-            let ageUnit = document.getElementById('ageUnit').value;
-
-            if (!wt) { alert("Please enter weight first!"); return; }
-
-            let text = "PEDIATRIC DOSE CALCULATOR\n========================\n";
-            text += `Weight : ${wt} kg\n`;
-            if (age) text += `Age : ${age} ${ageUnit}\n\n`;
-
-            cards.forEach(card => {
-                let cardText = card.innerText.replace("📋 Copy Dose", "").replace("✅ Copied", "").trim();
-                text += cardText + "\n\n--------------------------------\n\n";
-            });
-
-            navigator.clipboard.writeText(text).then(() => { alert("✅ All results copied successfully!"); });
-        }
+        function cp(b){ let txt=b.closest('.card').innerText.replace("📋 Copy Dose","").trim(); navigator.clipboard.writeText(txt); b.innerText="✅ Copied"; setTimeout(()=>b.innerText="📋 Copy Dose",1500); }
+        function copyAll(){ let w=document.getElementById('weight').value, a=document.getElementById('age').value, u=document.getElementById('ageUnit').value; if(!w){alert("Enter weight!");return;} let t=`PEDIATRIC DOSE CALCULATOR\nWeight: ${w} kg\n`+(a?`Age: ${a} ${u}\n\n`:"\n"); document.querySelectorAll('.card').forEach(x=>t+=x.innerText.replace("📋 Copy Dose","").trim()+"\n\n---\n\n"); navigator.clipboard.writeText(t); alert("✅ Copied!"); }
     </script>
 </body>
 </html>
