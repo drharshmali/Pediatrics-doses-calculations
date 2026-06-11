@@ -41,18 +41,20 @@
 <body>
     <div class="sticky-header">
         <h2>Pediatric Dose Calculator</h2>
- function getPatientMode(age, ageUnit){
-            let days = 0;
-            if(ageUnit === "Days") days = age;
-            else if(ageUnit === "Months") days = age * 30;
-            else if(ageUnit === "Years") days = age * 365;
-            
-            if (days <= 28) {
-                return "આ NICU નું પેશન્ટ છે (≤ 28 Days)";
-            } else {
-                return "આ PICU નું પેશન્ટ છે (> 28 Days)";
-            }
+ <script>
+    function getPatientMode(age, ageUnit) {
+        let days = 0;
+        if(ageUnit === "Days") days = age;
+        else if(ageUnit === "Months") days = age * 30;
+        else if(ageUnit === "Years") days = age * 365;
+
+        if (days <= 28) {
+            return "NICU";
+        } else {
+            return "PICU";
         }
+    }
+</script>
                             <option value="Days">Days</option><option value="Months">Months</option><option value="Years" selected>Years</option>
                         </select>
                     </div>
