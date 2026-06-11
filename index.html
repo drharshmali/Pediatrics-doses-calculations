@@ -41,18 +41,18 @@
 <body>
     <div class="sticky-header">
         <h2>Pediatric Dose Calculator</h2>
-        <div id="patientModeBadge" style="text-align:center; margin-bottom:8px; font-weight:800; font-size:18px; color:#6b46c1; display:none;"></div>
-        <div class="header-card">
-            <div class="input-group">
-                <div>
-                    <label>Weight (kg) - વજન</label>
-                    <input type="number" id="weight" step="0.1" placeholder="e.g., 10" oninput="calcAll()">
-                </div>
-                <div>
-                    <label>Age - ઉંમર</label>
-                    <div class="age-container">
-                        <input type="number" id="age" step="1" placeholder="Value" oninput="calcAll()">
-                        <select id="ageUnit" onchange="calcAll()">
+ function getPatientMode(age, ageUnit){
+            let days = 0;
+            if(ageUnit === "Days") days = age;
+            else if(ageUnit === "Months") days = age * 30;
+            else if(ageUnit === "Years") days = age * 365;
+            
+            if (days <= 28) {
+                return "આ NICU નું પેશન્ટ છે (≤ 28 Days)";
+            } else {
+                return "આ PICU નું પેશન્ટ છે (> 28 Days)";
+            }
+        }
                             <option value="Days">Days</option><option value="Months">Months</option><option value="Years" selected>Years</option>
                         </select>
                     </div>
@@ -168,7 +168,6 @@
             { n:"Inj Lopex (Lorazepam)", c:"Neuro", t:"lopex", v:w => b("ANTICONVULSANT")+h(`Vol: ${(w*0.05).toFixed(2)}ml (0.1mg/kg)`) },
             { n:"Inj Mannitol", c:"Neuro", t:"mannitol", v:w => b("DIURETIC")+h(`LD: ${(w*5).toFixed(1)} ml Stat | MD: ${(w*2).toFixed(1)} ml Q6H`) },
             { n:"Inj Gardinal (Phenobarbital)", c:"Neuro", t:"gardinal", v:w => b("ANTICONVULSANT")+h(`LD: ${w.toFixed(2)}ml Stat | MD: ${(w/8).toFixed(2)}ml BD`) },
-            { n:"Tab Haloperidol / Syp Beclof", c:"Neuro", t:"haloperidol trembling", v:w => b("TREMBLING")+h("Tab Haloperidol: 0.25mg BD")+h("Syp Beclof: According to wt") },
 
             // ================= SYRUPS =================
             { n:"Syp Calpol / Sumol (Paracetamol)", c:"Syrup", t:"calpol sumol pcm", v:w => b("ANALGESIC")+h(`Dose: ${(w*15).toFixed(1)}mg TDS/QDS`)+h(`Vol(120/5): ${(w*0.6).toFixed(2)}ml | Vol(250/5): ${(w*0.3).toFixed(2)}ml`) },
@@ -179,12 +178,7 @@
             { n:"Syp Fluvir", c:"Syrup", t:"fluvir oseltamivir", v:w => b("ANTIVIRAL")+h(`Vol: ${(w*3/12).toFixed(2)}ml PO BD`) },
             { n:"Syp Septran", c:"Syrup", t:"septran", v:w => b("ANTIBIOTIC")+h(`Dose: 5-8 mg/kg/day BD`) },
             { n:"Syp Evict (Lactulose)", c:"Syrup", t:"evict constipation", v:w => b("LAXATIVE")+h(`Vol: 5 ml H/S`) },
-            { n:"Syp Uplan Gel", c:"Syrup", t:"uplan acidity", v:w => b("ANTACID")+h(`Severe Acidity: 10ml BD`) },
-            { n:"Syp Promethazine", c:"Syrup", t:"promethazine rotu", v:w => b("SEDATIVE")+h(`Use: rotu/kankan kare tyare`) },
-            { n:"Syp Helamerz", c:"Syrup", t:"helamerz jaundice", v:w => b("HEPATOPROTECTIVE")+h(`According to Wt - BD`) },
-            { n:"Syp Udilive", c:"Syrup", t:"udilive", v:w => b("HEPATOPROTECTIVE")+h(`According to Wt - BD (125mg/5ml)`) },
-            { n:"Syp Bethadixin L", c:"Syrup", t:"bethadixin", v:w => b("SUPPLEMENT")+h(`Multivitamin Syrup`) },
-            { n:"Syp B Folidol / B Folcin", c:"Syrup", t:"folidol folcin", v:w => b("SUPPLEMENT")+h(`B-Complex / Folic Acid`) },
+        
             { n:"Syp Pedicrest", c:"Syrup", t:"pedicrest", v:w => b("ANALGESIC")+h(`Vol: ${(w*0.5).toFixed(2)}ml TDS`) },
             { n:"Syp Dilo-Dx", c:"Syrup", t:"dilo dx cough", v:w => b("COUGH")+h(`Vol: ${(w*0.25).toFixed(2)}ml BD/TDS`) },
             { n:"Syp Claribid", c:"Syrup", t:"claribid clarithromycin", v:w => b("ANTIBIOTIC")+h(`Dose: 7.5mg/kg BD | Vol(125/5): ${(w*7.5*5/125).toFixed(2)}ml BD`) },
@@ -197,9 +191,7 @@
             { n:"Syp LCF Kid / Zyrcol", c:"Syrup", t:"lcf kid zyrcol cold", v:w => b("COUGH/COLD")+h(`Vol: ${(w*0.25).toFixed(2)}ml BD`) },
 
             // ================= DROPS =================
-            { n:"Adonis Vernalis 200 or 1M", c:"Drops", t:"adonis ascites retention", v:w => b("HOMEOPATHIC")+h(`Water retention (kidney, lungs, ascites)<br>Dose: 200 or 1M dose`) },
-            { n:"Cap Depin Drops", c:"Drops", t:"depin bp", v:w => b("HYPERTENSION")+h(`2 drops sub lingual (jib niche) -> repeat 1/2 hr`) },
-            { n:"Drop Vitazyme", c:"Drops", t:"vitazyme candida", v:w => b("ANTIFUNGAL")+h(`Fungal oral candida care`) },
+           
             { n:"Drop Pru / Atarax (Hydroxyzine)", c:"Drops", t:"atarax pru allergy", v:w => b("ANTIHISTAMINE")+h(`Give: ${(w*1).toFixed(1)} drop/dose`) },
             { n:"Ear Drop Otodac-dx", c:"Drops", t:"otodac ear", v:w => b("EAR DROP")+h(`For ear pus or infection`) },
             { n:"Domstal Drops", c:"Drops", t:"domstal vomiting", v:w => b("ANTIEMETIC")+h(`Give: ${(w*1).toFixed(1)} drop TDS`) },
@@ -213,11 +205,7 @@
             { n:"Inj Ondansetron (Periset/Ondem)", c:"GI", t:"ondansetron ondem", v:w => b("ANTIEMETIC")+h(`Vol: ${(w*0.07).toFixed(2)}ml BD/TDS (0.15mg/kg)`) },
             { n:"Tab Vasosure", c:"GI", t:"vasosure", v:w => b("TABLET")+h(`1 tab in 20ml dw -> give wt jetlu TDS`) },
             { n:"Tab Cabergolin 0.5mg", c:"GI", t:"cabergolin", v:w => b("TABLET")+h(`2 tab only for 2 days`) },
-            { n:"Tab Genpro-L", c:"GI", t:"genpro l breast", v:w => b("SUPPLEMENT")+h(`For breast milk: 7 days TDS`) },
-            { n:"Tab Udisafe 75mg", c:"GI", t:"udisafe", v:w => b("TABLET")+h(`BD`) },
-            { n:"Permatine 5% Lotion", c:"GI", t:"permatine scabies", v:w => b("TOPICAL")+h(`Apply for Scabies`) },
-            { n:"Fucidin Ointment", c:"GI", t:"fucidin dermatitis", v:w => b("TOPICAL")+h(`Dermatitis pediatric cream`) },
-            { n:"Lacto Calamine Lotion", c:"GI", t:"calamine itching", v:w => b("TOPICAL")+h(`Anti itching lotion`) },
+            
 
             // ================= FORMULA =================
             { n:"LBW Pre NAN, Similac", c:"Formula", t:"pre nan similac", v:w => b("FORMULA")+h("Weight: Below 2.5 kg") },
@@ -233,31 +221,76 @@
             return ((drug.n || "") + " " + (drug.t || "")).toLowerCase().includes(search.toLowerCase());
         }
 
-        function calcAll() {
-            let w=parseFloat(document.getElementById('weight').value), a=parseFloat(document.getElementById('age').value), u=document.getElementById('ageUnit').value, s=document.getElementById('search').value.toLowerCase(), d=document.getElementById('results'), mb=document.getElementById('patientModeBadge');
+        function calculate() {
+            let w = parseFloat(document.getElementById('weight').value);
+            let a = parseFloat(document.getElementById('age').value);
+            let u = document.getElementById('ageUnit').value;
+            let s = document.getElementById('search').value.toLowerCase();
+            let d = document.getElementById('results');
+            let mb = document.getElementById('patientModeBadge');
             
-            if(!isNaN(a)){ mb.style.display="block"; mb.innerText=`👤 Patient Mode: ${getPatientMode(a,u)}`; } else mb.style.display="none";
-            if(isNaN(w)||w<=0){ d.innerHTML='<p style="text-align:center; color:#718096; margin-top:30px;">Please enter weight to see calculated doses.</p>'; return; }
+            if(!isNaN(a) && a >= 0){ 
+                mb.style.display="block"; 
+                mb.innerText=`👤 ${getPatientMode(a,u)}`; 
+            } else { 
+                mb.style.display="none"; 
+            }
+
+            if(isNaN(w) || w <= 0){ 
+                d.innerHTML='<p style="text-align:center; color:#718096; margin-top:30px;">Please enter weight to see calculated doses.</p>'; 
+                return; 
+            }
             
             let grouped = {};
-            arr.forEach(x => {
-                if(curCat !== 'All' && x.c !== curCat) return;
+            drugs.forEach(x => {
+                if(currentCategory !== 'All' && x.category !== currentCategory) return;
                 if(s && !smartSearch(x, s)) return;
-                if(!grouped[x.c]) grouped[x.c] = [];
                 
-                let cls="card";
-                if(x.c==="Emergency") cls+=" emergency"; else if(x.c==="Fluids"||x.c==="Drops"||x.c==="Formula") cls+=" fluids"; else if(x.c==="Neuro") cls+=" neuro"; else if(x.c==="NICU"||x.c==="PICU") cls+=" protocol"; else if(x.c==="Calculators") cls+=" tools";
+                // ઓટોમેટિક NICU / PICU અલગ કરવાની કન્ડિશન
+                if(!isNaN(a) && a >= 0) {
+                    let mode = getPatientMode(a, u);
+                    if(mode.includes("NICU") && x.category === "PICU") return; // NICU માં PICU હાઈડ કરો
+                    if(mode.includes("PICU") && x.category === "NICU") return; // PICU માં NICU હાઈડ કરો
+                }
                 
-                grouped[x.c].push(`<div class="${cls}"><div class="drug-name">${x.n}</div>${x.v(w,a,u)}<button class="copy-all-btn" style="margin-top:8px; padding:6px; font-size:14px;" onclick="cp(this)">📋 Copy Dose</button></div>`);
+                if(!grouped[x.category]) grouped[x.category] = [];
+                
+                let cls = "card";
+                if(x.category === "Emergency") cls += " emergency"; 
+                else if(x.category === "Fluids" || x.category === "Drops" || x.category === "Formula") cls += " fluids"; 
+                else if(x.category === "Neuro") cls += " neuro"; 
+                else if(x.category === "NICU" || x.category === "PICU") cls += " protocol"; 
+                else if(x.category === "Calculators") cls += " tools";
+                
+                let cardHtml = `
+                    <div class="${cls}">
+                        <div class="drug-name">${x.name}</div>
+                        ${x.calc(w, a, u)}
+                        <button class="copy-all-btn" style="margin-top:8px; padding:6px; font-size:14px;" onclick="copyDose(this)">📋 Copy Dose</button>
+                    </div>`;
+                    
+                grouped[x.category].push(cardHtml);
             });
 
             let html = "";
             let catOrder = ["Calculators", "NICU", "PICU", "Emergency", "Fluids", "Antibiotic", "Neuro", "Syrup", "Drops", "GI", "Formula"];
-            let catTitles = { "Calculators": "🧮 Calculators & Tools", "NICU": "👶 NICU Protocol", "PICU": "🛏️ PICU Protocol", "Emergency": "🚨 Emergency & Airway", "Fluids": "💧 Fluids & DKA", "Antibiotic": "💊 Antibiotics", "Neuro": "🧠 Neuro & Seizure", "Syrup": "🥄 Syrups", "Drops": "💧 Drops", "GI": "🩺 GI, Tablets & Topical", "Formula": "🍼 Infant Formulas" };
+            let catTitles = { 
+                "Calculators": "🧮 Calculators & Tools", 
+                "NICU": "👶 NICU Protocol", 
+                "PICU": "🛏️ PICU Protocol", 
+                "Emergency": "🚨 Emergency & Airway", 
+                "Fluids": "💧 Fluids & DKA", 
+                "Antibiotic": "💊 Antibiotics", 
+                "Neuro": "🧠 Neuro & Seizure", 
+                "Syrup": "🥄 Syrups", 
+                "Drops": "💧 Drops", 
+                "GI": "🩺 GI, Tablets & Topical", 
+                "Formula": "🍼 Infant Formulas" 
+            };
 
             catOrder.forEach(c => {
                 if(grouped[c] && grouped[c].length > 0) {
-                    if(curCat === 'All' || s) {
+                    if(currentCategory === 'All' || s) {
                         html += `<div class="cat-header">${catTitles[c]}</div>`;
                     }
                     html += grouped[c].join("");
