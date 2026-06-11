@@ -28,7 +28,6 @@
         .copy-all-btn { width:100%; margin-top:10px; padding:12px; background:#3182ce; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; }
         .calc-inputs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0; }
         
-        /* Optimized String Classes */
         .b { display:inline-block; font-size:12px; font-weight:bold; background:#e2e8f0; padding:4px 8px; border-radius:4px; color:#2d3748; margin-bottom:6px; letter-spacing:0.5px; }
         .h { font-size:15px; font-weight:bold; color:#c53030; background-color:#fff5f5; padding:6px 10px; border-radius:6px; display:block; margin-bottom:4px; border:1px solid #fed7d7; }
         .n { font-size:13px; color:#4a5568; margin-top:6px; font-style:italic; background:#edf2f7; padding:8px; border-radius:6px; border-left:3px solid #a0aec0; }
@@ -71,7 +70,7 @@
             </div>
         </div>
     </div>
-    <div id="results"><p style="text-align:center; color:#718096; margin-top:30px;">Please enter weight.</p></div>
+    <div id="results"><p style="text-align:center; color:#718096; margin-top:30px;">Please enter weight to see calculated doses.</p></div>
 
     <script>
         const b = (t, bg="#e2e8f0", c="#2d3748") => `<div class='b' style='background:${bg}; color:${c};'>${t}</div>`;
@@ -104,14 +103,14 @@
             { n:"Inj Hydrocortisone (Primacort)", c:"Emergency", t:"primacort steroid", v:w => b("STEROID")+h(`Dose: ${(w*2).toFixed(1)}mg | Vol: ${(w*2/50).toFixed(2)}ml BD/TDS`) },
             { n:"Inj Dexona", c:"Emergency", t:"dexona steroid", v:w => b("STEROID")+h(`Stat: ${(w*0.4/4).toFixed(2)}ml | TDS: ${(w*0.2/4).toFixed(2)}ml (or ${ (0.15*w/4).toFixed(2)} direct)`) },
             { n:"Inj Clexane", c:"Emergency", t:"clexane enoxaparin", v:w => b("ANTICOAGULANT")+h(`Vol: ${(w*1/100).toFixed(2)}ml (40mg/0.4ml -> 100mg/ml)`) },
-            { n:"Inj Ca Gluconate", c:"Emergency", t:"calcium", v:w => b("EMERGENCY")+h(`Give: ${(w*2).toFixed(1)}ml/kg slow IV in 2ml DW`) },
+            { n:"Inj Ca Gluconate", c:"Emergency", t:"calcium", v:w => b("EMERGENCY")+h(`Give: ${(w*2).toFixed(1)} ml slow IV in 2ml DW`) },
             { n:"Inj Amiodarone", c:"Emergency", t:"amiodarone", v:w => b("ANTIARRHYTHMIC")+h(`Vol: ${(w*5/50).toFixed(2)}ml over 1hr (50mg/ml)`) },
             { n:"Inj Lidocaine / Xylocard", c:"Emergency", t:"lidocaine", v:w => b("EMERGENCY")+h(`Give: ${(w*1).toFixed(1)}mg IV/IO`) },
             { n:"Inj Sodium Bicarbonate", c:"Emergency", t:"bicarb", v:w => b("EMERGENCY")+h(`Give: ${(w*1).toFixed(1)}ml (Dilute 1:1)`) },
-            { n:"Inj Avil", c:"Emergency", t:"avil allergy", v:w => b("ANTIHISTAMINE")+h(`Dose: ${(w*0.5).toFixed(2)}mg/kg/day (TDS severe)`) },
+            { n:"Inj Avil", c:"Emergency", t:"avil allergy", v:w => b("ANTIHISTAMINE")+h(`Dose: ${(w*0.5).toFixed(2)} mg/day (TDS severe)`) },
             { n:"Inj Tramadol", c:"Emergency", t:"tramadol", v:w => b("ANALGESIC")+h(`1amp in 100ml NS -> 30ml IV TDS`) },
             { n:"Inj Fentanyl", c:"Emergency", t:"fentanyl", v:w => b("ANALGESIC")+h(`Dose: 1-5 micro/kg (50mcg/ml)`) },
-            { n:"Inj Sildenafil", c:"Emergency", t:"sildenafil", v:w => b("VASODILATOR")+h(`LD: ${(w*0.3).toFixed(2)}ml/kg (2hr) | MD: ${(w*0.2).toFixed(2)}ml/kg`) },
+            { n:"Inj Sildenafil", c:"Emergency", t:"sildenafil", v:w => b("VASODILATOR")+h(`LD: ${(w*0.3).toFixed(2)} ml (2hr) | MD: ${(w*0.2).toFixed(2)} ml`) },
             { n:"Inj Octreotide Acetate", c:"Emergency", t:"octreotide", v:w => b("INFUSION")+h(`Rate: 1 mcg/kg/hr (1amp=1ml=100mcg) in D5`) },
             { n:"Inj Glycopyrrolate", c:"Emergency", t:"glycopyrrolate", v:w => b("IV TDS")+h(`Vol: ${(w*0.004).toFixed(3)} to ${(w*0.01).toFixed(3)}mg/dose`) },
             { n:"Inj Robivax (Methocarbamol)", c:"Emergency", t:"robivax", v:w => b("RELAXANT")+h(`Vol: ${(w*15/100).toFixed(2)}ml q8h (100mg/ml)`) },
@@ -158,7 +157,7 @@
             { n:"Inj Valproate Sodium", c:"Neuro", t:"valproat", v:w => b("ANTICONVULSANT")+h(`LD: ${(w*0.2).toFixed(2)}ml | MD: ${(w*0.1).toFixed(2)}ml BD (100mg/ml)`) },
             { n:"Inj Midaz (Midazolam)", c:"Neuro", t:"midaz", v:w => b("SEDATIVE")+h(`Vol: ${(w/10).toFixed(2)}ml IV Stat`) },
             { n:"Inj Lopex (Lorazepam)", c:"Neuro", t:"lopex", v:w => b("ANTICONVULSANT")+h(`Vol: ${(w*0.05).toFixed(2)}ml (0.1mg/kg)`) },
-            { n:"Inj Mannitol", c:"Neuro", t:"mannitol", v:w => b("DIURETIC")+h(`LD: ${(w*5).toFixed(1)}ml/kg Stat | MD: ${(w*2).toFixed(1)}ml/kg Q6H`) },
+            { n:"Inj Mannitol", c:"Neuro", t:"mannitol", v:w => b("DIURETIC")+h(`LD: ${(w*5).toFixed(1)} ml Stat | MD: ${(w*2).toFixed(1)} ml Q6H`) },
             { n:"Inj Gardinal (Phenobarbital)", c:"Neuro", t:"gardinal", v:w => b("ANTICONVULSANT")+h(`LD: ${w.toFixed(2)}ml Stat | MD: ${(w/8).toFixed(2)}ml BD`) },
             { n:"Tab Haloperidol / Syp Beclof", c:"Neuro", t:"haloperidol trembling", v:w => b("TREMBLING")+h("Tab Haloperidol: 0.25mg BD")+h("Syp Beclof: According to wt") },
 
@@ -219,7 +218,11 @@
         ];
 
         let curCat = 'All';
-        function setCat(c, b){ curCat=c; document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); calcAll(); }
+        function setCat(c, btn){ curCat=c; document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); calcAll(); }
+
+        function smartSearch(drug, search){
+            return (drug.n + " " + drug.t).toLowerCase().includes(search.toLowerCase());
+        }
 
         function calcAll() {
             let w=parseFloat(document.getElementById('weight').value), a=parseFloat(document.getElementById('age').value), u=document.getElementById('ageUnit').value, s=document.getElementById('search').value.toLowerCase(), d=document.getElementById('results'), mb=document.getElementById('patientModeBadge');
