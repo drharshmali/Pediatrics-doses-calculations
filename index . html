@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Pediatric & NICU/PICU Dose Calculator</title>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 10px; max-width: 750px; margin: auto; background-color: #f4f7fa; color: #2d3748; }
+        h2 { color: #1a365d; text-align: center; margin-bottom: 15px; font-size: 22px; font-weight: 800;}
+        .sticky-header { position: sticky; top: 0; background: #f4f7fa; padding-top: 5px; padding-bottom: 10px; z-index: 100; }
+        .header-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        .input-group div { flex: 1; }
+        .age-container { display: flex; gap: 5px; }
+        label { display:block; font-size: 14px; margin-bottom: 5px; font-weight:bold; color: #4a5568;}
+        input[type="number"], input[type="text"], select { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; box-sizing: border-box; background: #fdfdfd; }
+        input:focus, select:focus { border-color: #3182ce; outline: none; background: white;}
+        
+        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: none; }
+        .category-tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { background: #edf2f7; color: #4a5568; border: none; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; transition: 0.2s; border: 1px solid transparent; }
+        .tab-btn.active { background: #3182ce; color: white; box-shadow: 0 2px 5px rgba(49, 130, 206, 0.4);}
+        .tab-btn.protocol { background: #ebf8ff; color: #553c9a; border: 1px solid #d6bcfa; }
+        .tab-btn.protocol.active { background: #6b46c1; color: white; }
+        .tab-btn.tools { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
+        .tab-btn.tools.active { background: #2f855a; color: white; }
+        
+        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); margin-bottom: 12px; border-left: 5px solid #3182ce; }
+        .drug-name { font-weight: 800; font-size: 17px; color: #2b6cb0; margin-bottom: 8px; }
+        .calc-result { font-size: 15px; margin-bottom: 4px; color: #2d3748;}
+        .highlight { font-size: 15px; font-weight: bold; color: #c53030; background-color: #fff5f5; padding: 5px 8px; border-radius: 6px; display: inline-block; margin-top:4px; border: 1px solid #fed7d7;}
+        .note { font-size: 13px; color: #718096; margin-top: 8px; font-style: italic; background: #edf2f7; padding: 8px; border-radius: 6px;}
+        
+        .card.emergency { border-left-color: #e53e3e; } .card.emergency .drug-name { color: #c53030; }
+        .card.fluids { border-left-color: #38a169; } .card.fluids .drug-name { color: #2f855a; }
+        .card.neuro { border-left-color: #805ad5; } .card.neuro .drug-name { color: #6b46c1; }
+        .card.protocol { border-left: 5px solid #6b46c1; background: #faf5ff;} .card.protocol .drug-name { color: #553c9a; font-size: 19px;}
+        .card.tools { border-left: 5px solid #2f855a; background: #f0fff4;} .card.tools .drug-name { color: #22543d; font-size: 19px;}
+
+        .copy-btn { margin-top:10px; padding:8px 12px; border:none; border-radius:6px; background:#38a169; color:white; font-weight:bold; cursor:pointer; width:100%; transition: background 0.2s; }
+        .copy-btn:hover { background: #2f855a; }
+        .copy-all-btn { width:100%; margin-top:10px; padding:12px; background:#3182ce; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; transition: background 0.2s; }
+        .copy-all-btn:hover { background: #2b6cb0; }
+
+        .calc-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+        .calc-inputs input { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="sticky-header">
+        <h2>Pediatric Dose Calculator</h2>
+        
+        <div id="patientModeBadge" style="text-align: center; margin-bottom: 8px; font-weight: 800; font-size: 18px; color: #6b46c1; display: none;"></div>
+
+        <div class="header-card">
+            <div class="input-group">
+                <div>
+                    <label for="weight">Weight (kg) - દર્દીનું વજન</label>
+                    <input type="number" id="weight" step="0.1" placeholder="e.g., 10" oninput="calculate()">
+                </div>
+                <div>
+                    <label for="age">Age - દર્દીની ઉંમર</label>
+                    <div class="age-container">
+                        <input type="number" id="age" step="1" placeholder="Value" style="width: 50%;" oninput="calculate()">
+                        <select id="ageUnit" style="width: 50%;" onchange="calculate()">
+                            <option value="Days">Days</option>
+                            <option value="Months">Months</option>
+                            <option value="Years" selected>Years</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <input type="text" id="search" placeholder="🔍 Search medicine, antibiotic, fluid..." onkeyup="calculate()">
+            
+            <button onclick="copyAllResults()" class="copy-all-btn">📋 Copy All Results</button>
+
+            <div class="category-tabs" id="tabs" style="margin-top:15px;">
+                <button class="tab-btn active" onclick="setCategory('All', this)">All</button>
+                <button class="tab-btn tools" onclick="setCategory('Calculators', this)">🧮 Calculators & ABG</button>
+                <button class="tab-btn protocol" onclick="setCategory('NICU', this)">👶 NICU</button>
+                <button class="tab-btn protocol" onclick="setCategory('PICU', this)">🛏️ PICU</button>
+                <button class="tab-btn" onclick="setCategory('Emergency', this)">🚨 Emergency</button>
+                <button class="tab-btn" onclick="setCategory('Antibiotic', this)">💊 Antibiotics</button>
+                <button class="tab-btn" onclick="setCategory('Neuro', this)">🧠 Neuro</button>
+                <button class="tab-btn" onclick="setCategory('Fluids', this)">💧 Fluids/DKA</button>
+                <button class="tab-btn" onclick="setCategory('Syrup', this)">🥄 Syrups</button>
+                <button class="tab-btn" onclick="setCategory('Drops', this)">💧 Drops</button>
+                <button class="tab-btn" onclick="setCategory('GI', this)">🩺 GI / Tabs</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="results">
+        <p style="text-align:center; color:#718096; margin-top: 30px;">Please enter weight to see calculated doses.</p>
+    </div>
+
+    <script>
+        function getPatientMode(age, ageUnit){
+            let days = 0;
+            if(ageUnit === "Days") days = age;
+            else if(ageUnit === "Months") days = age * 30;
+            else if(ageUnit === "Years") days = age * 365;
+            return days < 28 ? "NICU" : "PICU";
+        }
+
+        function calculateAnionGap(na, cl, hco3){
+            let ag = na - (cl + hco3);
+            let interpretation = ag > 12 ? "High Anion Gap Metabolic Acidosis" : (ag >= 8 ? "Normal" : "Low Anion Gap");
+            return { gap: ag.toFixed(1), result: interpretation };
+        }
+
+        function calculateUVC(weight){ return ((1.5 * weight) + 5.5).toFixed(1); }
+
+        function calculateGIR(dextrosePercent, rateMlHr, weightKg){ return ((dextrosePercent * rateMlHr * 0.167) / weightKg).toFixed(2); }
+
+        function bicarbonateCorrection(weight, currentHco3, targetHco3 = 24){ return (0.3 * weight * (targetHco3 - currentHco3)).toFixed(1); }
+
+        function acidBaseAnalysis(ph, pco2, hco3){
+            if(ph < 7.35){
+                if(pco2 > 45) return "Respiratory Acidosis";
+                if(hco3 < 22) return "Metabolic Acidosis";
+            }
+            if(ph > 7.45){
+                if(pco2 < 35) return "Respiratory Alkalosis";
+                if(hco3 > 26) return "Metabolic Alkalosis";
+            }
+            return "Near Normal / Mixed Disorder";
+        }
+
+        function amikacinDose(weight, strength){
+            let doseMg = weight * 15;
+            let concentration = strength === 100 ? 50 : (strength === 250 ? 125 : 250);
+            return { mg: doseMg.toFixed(1), ml: (doseMg / concentration).toFixed(2) };
+        }
+
+        function mgToMl(requiredMg, availableMg, availableMl){ return ((requiredMg * availableMl) / availableMg).toFixed(2); }
+
+        function getSuggestion(gir, ag){
+            let msg = [];
+            if(gir < 4) msg.push("Increase glucose infusion");
+            if(gir > 12) msg.push("Reduce glucose infusion");
+            if(ag > 12) msg.push("Evaluate metabolic acidosis");
+            if(msg.length === 0) msg.push("Parameters acceptable");
+            return msg.join(" | ");
+        }
+
+        function smartSearch(drug, search){
+            return (drug.name + " " + drug.tags).toLowerCase().includes(search.toLowerCase());
+        }
+
+        window.runGIR = function() {
+            let wt = parseFloat(document.getElementById('weight').value);
+            let dex = parseFloat(document.getElementById('girDex').value);
+            let rate = parseFloat(document.getElementById('girRate').value);
+            let res = document.getElementById('girResText');
+            if(!isNaN(dex) && !isNaN(rate) && wt > 0) {
+                let gir = calculateGIR(dex, rate, wt);
+                res.innerHTML = `GIR: ${gir} mg/kg/min <br><span style="font-size:12px; color:#4a5568;">${getSuggestion(gir, 0).split('|')[0]}</span>`;
+            } else { res.innerHTML = "Enter Dextrose % and Rate to calculate"; }
+        };
+
+        window.runABG = function() {
+            let wt = parseFloat(document.getElementById('weight').value);
+            let ph = parseFloat(document.getElementById('abgPh').value);
+            let pco2 = parseFloat(document.getElementById('abgPco2').value);
+            let hco3 = parseFloat(document.getElementById('abgHco3').value);
+            let na = parseFloat(document.getElementById('abgNa').value);
+            let cl = parseFloat(document.getElementById('abgCl').value);
+
+            if(!isNaN(ph) && !isNaN(pco2) && !isNaN(hco3)) document.getElementById('abgResText').innerHTML = `ABG Analysis: ${acidBaseAnalysis(ph, pco2, hco3)}`;
+            if(!isNaN(na) && !isNaN(cl) && !isNaN(hco3)) { let ag = calculateAnionGap(na, cl, hco3); document.getElementById('agResText').innerHTML = `Anion Gap: ${ag.gap} (${ag.result})`; }
+            if(!isNaN(hco3) && wt > 0) document.getElementById('bicarbResText').innerHTML = `HCO3 Deficit: ${bicarbonateCorrection(wt, hco3)} mEq`;
+        };
+
+        const drugs = [
+            // ================== TOOLS ==================
+            {
+                name: "UVC Line Fixation", category: "Calculators", tags: "uvc line fixation depth nicu umbilical",
+                calc: (wt) => `<div class="badge">PROCEDURE</div><br><div class="highlight">Fixation Depth: ${calculateUVC(wt)} cm</div>`
+            },
+            {
+                name: "GIR (Glucose Infusion Rate) Calculator", category: "Calculators", tags: "gir glucose infusion rate dextrose",
+                calc: (wt) => `<div class="badge">CALCULATOR</div><br><div class="calc-inputs"><input type="number" id="girDex" placeholder="% Dextrose" oninput="runGIR()"><input type="number" id="girRate" placeholder="Rate (ml/hr)" oninput="runGIR()"></div><div class="highlight" id="girResText" style="display:block; width:100%;">Enter Details to Calculate</div>`
+            },
+            {
+                name: "ABG, Anion Gap & Bicarb Calculator", category: "Calculators", tags: "abg anion gap acid base bicarbonate deficit hco3",
+                calc: (wt) => `<div class="badge">CALCULATOR</div><br><div class="calc-inputs" style="grid-template-columns:1fr 1fr 1fr;"><input type="number" id="abgPh" placeholder="pH" oninput="runABG()"><input type="number" id="abgPco2" placeholder="pCO2" oninput="runABG()"><input type="number" id="abgHco3" placeholder="HCO3" oninput="runABG()"></div><div class="calc-inputs" style="grid-template-columns:1fr 1fr;"><input type="number" id="abgNa" placeholder="Na+" oninput="runABG()"><input type="number" id="abgCl" placeholder="Cl-" oninput="runABG()"></div><div class="highlight" id="abgResText" style="display:block; margin-top:5px;">ABG: ...</div><div class="highlight" id="agResText" style="display:block; margin-top:5px;">Anion Gap: ...</div><div class="highlight" id="bicarbResText" style="display:block; margin-top:5px;">HCO3 Deficit: ...</div>`
+            },
+
+            // ================== MASTER DKA PROTOCOL (UPDATED) ==================
+            {
+                name: "🩸 DKA MASTER PROTOCOL (Fluid & Medication Guide)", category: "Fluids", tags: "dka insulin actrapid protocol diabetic ketoacidosis fluids",
+                calc: (wt) => {
+                    let bolus = wt * 20;
+                    let deficit = wt * 85;
+                    let maintenance = wt <= 10 ? (wt * 100) : (wt <= 20 ? (1000 + (wt-10)*50) : (1500 + (wt-20)*20));
+                    let totalFluid = deficit + maintenance;
+                    let remainingFluid = totalFluid - bolus;
+                    let rateHr = remainingFluid / 24;
+
+                    return `
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">DKA FLUID DYNAMICS</div><br>
+                    <div class="calc-result">• Initial Bolus (20 ml/kg): <b>${bolus.toFixed(1)} ml</b> Stat</div>
+                    <div class="calc-result">• Deficit Fluid (85 x Wt): <b>${deficit.toFixed(1)} ml</b></div>
+                    <div class="calc-result">• Maintenance Fluid: <b>${maintenance.toFixed(1)} ml</b></div>
+                    <div class="highlight" style="display:block; margin:5px 0;">👉 Total 24-Hr Remaining Fluid: ${remainingFluid.toFixed(1)} ml</div>
+                    <div class="highlight" style="display:block; background:#ebf8ff; color:#2b6cb0; border-color:#bee3f8;">⚡ Fluid Infusion Rate: ${rateHr.toFixed(1)} ml / hr</div>
+                    
+                    <div class="badge" style="background:#feebc8; color:#7b341e; margin-top:10px;">SUGAR MATRIX (RBS PINT SELECTION)</div>
+                    <div class="calc-result"><b>RBS < 250 mg/dl:</b> Give <b>0.45% DNS + 5ml KCl</b> pint</div>
+                    <div class="calc-result"><b>RBS > 250 mg/dl:</b> Give <b>0.45% NS + 5ml KCl</b> pint</div>
+                    
+                    <div class="badge" style="background:#e2e8f0; color:#44337a; margin-top:10px;">DKA MANDATORY MEDICINES</div>
+                    <div class="calc-result"><b>Antibiotic:</b> Inj Monocef (Ceftriaxone) ${((wt * 50)/100).toFixed(2)} ml BD (50mg/kg)</div>
+                    <div class="calc-result"><b>Supportive Care:</b></div>
+                    <div class="calc-result">- Inj Emset: ${(wt * 0.07).toFixed(2)} ml BD/TDS (0.15 mg/kg)</div>
+                    <div class="calc-result">- Inj Rantac: ${(wt * 0.1).toFixed(2)} ml IV BD (1 mg/kg)</div>
+                    <div class="calc-result">- Inj Febrinil: ${((wt * 10)/150).toFixed(2)} to ${((wt * 15)/150).toFixed(2)} ml/dose QDS</div>
+                    
+                    <hr style="border-top:1px dashed #cbd5e0; margin:10px 0;">
+                    <div class="badge" style="background:#e9d8fd; color:#44337a;">INSULIN PROTOCOL</div>
+                    <div class="calc-result">Mix 1ml (40 Unit) Actrapid Insulin in 40ml D5/NS -> Start Infusion @ 1 ml/hr</div>`;
+                }
+            },
+
+            // ================== NICU PROTOCOL ==================
+            {
+                name: "👶 COMPLETE NICU PROTOCOL", category: "NICU", tags: "nicu protocol intensive care",
+                calc: (wt) => {
+                    let fluidMatrix = wt < 1 ? "D1: 100 | D2: 120 | D3: 130 | D4: 140 | D5+: 150 ml/kg/day" : (wt <= 1.5 ? "D1: 80 | D2: 100 | D3: 120 | D4: 130 | D5: 140 | D6+: 150 ml/kg/day" : "D1: 60 | D2: 80 | D3: 100 | D4: 120 | D5: 130 | D6: 140 | D7+: 150 ml/kg/day");
+                    let piptaz = wt <= 10 ? `${wt.toFixed(2)} ml IV TDS (1.125g in 10ml)` : `${(wt/2).toFixed(2)} ml IV TDS (4.5g in 20ml)`;
+                    return `<div class="badge" style="background:#c6f6d5; color:#22543d;">IV FLUIDS</div><div class="highlight" style="font-size:13px; display:block;">${fluidMatrix}</div><div class="note">Day 1-3: D10% | Day >3: 0.45 DNS</div><div class="badge" style="background:#bee3f8; color:#2a4365; margin-top:10px;">FIXED MEDICINES</div><div class="highlight" style="display:block;">1. Piptaz: ${piptaz}</div><div class="highlight" style="display:block;">2. Zostum: ${(wt * 0.5).toFixed(2)} ml IV BD/TDS (from 1gm/10ml)</div><div class="highlight" style="display:block;">3. Dobutamine: ${((wt * 30)/50).toFixed(2)} ml + ${(50 - (wt*30)/50).toFixed(2)} ml D5% @ 1 ml/hr</div><div class="badge" style="background:#feebc8; color:#7b341e; margin-top:10px;">CONDITIONAL</div><div class="highlight" style="display:block;">Inj Capnea: LD ${wt.toFixed(2)} ml | MD ${(wt/4).toFixed(2)} ml OD</div><div class="highlight" style="display:block; margin-top:5px;">Inj Gardinal: LD ${wt.toFixed(2)} ml IV Stat | MD ${(wt/8).toFixed(2)} ml IV BD</div>`;
+                }
+            },
+
+            // ================== PICU PROTOCOL ==================
+            {
+                name: "🛏️ COMPLETE PICU PROTOCOL", category: "PICU", tags: "picu protocol intensive care",
+                calc: (wt) => {
+                    let fluid = wt <= 10 ? (wt * 100) : (wt <= 20 ? (1000 + (wt-10)*50) : (1500 + (wt-20)*20));
+                    let piptaz = wt <= 10 ? `${wt.toFixed(2)} ml IV TDS` : `${(wt/2).toFixed(2)} ml IV TDS`;
+                    let amikRes = amikacinDose(wt, wt*15 <= 100 ? 100 : (wt*15 <= 250 ? 250 : 500));
+                    return `<div class="badge" style="background:#c6f6d5; color:#22543d;">IV FLUIDS</div><div class="highlight" style="display:block;">Total 24 hr: ${fluid.toFixed(0)} ml | Rate: ${(fluid/24).toFixed(1)} ml/hr</div><div class="badge" style="background:#bee3f8; color:#2a4365; margin-top:10px;">PICU MEDICINES</div><div class="highlight" style="display:block;">1. Monocef: ${((wt * 50)/100).toFixed(2)} ml BD</div><div class="highlight" style="display:block;">2. Amikacin: ${amikRes.ml} ml OD</div><div class="highlight" style="display:block;">3. Piptaz: ${piptaz}</div><div class="highlight" style="display:block;">4. Vancomycin: ${((wt * 15)/50).toFixed(2)} ml TDS</div>`;
+                }
+            },
+
+            // ================== ANTIBIOTICS ==================
+            {
+                name: "Inj Piperacillin & Tazobactam (Piptaz / Pipzo)", category: "Antibiotic", tags: "piperacillin tazobactam pipzo piptaz",
+                calc: (wt) => {
+                    let mg = wt * 100;
+                    return wt <= 10 ? `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${mg.toFixed(1)} mg TDS</div><div class="highlight">Volume: ${wt.toFixed(2)} ml TDS</div><div class="note">Dilute 1.125gm in 10 ml SW. Give ${wt.toFixed(2)} ml.</div>` : `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${mg.toFixed(1)} mg TDS</div><div class="highlight">Volume: ${(wt/2).toFixed(2)} ml TDS</div><div class="note">Dilute 4.5gm in 20ml or 2.25gm in 10ml.</div>`;
+                }
+            },
+            {
+                name: "Inj Amikacin (Smart Auto-Select)", category: "Antibiotic", tags: "amikacin mikacin",
+                calc: (wt) => {
+                    let mg = wt * 15; let strength = mg <= 100 ? 100 : (mg <= 250 ? 250 : 500); let res = amikacinDose(wt, strength);
+                    return `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${res.mg} mg OD</div><div class="highlight">Volume: ${res.ml} ml OD</div><div class="note">Auto-selected <b>${strength}mg/2ml</b> vial.</div>`;
+                }
+            },
+            { name: "Inj Cefoperazone & Sulbactam (Zostum)", category: "Antibiotic", tags: "zostum", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD/TDS</div><div class="highlight">Volume: ${(wt*0.5).toFixed(2)} ml BD/TDS (from 1g/10ml)</div>` },
+            { name: "Inj Levofloxacin (Loxof)", category: "Antibiotic", tags: "loxof", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*10).toFixed(1)} mg BD</div><div class="highlight">Volume: ${(wt*2).toFixed(2)} ml BD (from 5mg/ml)</div>` },
+            { name: "Inj Gentamycin", category: "Antibiotic", tags: "gentamicin", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*5).toFixed(1)} mg OD</div><div class="highlight">Volume: ${(wt*5/40).toFixed(2)} ml OD (40mg/ml)</div>` },
+            { name: "Inj Ceftriaxone (Monocef)", category: "Antibiotic", tags: "monocef", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg/dose</div><div class="highlight">Volume: ${(wt*50/100).toFixed(2)} ml (1g/10ml)</div>` },
+            { name: "Inj Cefotaxime (Taxim)", category: "Antibiotic", tags: "taxim", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg/dose</div><div class="highlight">Volume: ${(wt*50/100).toFixed(2)} ml TDS</div>` },
+            { name: "Inj Meropenem", category: "Antibiotic", tags: "meropenem", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*20).toFixed(1)} mg TDS</div><div class="highlight">Volume: ${(wt*20/50).toFixed(2)} ml (500mg/10ml)</div>` },
+            { name: "Inj Vancomycin", category: "Antibiotic", tags: "vancomycin", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS</div><div class="highlight">Volume: ${(wt*15/50).toFixed(2)} ml</div>` },
+            { name: "Inj Xylistin (Colistin)", category: "Antibiotic", tags: "colistin", calc: (wt) => `<div class="badge">ANTIBIOTIC</div><br><div class="highlight">Volume: ${(wt*0.2).toFixed(2)} ml BD (25000 IU/kg)</div>` },
+
+            // ================== EMERGENCY ==================
+            { name: "Inj Magnesium Sulphate (MgSO4)", category: "Emergency", tags: "mgso4", calc: (wt) => `<div class="badge">ANTICONVULSANT</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD</div><div class="highlight">Volume: ${(wt*50/500).toFixed(2)} ml BD (500mg/ml)</div>` },
+            { name: "Inj Hydrocortisone (Primacort)", category: "Emergency", tags: "primacort", calc: (wt) => `<div class="badge">STEROID</div><br><div class="highlight">Dose: ${(wt*2).toFixed(1)} mg</div><div class="highlight">Volume: ${(wt*2/50).toFixed(2)} ml (100mg/2ml)</div>` },
+            { name: "Inj Dexona", category: "Emergency", tags: "dexona", calc: (wt) => `<div class="badge">STEROID</div><br><div class="highlight">Stat: ${(wt*0.4/4).toFixed(2)} ml</div><div class="highlight" style="margin-top:5px;">TDS: ${(wt*0.2/4).toFixed(2)} ml TDS (4mg/ml)</div>` },
+            { name: "Inj Clexane", category: "Emergency", tags: "clexane", calc: (wt) => `<div class="badge">ANTICOAGULANT</div><br><div class="highlight">Volume: ${(wt*1/100).toFixed(2)} ml (40mg/0.4ml)</div>` },
+            { name: "Inj Fluconazole (Forcan)", category: "Antibiotic", tags: "forcan", calc: (wt) => `<div class="badge">ANTIFUNGAL</div><br><div class="highlight">LD: ${(wt*5).toFixed(1)} ml Stat</div><div class="highlight" style="margin-top:5px;">MD: ${(wt*2.5).toFixed(1)} ml OD</div>` },
+            { name: "Inj Acyclovir", category: "Antibiotic", tags: "acyclovir", calc: (wt) => `<div class="badge">ANTIVIRAL</div><br><div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS</div><div class="highlight">Volume: ${(wt*10/25).toFixed(2)} ml TDS (25mg/ml)</div>` },
+            { name: "Inj Calcium Gluconate", category: "Emergency", tags: "calcium", calc: (wt) => `<div class="badge">EMERGENCY</div><br><div class="highlight">Give: ${(wt*2).toFixed(1)} ml/kg slow IV in 2ml DW dilution</div>` },
+            { name: "Inj Amiodarone", category: "Emergency", tags: "amiodarone", calc: (wt) => `<div class="badge">ANTIARRHYTHMIC</div><br><div class="highlight">Volume: ${(wt*5/50).toFixed(2)} ml over 1 hr (50mg/ml)</div>` },
+            { name: "Inj Robivax", category: "Emergency", tags: "robivax", calc: (wt) => `<div class="badge">MUSCLE RELAXANT</div><br><div class="highlight">Volume: ${(wt*15/100).toFixed(2)} ml every 8 hr (100mg/ml)</div>` },
+            { name: "Inj Fentanyl", category: "Emergency", tags: "fentanyl", calc: (wt) => `<div class="badge">ANALGESIC</div><br><div class="highlight">Dose: ${(wt*1).toFixed(1)} to ${(wt*5).toFixed(1)} mcg/hr (50mcg/ml)</div>` },
+            { name: "Inj Sildenafil", category: "Emergency", tags: "sildenafil", calc: (wt) => `<div class="badge">VASODILATOR</div><br><div class="highlight">LD: ${(wt*0.3).toFixed(2)} ml/kg for 2 hr</div><div class="highlight" style="margin-top:5px;">MD: ${(wt*0.2).toFixed(2)} ml/kg</div>` },
+            { name: "Inj Anti Snake Venom (ASV)", category: "Emergency", tags: "asv", calc: (wt) => `<div class="badge">PROTOCOL</div><br><div class="highlight">Infuse 5 Ampules in 500ml D5 over 24 hr</div>` },
+
+            // ================== JUNI DRUGS RESTORED ==================
+            { name: "Syp Calpol (Tylenol)", category: "Syrup", tags: "calpol", calc: (wt) => `<div class="badge">ANALGESIC</div><br><div class="highlight">Vol (120mg/5ml): ${(wt*0.6).toFixed(2)} ml TDS</div>` },
+            { name: "Syp Ibuprofen", category: "Syrup", tags: "ibuprofen", calc: (wt) => `<div class="badge">NSAID</div><br><div class="highlight">Give: ${(wt*0.5).toFixed(2)} ml TDS (100mg/5ml)</div>` },
+            { name: "Syp Meftal - P", category: "Syrup", tags: "meftal", calc: (wt) => `<div class="badge">NSAID</div><br><div class="highlight">Volume: ${(wt*0.5).toFixed(2)} ml TDS</div>` },
+            { name: "Sumol / Calpol Drops", category: "Drops", tags: "paracetamol", calc: (wt) => `<div class="badge">ANALGESIC</div><br><div class="highlight">Give: ${(wt*3).toFixed(1)} drops TDS (0.15 ml/dose)</div>` },
+            { name: "Domstal Drops", category: "Drops", tags: "domstal", calc: (wt) => `<div class="badge">ANTIEMETIC</div><br><div class="highlight">Give: ${(wt*1).toFixed(1)} drop TDS</div>` }
+        ];
+
+        function setCategory(cat, btn) {
+            currentCategory = cat;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            calculate();
+        }
+
+        function calculate() {
+            let wt = parseFloat(document.getElementById('weight').value);
+            let age = parseFloat(document.getElementById('age').value);
+            let ageUnit = document.getElementById('ageUnit').value;
+            let search = document.getElementById('search').value.toLowerCase();
+            let resultsDiv = document.getElementById('results');
+            let modeBadge = document.getElementById('patientModeBadge');
+
+            if (!isNaN(age)) {
+                modeBadge.style.display = "block";
+                modeBadge.innerText = `👤 Patient Mode: ${getPatientMode(age, ageUnit)}`;
+            } else { modeBadge.style.display = "none"; }
+
+            if (isNaN(wt) || wt <= 0) {
+                resultsDiv.innerHTML = '<p style="text-align:center; color:#718096; margin-top: 30px;">Please enter weight to see calculated doses.</p>';
+                return;
+            }
+
+            let html = "";
+            drugs.forEach(drug => {
+                if (currentCategory !== 'All' && drug.category !== currentCategory) return;
+                if (search && !smartSearch(drug, search)) return;
+                
+                let cardClass = "card";
+                if(drug.category === "Emergency") cardClass += " emergency";
+                if(drug.category === "Fluids" || drug.category === "Drops" || drug.category === "Formula") cardClass += " fluids";
+                if(drug.category === "Neuro") cardClass += " neuro";
+                if(drug.category === "NICU" || drug.category === "PICU") cardClass += " protocol";
+                if(drug.category === "Calculators") cardClass += " tools";
+
+                html += `<div class="${cardClass}">
+                            <div class="drug-name">${drug.name}</div>
+                            ${drug.calc(wt, age, ageUnit)}
+                            <button class="copy-btn" onclick="copyDose(this)">📋 Copy Dose</button>
+                         </div>`;
+            });
+
+            if(html === "") html = '<p style="text-align:center; color:#718096; margin-top: 30px;">No medicines found.</p>';
+            resultsDiv.innerHTML = html;
+        }
+
+        function copyDose(btn) {
+            const card = btn.closest('.card');
+            let text = card.innerText.replace("📋 Copy Dose", "").replace("✅ Copied", "").trim();
+            navigator.clipboard.writeText(text).then(() => {
+                btn.innerText = "✅ Copied";
+                setTimeout(() => { btn.innerText = "📋 Copy Dose"; }, 1500);
+            });
+        }
+
+        function copyAllResults() {
+            const cards = document.querySelectorAll('.card');
+            let wt = document.getElementById('weight').value;
+            let age = document.getElementById('age').value;
+            let ageUnit = document.getElementById('ageUnit').value;
+
+            if (!wt) { alert("Please enter weight first!"); return; }
+
+            let text = "PEDIATRIC DOSE CALCULATOR\n========================\n";
+            text += `Weight : ${wt} kg\n`;
+            if (age) text += `Age : ${age} ${ageUnit}\n\n`;
+
+            cards.forEach(card => {
+                let cardText = card.innerText.replace("📋 Copy Dose", "").replace("✅ Copied", "").trim();
+                text += cardText + "\n\n--------------------------------\n\n";
+            });
+
+            navigator.clipboard.writeText(text).then(() => { alert("✅ All results copied successfully!"); });
+        }
+    </script>
+</body>
+</html>
