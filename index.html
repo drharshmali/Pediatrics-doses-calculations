@@ -13,11 +13,15 @@
         label { display:block; font-size:14px; margin-bottom:5px; font-weight:bold; color:#4a5568; }
         input, select { width:100%; padding:12px; font-size:16px; border:2px solid #e2e8f0; border-radius:8px; text-align:center; box-sizing:border-box; background:#fdfdfd; }
         input:focus, select:focus { border-color:#3182ce; outline:none; }
+        
         .category-tabs { display:flex; gap:8px; overflow-x:auto; padding-bottom:5px; margin-bottom:10px; scrollbar-width:none; }
         .tab-btn { background:#edf2f7; color:#4a5568; border:none; padding:8px 14px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer; white-space:nowrap; transition:0.2s; }
         .tab-btn.active { background:#3182ce; color:white; box-shadow:0 2px 5px rgba(49,130,206,0.4); }
         .tab-btn.protocol { background:#ebf8ff; color:#553c9a; } .tab-btn.protocol.active { background:#6b46c1; color:white; }
         .tab-btn.tools { background:#c6f6d5; color:#22543d; } .tab-btn.tools.active { background:#2f855a; color:white; }
+        
+        .cat-header { background:#2b6cb0; color:white; padding:8px 15px; border-radius:8px; font-weight:bold; margin:20px 0 10px 0; font-size:15px; box-shadow:0 2px 4px rgba(0,0,0,0.1); border-left:4px solid #f6ad55; text-transform:uppercase; letter-spacing:0.5px; }
+        
         .card { background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04); margin-bottom:12px; border-left:5px solid #3182ce; }
         .drug-name { font-weight:800; font-size:17px; color:#2b6cb0; margin-bottom:8px; }
         .card.emergency { border-left-color:#e53e3e; } .card.emergency .drug-name { color:#c53030; }
@@ -25,6 +29,7 @@
         .card.neuro { border-left-color:#805ad5; } .card.neuro .drug-name { color:#6b46c1; }
         .card.protocol { border-left-color:#6b46c1; background:#faf5ff; } .card.protocol .drug-name { color:#553c9a; font-size:19px; }
         .card.tools { border-left-color:#2f855a; background:#f0fff4; } .card.tools .drug-name { color:#22543d; font-size:19px; }
+        
         .copy-all-btn { width:100%; margin-top:10px; padding:12px; background:#3182ce; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; }
         .calc-inputs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0; }
         
@@ -60,16 +65,19 @@
                 <button class="tab-btn active" onclick="setCat('All', this)">All</button>
                 <button class="tab-btn" onclick="setCat('Emergency', this)">🚨 Emergency & Airway</button>
                 <button class="tab-btn tools" onclick="setCat('Calculators', this)">🧮 Calculators/ABG</button>
-                <button class="tab-btn protocol" onclick="setCat('NICU', this)">👶 NICU/PICU</button>
+                <button class="tab-btn protocol" onclick="setCat('NICU', this)">👶 NICU</button>
+                <button class="tab-btn protocol" onclick="setCat('PICU', this)">🛏️ PICU</button>
                 <button class="tab-btn" onclick="setCat('Antibiotic', this)">💊 Antibiotics</button>
                 <button class="tab-btn" onclick="setCat('Neuro', this)">🧠 Neuro</button>
                 <button class="tab-btn" onclick="setCat('Fluids', this)">💧 Fluids/DKA</button>
                 <button class="tab-btn" onclick="setCat('Syrup', this)">🥄 Syrups</button>
                 <button class="tab-btn" onclick="setCat('Drops', this)">💧 Drops</button>
                 <button class="tab-btn" onclick="setCat('GI', this)">🩺 GI/Tabs</button>
+                <button class="tab-btn" onclick="setCat('Formula', this)">🍼 Formula</button>
             </div>
         </div>
     </div>
+    
     <div id="results"><p style="text-align:center; color:#718096; margin-top:30px;">Please enter weight to see calculated doses.</p></div>
 
     <script>
@@ -77,6 +85,7 @@
         const h = (t, bg="#fff5f5", c="#c53030", bc="#fed7d7") => `<div class='h' style='background:${bg}; color:${c}; border-color:${bc};'>${t}</div>`;
         const n = (t) => `<div class='n'>${t}</div>`;
         
+        function getPatientMode(age, ageUnit){ let d = 0; if(ageUnit === "Days") d = age; else if(ageUnit === "Months") d = age * 30; else if(ageUnit === "Years") d = age * 365; return d < 28 ? "NICU" : "PICU"; }
         function runGIR(){ let w=parseFloat(document.getElementById('weight').value), d=parseFloat(document.getElementById('girDex').value), r=parseFloat(document.getElementById('girRate').value), e=document.getElementById('girRes'); if(!isNaN(d)&&!isNaN(r)&&w>0){ let g=(d*r*0.167)/w; e.innerHTML=h(`GIR: ${g.toFixed(2)} mg/kg/min`)+n(g<4?"Increase glucose":g>12?"Reduce glucose":"Acceptable"); } else e.innerHTML=h("Enter values"); }
         function runABG(){ let w=parseFloat(document.getElementById('weight').value), ph=parseFloat(document.getElementById('abgPh').value), pco2=parseFloat(document.getElementById('abgPco2').value), hco3=parseFloat(document.getElementById('abgHco3').value), na=parseFloat(document.getElementById('abgNa').value), cl=parseFloat(document.getElementById('abgCl').value); if(!isNaN(ph)&&!isNaN(pco2)&&!isNaN(hco3)) document.getElementById('rPh').innerHTML=h("ABG: "+(ph<7.35?(pco2>45?"Respiratory Acidosis":"Metabolic Acidosis"):(ph>7.45?(pco2<35?"Respiratory Alkalosis":"Metabolic Alkalosis"):"Normal/Mixed"))); if(!isNaN(na)&&!isNaN(cl)&&!isNaN(hco3)){ let ag=na-(cl+hco3); document.getElementById('rAg').innerHTML=h("Anion Gap: "+ag.toFixed(1)+" ("+(ag>12?"High":ag>=8?"Normal":"Low")+")"); } if(!isNaN(hco3)&&w>0) document.getElementById('rBi').innerHTML=h("HCO3 Deficit: "+(0.3*w*(24-hco3)).toFixed(1)+" mEq"); }
 
@@ -89,7 +98,7 @@
 
             // ================= PROTOCOLS =================
             { n:"👶 COMPLETE NICU PROTOCOL", c:"NICU", t:"nicu protocol", v:w => { let p=w<=10?`${w.toFixed(2)}ml IV TDS (1.125g/10ml)`:`${(w/2).toFixed(2)}ml IV TDS (4.5g/20ml)`; return b("IV FLUIDS","#c6f6d5","#22543d")+h(w<1?"D1:100|D2:120|D3:130|D4:140|D5:150 ml/kg":w<=1.5?"D1:80|D2:100|D3:120|D4:130|D5:140|D6:150 ml/kg":"D1:60|D2:80|D3:100|D4:120|D5:130|D6:140|D7:150 ml/kg","#ebf8ff","#2b6cb0","#bee3f8")+n("Day 1-3: D10% | Day >3: 0.45 DNS")+b("FIXED MEDS","#bee3f8","#2a4365")+h(`1. Piptaz: ${p}`)+h(`2. Zostum: ${(w*0.5).toFixed(2)}ml IV BD/TDS`)+h(`3. Dobutamine: ${((w*30)/50).toFixed(2)}ml + ${(50-(w*30)/50).toFixed(2)}ml D5% @ 1 ml/hr`)+b("CONDITIONAL","#feebc8","#7b341e")+h(`Capnea: LD ${w.toFixed(2)}ml | MD ${(w/4).toFixed(2)}ml OD`)+h(`Gardinal: LD ${w.toFixed(2)}ml Stat | MD ${(w/8).toFixed(2)}ml BD`); } },
-            { n:"🛏️ COMPLETE PICU PROTOCOL", c:"NICU", t:"picu protocol", v:w => { let f=w<=10?(w*100):w<=20?(1000+(w-10)*50):(1500+(w-20)*20); let ak=w*15<=100?100:w*15<=250?250:500; let aml=(w*15)/(ak===100?50:ak===250?125:250); return b("IV FLUIDS","#c6f6d5","#22543d")+h(`Total 24h: ${f.toFixed(0)} ml | Rate: ${(f/24).toFixed(1)} ml/hr`)+b("PICU MEDS","#bee3f8","#2a4365")+h(`1. Monocef: ${(w*0.5).toFixed(2)}ml BD`)+h(`2. Amikacin: ${aml.toFixed(2)}ml OD (${ak}mg/2ml)`)+h(`3. Piptaz: ${w<=10?w.toFixed(2):(w/2).toFixed(2)}ml IV TDS`)+h(`4. Vancomycin: ${(w*15/50).toFixed(2)}ml TDS`); } },
+            { n:"🛏️ COMPLETE PICU PROTOCOL", c:"PICU", t:"picu protocol", v:w => { let f=w<=10?(w*100):w<=20?(1000+(w-10)*50):(1500+(w-20)*20); let ak=w*15<=100?100:w*15<=250?250:500; let aml=(w*15)/(ak===100?50:ak===250?125:250); return b("IV FLUIDS","#c6f6d5","#22543d")+h(`Total 24h: ${f.toFixed(0)} ml | Rate: ${(f/24).toFixed(1)} ml/hr`)+b("PICU MEDS","#bee3f8","#2a4365")+h(`1. Monocef: ${(w*0.5).toFixed(2)}ml BD`)+h(`2. Amikacin: ${aml.toFixed(2)}ml OD (${ak}mg/2ml)`)+h(`3. Piptaz: ${w<=10?w.toFixed(2):(w/2).toFixed(2)}ml IV TDS`)+h(`4. Vancomycin: ${(w*15/50).toFixed(2)}ml TDS`); } },
             { n:"🩸 DKA MASTER PROTOCOL", c:"Fluids", t:"dka insulin", v:w => { let f=w<=10?(w*100):w<=20?(1000+(w-10)*50):(1500+(w-20)*20); let rem=(w*85+f)-(w*20); return b("DKA FLUIDS","#fed7d7","#9b2c2c")+h(`Bolus: ${(w*20).toFixed(1)} ml Stat`)+h(`Total 24H Remaining: ${rem.toFixed(1)} ml`)+h(`Rate: ${(rem/24).toFixed(1)} ml/hr`)+b("RBS INDEX","#feebc8","#7b341e")+h("RBS < 250: 0.45% DNS + 5ml KCl")+h("RBS > 250: 0.45% NS + 5ml KCl")+b("MEDICINES","#e2e8f0","#44337a")+h(`Monocef: ${(w*0.5).toFixed(2)}ml BD`)+h(`Emset: ${(w*0.07).toFixed(2)}ml TDS | Rantac: ${(w*0.1).toFixed(2)}ml BD | Febrinil: ${((w*15)/150).toFixed(2)}ml QDS`)+h("Insulin (Atrapid): 1ml in 40ml D5 @ 1ml/hr"); } },
             { n:"🟨 JAUNDICE PROTOCOL", c:"Fluids", t:"jaundice hepatitis", v:w => b("PROTOCOL","#fefcbf","#744210")+h("1. IVF: 0.45 DNS + 5ml KCl + 10ml CaGluconate + MVI")+h("2. Inj Taxim")+h("3. Syp Helamerz BD | 4. Syp Udilive BD | Tab Udisafe 75mg BD") },
 
@@ -221,26 +230,60 @@
         function setCat(c, btn){ curCat=c; document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); calcAll(); }
 
         function smartSearch(drug, search){
-            return (drug.n + " " + drug.t).toLowerCase().includes(search.toLowerCase());
+            return ((drug.n || "") + " " + (drug.t || "")).toLowerCase().includes(search.toLowerCase());
         }
 
         function calcAll() {
             let w=parseFloat(document.getElementById('weight').value), a=parseFloat(document.getElementById('age').value), u=document.getElementById('ageUnit').value, s=document.getElementById('search').value.toLowerCase(), d=document.getElementById('results'), mb=document.getElementById('patientModeBadge');
+            
             if(!isNaN(a)){ mb.style.display="block"; mb.innerText=`👤 Patient Mode: ${getPatientMode(a,u)}`; } else mb.style.display="none";
-            if(isNaN(w)||w<=0){ d.innerHTML='<p style="text-align:center; color:#718096; margin-top:30px;">Please enter weight.</p>'; return; }
-            let html="";
-            arr.forEach(x=>{
-                if(curCat!=='All' && x.c!==curCat) return;
-                if(s && !smartSearch(x,s)) return;
+            if(isNaN(w)||w<=0){ d.innerHTML='<p style="text-align:center; color:#718096; margin-top:30px;">Please enter weight to see calculated doses.</p>'; return; }
+            
+            let grouped = {};
+            arr.forEach(x => {
+                if(curCat !== 'All' && x.c !== curCat) return;
+                if(s && !smartSearch(x, s)) return;
+                if(!grouped[x.c]) grouped[x.c] = [];
+                
                 let cls="card";
                 if(x.c==="Emergency") cls+=" emergency"; else if(x.c==="Fluids"||x.c==="Drops"||x.c==="Formula") cls+=" fluids"; else if(x.c==="Neuro") cls+=" neuro"; else if(x.c==="NICU"||x.c==="PICU") cls+=" protocol"; else if(x.c==="Calculators") cls+=" tools";
-                html+=`<div class="${cls}"><div class="drug-name">${x.n}</div>${x.v(w,a,u)}<button class="copy-all-btn" style="margin-top:8px; padding:6px; font-size:14px;" onclick="cp(this)">📋 Copy Dose</button></div>`;
+                
+                grouped[x.c].push(`<div class="${cls}"><div class="drug-name">${x.n}</div>${x.v(w,a,u)}<button class="copy-all-btn" style="margin-top:8px; padding:6px; font-size:14px;" onclick="cp(this)">📋 Copy Dose</button></div>`);
             });
-            d.innerHTML = html||'<p style="text-align:center; color:#718096; margin-top:30px;">No medicines found.</p>';
+
+            let html = "";
+            let catOrder = ["Calculators", "NICU", "PICU", "Emergency", "Fluids", "Antibiotic", "Neuro", "Syrup", "Drops", "GI", "Formula"];
+            let catTitles = { "Calculators": "🧮 Calculators & Tools", "NICU": "👶 NICU Protocol", "PICU": "🛏️ PICU Protocol", "Emergency": "🚨 Emergency & Airway", "Fluids": "💧 Fluids & DKA", "Antibiotic": "💊 Antibiotics", "Neuro": "🧠 Neuro & Seizure", "Syrup": "🥄 Syrups", "Drops": "💧 Drops", "GI": "🩺 GI, Tablets & Topical", "Formula": "🍼 Infant Formulas" };
+
+            catOrder.forEach(c => {
+                if(grouped[c] && grouped[c].length > 0) {
+                    if(curCat === 'All' || s) {
+                        html += `<div class="cat-header">${catTitles[c]}</div>`;
+                    }
+                    html += grouped[c].join("");
+                }
+            });
+
+            d.innerHTML = html || '<p style="text-align:center; color:#718096; margin-top:30px;">No medicines found.</p>';
         }
 
         function cp(b){ let txt=b.closest('.card').innerText.replace("📋 Copy Dose","").trim(); navigator.clipboard.writeText(txt); b.innerText="✅ Copied"; setTimeout(()=>b.innerText="📋 Copy Dose",1500); }
-        function copyAll(){ let w=document.getElementById('weight').value, a=document.getElementById('age').value, u=document.getElementById('ageUnit').value; if(!w){alert("Enter weight!");return;} let t=`PEDIATRIC DOSE CALCULATOR\nWeight: ${w} kg\n`+(a?`Age: ${a} ${u}\n\n`:"\n"); document.querySelectorAll('.card').forEach(x=>t+=x.innerText.replace("📋 Copy Dose","").trim()+"\n\n---\n\n"); navigator.clipboard.writeText(t); alert("✅ Copied!"); }
+        
+        function copyAll(){ 
+            let w=document.getElementById('weight').value, a=document.getElementById('age').value, u=document.getElementById('ageUnit').value; 
+            if(!w){alert("Enter weight!"); return;} 
+            let t=`PEDIATRIC DOSE CALCULATOR\nWeight: ${w} kg\n`+(a?`Age: ${a} ${u}\n\n`:"\n"); 
+            
+            Array.from(document.getElementById('results').children).forEach(x => {
+                if(x.classList.contains('cat-header')) {
+                    t += `\n📍 ${x.innerText}\n========================\n\n`;
+                } else if (x.classList.contains('card')) {
+                    t += x.innerText.replace("📋 Copy Dose","").trim() + "\n\n---\n\n";
+                }
+            });
+            
+            navigator.clipboard.writeText(t).then(()=> { alert("✅ All results copied successfully!"); }).catch(err => { alert("Failed to copy"); });
+        }
     </script>
 </body>
 </html>
