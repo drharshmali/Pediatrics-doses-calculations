@@ -96,21 +96,37 @@
 
         window.runGIR = function() {
             let wt = parseFloat(document.getElementById('weight').value);
-            let d1 = parseFloat(document.getElementById('girDex1').value) || 0;
-            let r1 = parseFloat(document.getElementById('girRate1').value) || 0;
-            let d2 = parseFloat(document.getElementById('girDex2').value) || 0;
-            let r2 = parseFloat(document.getElementById('girRate2').value) || 0;
-            let d3 = parseFloat(document.getElementById('girDex3').value) || 0;
-            let r3 = parseFloat(document.getElementById('girRate3').value) || 0;
+            let fluidPerKg = parseFloat(document.getElementById('girFluid').value) || 0;
+            let targetGir = parseFloat(document.getElementById('girTarget').value) || 0;
 
-            if(!isNaN(wt) && wt > 0 && (r1 > 0 || r2 > 0 || r3 > 0)) {
-                let gir1 = (r1 * d1) / (wt * 6);
-                let gir2 = (r2 * d2) / (wt * 6);
-                let gir3 = (r3 * d3) / (wt * 6);
-                let totalGir = gir1 + gir2 + gir3;
-                document.getElementById('girResText').innerHTML = `Total GIR: ${totalGir.toFixed(2)} mg/kg/min`;
+            if(!isNaN(wt) && wt > 0 && fluidPerKg > 0 && targetGir > 0) {
+                let totalFluid = wt * fluidPerKg;
+                let requiredDexPercent = (targetGir * 144) / fluidPerKg;
+                
+                let text = `Total 24hr Fluid: <b>${totalFluid.toFixed(0)} ml</b> (@ ${(totalFluid/24).toFixed(1)} ml/hr)<br>`;
+                text += `Required Dextrose: <b>${requiredDexPercent.toFixed(1)}%</b><br><hr style="margin:5px 0; border-top:1px solid #e2e8f0;">`;
+
+                if(requiredDexPercent < 5) {
+                    text += `<div style="color:#c53030; font-weight:bold;">⚠️ Need < 5% Dextrose. Use Normal Saline or adjust fluids.</div>`;
+                } else if(requiredDexPercent === 5) {
+                    text += `<div style="color:#2f855a; font-weight:bold;">✅ Give 100% as 0.45 DNS / D5: ${totalFluid.toFixed(0)} ml</div>`;
+                } else if(requiredDexPercent < 10) {
+                    let v10 = totalFluid * (requiredDexPercent - 5) / 5;
+                    let v5 = totalFluid - v10;
+                    text += `💧 Mix <b>D10</b>: ${v10.toFixed(0)} ml<br>💧 Mix <b>0.45 DNS / D5</b>: ${v5.toFixed(0)} ml`;
+                } else if(requiredDexPercent === 10) {
+                    text += `<div style="color:#2f855a; font-weight:bold;">✅ Give 100% as D10: ${totalFluid.toFixed(0)} ml</div>`;
+                } else if(requiredDexPercent <= 25) {
+                    let v25 = totalFluid * (requiredDexPercent - 10) / 15;
+                    let v10 = totalFluid - v25;
+                    text += `💧 Mix <b>D25</b>: ${v25.toFixed(0)} ml<br>💧 Mix <b>D10</b>: ${v10.toFixed(0)} ml`;
+                } else {
+                    text += `<div style="color:#c53030; font-weight:bold;">⚠️ Dextrose > 25% requires Central Line & special formulation!</div>`;
+                }
+
+                document.getElementById('girResText').innerHTML = text;
             } else {
-                document.getElementById('girResText').innerHTML = `Total GIR: ... mg/kg/min`;
+                document.getElementById('girResText').innerHTML = `Enter Fluid Requirement & Target GIR`;
             }
         };
 
@@ -181,20 +197,15 @@
                 calc: (wt) => `<div class="badge">PROCEDURE</div><br><div class="highlight">Depth: ${((1.5 * wt) + 5.5).toFixed(1)} cm</div><div class="note">Formula: (1.5 * Wt) + 5.5</div>`
             },
             {
-                name: "GIR (Multi-Fluid Glucose Infusion Rate)", category: "Calculators", tags: "gir glucose infusion rate dextrose",
+                name: "GIR Fluid Mixer (Target GIR)", category: "Calculators", tags: "gir glucose infusion rate dextrose mix fluid target",
                 calc: (wt) => `
-                    <div class="badge" style="background:#c6f6d5; color:#22543d;">MULTI-FLUID GIR CALCULATOR</div><br>
-                    <div style="font-size:12px; margin-bottom:5px; color:#4a5568;">Enter Rate & Dextrose % for all running IVs (Main, Drugs, Inotropes)</div>
-                    <div class="calc-inputs" style="grid-template-columns: 1fr 1fr;">
-                        <input type="number" id="girDex1" placeholder="Fluid 1 Dex %" oninput="runGIR()">
-                        <input type="number" id="girRate1" placeholder="Rate 1 (ml/hr)" oninput="runGIR()">
-                        <input type="number" id="girDex2" placeholder="Fluid 2 Dex %" oninput="runGIR()">
-                        <input type="number" id="girRate2" placeholder="Rate 2 (ml/hr)" oninput="runGIR()">
-                        <input type="number" id="girDex3" placeholder="Fluid 3 Dex %" oninput="runGIR()">
-                        <input type="number" id="girRate3" placeholder="Rate 3 (ml/hr)" oninput="runGIR()">
+                    <div class="badge" style="background:#c6f6d5; color:#22543d;">TARGET GIR CALCULATOR</div><br>
+                    <div style="font-size:12px; margin-bottom:5px; color:#4a5568;">Enter Fluid req/kg & Target GIR to get 24hr mixing formulation.</div>
+                    <div class="calc-inputs">
+                        <input type="number" id="girFluid" placeholder="Fluid (ml/kg/day)" oninput="runGIR()">
+                        <input type="number" id="girTarget" placeholder="Target GIR" oninput="runGIR()">
                     </div>
-                    <div class="highlight" id="girResText" style="display:block; width:100%; margin-top:5px;">Total GIR: ... mg/kg/min</div>
-                    <div class="note">Common %: 0.45 DNS = 5% | D10 = 10% | D25 = 25%</div>
+                    <div class="n" id="girResText" style="display:block; width:100%; margin-top:5px; color:#2d3748; background:#fff; border:1px solid #e2e8f0;">Enter Fluid Requirement & Target GIR</div>
                 `
             },
             {
@@ -227,24 +238,28 @@
                             <div class="badge" style="background:#bee3f8; color:#2a4365; margin-top:10px;">FIXED MEDS</div>
                             <div class="highlight" style="display:block;">1. Piptaz: ${wt <= 10 ? wt.toFixed(2) : (wt/2).toFixed(2)} ml IV TDS</div>
                             <div class="highlight" style="display:block;">2. Amikacin: ${(wt*15/50).toFixed(2)} ml OD (from 100mg/2ml)</div>
+                            <div class="badge" style="background:#e9d8fd; color:#553c9a; margin-top:10px;">UPGRADE ANTIBIOTICS</div>
+                            <div class="highlight" style="display:block;">1. Meropenem: ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*20/50).toFixed(2)} ml TDS</div>
+                            <div class="highlight" style="display:block;">2. Vancomycin: ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/50).toFixed(2)} ml TDS</div>
                             <div class="badge" style="background:#feebc8; color:#7b341e; margin-top:10px;">CONDITIONAL</div>
                             <div class="highlight" style="display:block;">Capnea: LD ${wt.toFixed(2)} ml | MD ${(wt/4).toFixed(2)} ml OD</div>
                             <div class="highlight" style="display:block;">Delayed Cry (HIE): Inj Gardinal LD ${(wt*20).toFixed(1)} mg Stat</div>`;
                 }
             },
             {
-                name: "🛏️ COMPLETE PICU PROTOCOL", category: "PICU", tags: "picu protocol intensive care",
+                name: "🛏️ COMPLETE PICU PROTOCOL", category: "PICU", tags: "picu protocol intensive care zostum",
                 calc: (wt) => {
                     let f = wt <= 10 ? (wt * 100) : (wt <= 20 ? (1000 + (wt-10)*50) : (1500 + (wt-20)*20));
                     return `<div class="badge" style="background:#c6f6d5; color:#22543d;">IV FLUIDS (Holliday-Segar)</div>
                             <div class="highlight" style="display:block;">24 hr Total: ${f.toFixed(0)} ml | Rate: ${(f/24).toFixed(1)} ml/hr</div>
                             <div class="badge" style="background:#bee3f8; color:#2a4365; margin-top:10px;">PICU MEDS</div>
                             <div class="highlight" style="display:block;">1. Monocef: ${((wt * 50)/100).toFixed(2)} ml BD</div>
-                            <div class="highlight" style="display:block;">2. Piptaz: ${wt <= 10 ? wt.toFixed(2) : (wt/2).toFixed(2)} ml TDS</div>
-                            <div class="highlight" style="display:block;">3. Vancomycin: ${((wt * 15)/50).toFixed(2)} ml TDS (Slow IV)</div>
-                            <div class="highlight" style="display:block;">4. Inj Emeset: ${(wt*0.15).toFixed(2)} mg TDS</div>
-                            <div class="highlight" style="display:block;">5. Inj Rantac: ${(wt*1).toFixed(1)} mg BD</div>
-                            <div class="highlight" style="display:block;">6. Inj Febrinil: ${(wt*15).toFixed(1)} mg SOS</div>`;
+                            <div class="highlight" style="display:block;">2. Zostum: ${((wt * 50)/100).toFixed(2)} ml BD/TDS</div>
+                            <div class="highlight" style="display:block;">3. Piptaz: ${wt <= 10 ? wt.toFixed(2) : (wt/2).toFixed(2)} ml TDS</div>
+                            <div class="highlight" style="display:block;">4. Vancomycin: ${((wt * 15)/50).toFixed(2)} ml TDS (Slow IV)</div>
+                            <div class="highlight" style="display:block;">5. Inj Emeset: ${(wt*0.15).toFixed(2)} mg TDS</div>
+                            <div class="highlight" style="display:block;">6. Inj Rantac: ${(wt*1).toFixed(1)} mg BD</div>
+                            <div class="highlight" style="display:block;">7. Inj Febrinil: ${(wt*15).toFixed(1)} mg SOS</div>`;
                 }
             },
             {
@@ -272,7 +287,7 @@
             { name: "Inj Adrenaline / Norad Infusion", category: "Emergency", tags: "adrenaline noradrenaline epinephrine norad neomate arrest inotrope", calc: (wt) => `<div class="badge">INFUSION (0.1 mcg/kg/min)</div><br><div class="highlight">Dose: ${(wt*0.3).toFixed(2)} mg in 50ml NS/D5 @ 1 ml/hr</div><hr><div class="badge">STAT DOSES</div><br><div class="highlight">Arrest IV (1:10,000): ${(wt * 0.1).toFixed(2)} ml Stat</div><div class="highlight">Anaphylaxis SC (1:1,000): ${(wt * 0.01).toFixed(2)} ml q15 min</div>` },
             { name: "Inj Atropine", category: "Emergency", tags: "atropine atropin", calc: (wt) => `<div class="badge">EMERGENCY (0.02 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt * 0.02).toFixed(2)} mg | Vol: ${((wt * 0.02)/0.6).toFixed(2)} ml IV Stat</div><div class="note">Strength: 0.6 mg/ml. Min dose: 0.1 mg.</div>` },
             { name: "Inj Adenosine", category: "Emergency", tags: "adenosine svt", calc: (wt) => `<div class="badge">SVT (0.1 mg/kg/dose)</div><br><div class="highlight">1st Dose: ${(wt*0.1).toFixed(1)} mg -> Vol: ${((wt*0.1)/3).toFixed(2)} ml push</div><div class="highlight">2nd Dose: ${(wt*0.2).toFixed(1)} mg -> Vol: ${((wt*0.2)/3).toFixed(2)} ml push</div><div class="note">Strength: 3 mg/ml. Flush with 5ml NS.</div>` },
-            { name: "Inj Calcium Gluconate (10%)", category: "Emergency", tags: "calcium gluconate", calc: (wt) => `<div class="badge">EMERGENCY (100-200 mg/kg)</div><br><div class="highlight">Dose: ${(wt * 200).toFixed(1)} mg | Vol: ${(wt * 2).toFixed(1)} ml IV slowly</div><div class="note">Strength: 100 mg/ml. Dilute 1:1 with DW. Give slowly.</div>` },
+            { name: "Inj Calcium Gluconate (10%)", category: "Emergency", tags: "calcium gluconate", calc: (wt) => `<div class="badge">EMERGENCY (100-200 mg/kg)</div><br><div class="highlight">Dose: ${(wt * 200).toFixed(1)} mg | Vol: ${(wt * 2).toFixed(1)} ml IV slowly</div><div class="note">Strength: 100 mg/ml. Dilute 1:1 with DW under cardiac monitor.</div>` },
             { name: "Inj Sodium Bicarbonate (7.5%)", category: "Emergency", tags: "bicarb", calc: (wt) => `<div class="badge">EMERGENCY (1-2 mEq/kg)</div><br><div class="highlight">Vol: ${(wt * 1).toFixed(1)} ml</div><div class="note">Strength: ~1 mEq/ml. Neonates: Dilute 1:1 with Sterile Water.</div>` },
             { name: "Inj Dobutamine / Dopamine Infusion", category: "Emergency", tags: "dobutamine dopamine inotrope", calc: (wt) => `<div class="badge">INOTROPE (10 mcg/kg/min)</div><br><div class="highlight">Mix ${((wt * 30) / 50).toFixed(2)} ml + ${(50 - ((wt * 30) / 50)).toFixed(2)} ml NS/D5 @ 1 ml/hr</div><div class="note">Strength: 50 mg/ml (Wt * 30 mg formula).</div>` },
             { name: "Inj Milrinone Infusion", category: "Emergency", tags: "milrinone inotrope", calc: (wt) => `<div class="badge">INOTROPE (0.5 mcg/kg/min)</div><br><div class="highlight">Mix ${(wt * 1.5).toFixed(2)} mg in 50ml D5W @ 1ml/hr</div>` },
@@ -291,7 +306,7 @@
             { name: "Inj Robivax (Methocarbamol)", category: "Emergency", tags: "robivax tetanus", calc: (wt) => `<div class="badge">RELAXANT (15 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*15).toFixed(1)} mg | Vol: ${(wt*15/100).toFixed(2)} ml q8h</div><div class="note">Strength: 100 mg/ml.</div>` },
             { name: "Inj Aminoven 10%", category: "Emergency", tags: "aminoven nutrition tpn", calc: (wt) => `<div class="badge">NUTRITION (2.5-3.5 g/kg/day)</div><br><div class="highlight">Give: ${(wt*3*10).toFixed(1)} ml/day</div><div class="note">Strength: 10g/100ml.</div>` },
             { name: "Inj Vitamin K (Kenadion)", category: "Emergency", tags: "kenadion bleeding", calc: (wt) => `<div class="badge">COAGULANT</div><br><div class="highlight">Neonate: 1 mg IM | Infant: 1-2 mg</div><div class="note">Strength: 10 mg/ml. Give ${(wt < 5 ? 0.1 : 0.2)} ml.</div>` },
-            { name: "Inj Febrinil / Paracetamol", category: "Emergency", tags: "febrinil pcm fever", calc: (wt) => `<div class="badge">ANTIPYRETIC (10-15 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*15).toFixed(1)} mg QDS</div><div class="highlight">Vol (150mg/ml): ${(wt*10/150).toFixed(2)} to ${(wt*15/150).toFixed(2)} ml</div><div class="note">Standard IV infusion (10mg/ml): ${(wt*1).toFixed(2)} ml over 20 min.</div>` },
+            { name: "Inj Febrinil / Paracetamol", category: "Emergency", tags: "febrinil pcm fever", calc: (wt) => `<div class="badge">ANTIPYRETIC (10-15 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*15).toFixed(1)} mg QDS</div><div class="highlight">Vol (150mg/ml): ${(wt*10/150).toFixed(2)} to ${(wt*15/150).toFixed(2)} ml</div><div class="note">Standard IV infusion (10mg/ml): ${(wt*1.5).toFixed(2)} ml over 20 min.</div>` },
             { name: "Inj Mucomix (Acetylcysteine)", category: "Emergency", tags: "mucomix antidote pcm toxicity", calc: (wt) => `<div class="badge">ANTIDOTE (LD: 150 mg/kg)</div><br><div class="highlight">Load: ${(wt * 150).toFixed(1)} mg in ${(wt * 3).toFixed(1)} ml D5W</div><div class="note">Strength: 200 mg/ml. Over 1 hour.</div>` },
             { name: "Inj Anti Snake Venom (ASV)", category: "Emergency", tags: "asv snake bite", calc: (wt) => `<div class="badge">PROTOCOL</div><br><div class="highlight">Infuse 5 to 10 Vials in D5/NS</div><div class="note">Based on degree of envenomation. Not weight based.</div>` },
             { name: "Inj Trenexa (Tranexamic Acid)", category: "Emergency", tags: "trenexa bleeding", calc: (wt) => `<div class="badge">HEMOSTATIC (10-20 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*20).toFixed(1)} mg TDS | Vol: ${(wt*20/100).toFixed(2)} ml TDS</div><div class="note">Strength: 100 mg/ml.</div>` },
@@ -303,8 +318,8 @@
             { name: "Inj Amikacin", category: "Antibiotic", tags: "amikacin mikacin", calc: (wt) => { let mg = wt * 15; let strength = mg <= 100 ? 100 : (mg <= 250 ? 250 : 500); let res = amikacinDose(wt, strength); return `<div class="badge">ANTIBIOTIC (15 mg/kg/day)</div><br><div class="highlight">Dose: ${res.mg} mg OD | Vol: ${res.ml} ml OD</div><div class="note">Auto-selected <b>${strength}mg/2ml</b> vial.</div>`; } },
             { name: "Inj Ceftriaxone (Monocef)", category: "Antibiotic", tags: "monocef", calc: (wt) => `<div class="badge">ANTIBIOTIC (50-75 mg/kg/day)</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*0.5).toFixed(2)} ml BD</div><div class="note">Strength: 100 mg/ml (1g/10ml).</div>` },
             { name: "Inj Cefotaxime (Taxim)", category: "Antibiotic", tags: "taxim", calc: (wt) => `<div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*50).toFixed(1)} mg TDS | Vol: ${(wt*0.5).toFixed(2)} ml TDS</div><div class="note">Strength: 100 mg/ml. Safe in Neonates.</div>` },
-            { name: "Inj Meropenem", category: "Antibiotic", tags: "meropenem", calc: (wt) => `<div class="badge">ANTIBIOTIC (20 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*20).toFixed(1)} mg TDS | Vol: ${(wt*20/50).toFixed(2)} ml TDS</div><div class="note">Strength: 50 mg/ml (500mg/10ml). Meningitis: 40mg/kg.</div>` },
-            { name: "Inj Vancomycin", category: "Antibiotic", tags: "vancomycin", calc: (wt) => `<div class="badge">ANTIBIOTIC (15 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS | Vol: ${(wt*15/50).toFixed(2)} ml TDS</div><div class="note" style="color:#c53030;">⚠️ Must give SLOW IV over 60 mins (Red Man Syndrome).</div>` },
+            { name: "Inj Meropenem", category: "Antibiotic", tags: "meropenem", calc: (wt) => `<div class="badge">ANTIBIOTIC (20-40 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*20).toFixed(1)} mg TDS | Vol: ${(wt*20/50).toFixed(2)} ml TDS</div><div class="note">Dilute in ${(wt*20/10).toFixed(1)} ml NS (makes 10mg/ml), over 30 min.</div>` },
+            { name: "Inj Vancomycin", category: "Antibiotic", tags: "vancomycin", calc: (wt) => `<div class="badge">ANTIBIOTIC (15 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS | Vol: ${(wt*15/50).toFixed(2)} ml TDS</div><div class="note" style="color:#c53030;">⚠️ Must give SLOW IV over 60 mins. Dilute to < 5mg/ml (Add ${(wt*15/5).toFixed(1)} ml NS).</div>` },
             { name: "Inj Levofloxacin (Loxof)", category: "Antibiotic", tags: "loxof levoflox", calc: (wt) => `<div class="badge">ANTIBIOTIC (10 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*10).toFixed(1)} mg BD | Vol: ${(wt*2).toFixed(2)} ml BD</div><div class="note">Strength: 5 mg/ml (500mg/100ml pint).</div>` },
             { name: "Inj Clindamycin", category: "Antibiotic", tags: "clindamycin", calc: (wt) => `<div class="badge">ANTIBIOTIC (10-15 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS</div><div class="note">Strength: 150 mg/ml. Formula: ${(wt*10/150).toFixed(2)} ml + 9ml NS over 1 hr.</div>` },
             { name: "Inj Metronidazole (Metrogyl)", category: "Antibiotic", tags: "metrogyl", calc: (wt) => `<div class="badge">ANTIBIOTIC (7.5-10 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*2).toFixed(1)} ml TDS</div><div class="note">Strength: 5 mg/ml. Shortcut: Wt * 2 ml.</div>` },
@@ -328,12 +343,11 @@
             // ================== NEURO ==================
             { name: "Inj Midaz (Midazolam)", category: "Neuro", tags: "midaz sedative seizure", calc: (wt) => `<div class="badge">SEDATIVE (0.1-0.2 mg/kg)</div><br><div class="highlight">Dose: ${(wt*0.1).toFixed(2)} mg | Vol: ${(wt/10).toFixed(2)} ml IV Stat</div><div class="note">Strength: 1 mg/ml.</div>` },
             { name: "Inj Levipil / Levera (Levetiracetam)", category: "Neuro", tags: "levipil levera seizure", calc: (wt) => `<div class="badge">ANTICONVULSANT (LD: 20-30 mg/kg)</div><br><div class="highlight">LD Vol: ${(wt*0.2).toFixed(2)} ml Stat (+20ml NS)</div><div class="highlight">MD Vol: ${(wt*0.1).toFixed(2)} ml BD (+5ml NS)</div><div class="note">Strength: 100 mg/ml. MD is 10-20 mg/kg BD.</div>` },
-            { name: "Inj Fosolin (Fosphenytoin)", category: "Neuro", tags: "fosolin seizure", calc: (wt) => `<div class="badge">ANTICONVULSANT (LD: 15-20 mg/kg)</div><br><div class="highlight">LD Vol: ${((wt*20)/50).toFixed(2)} ml + 20ml NS Stat</div><div class="highlight">MD Vol: ${((wt*5)/50).toFixed(2)} ml BD (+ 5ml NS)</div><div class="note">Strength: 50 mg PE/ml.</div>` },
+            { name: "Inj Fosolin (Fosphenytoin)", category: "Neuro", tags: "fosolin seizure", calc: (wt) => `<div class="badge">ANTICONVULSANT (LD: 15-20 mg/kg)</div><br><div class="highlight">LD Vol: ${((wt*20)/50).toFixed(2)} ml + 20ml NS Stat</div><div class="highlight">MD Vol: ${((wt*5)/50).toFixed(2)} ml BD (+ 5ml NS)</div><div class="note">Strength: 50 mg PE/ml. Max rate 1-3 mg/kg/min.</div>` },
             { name: "Inj Valproate Sodium / Valparin", category: "Neuro", tags: "valproat valparin seizure", calc: (wt) => `<div class="badge">ANTICONVULSANT (LD: 20 mg/kg)</div><br><div class="highlight">LD Vol: ${(wt*0.2).toFixed(2)} ml over 30 min</div><div class="highlight">MD Vol: ${(wt*0.1).toFixed(2)} ml BD</div><div class="note">Strength: 100 mg/ml.</div>` },
-            { name: "Inj Gardinal (Phenobarbital)", category: "Neuro", tags: "gardinal seizure", calc: (wt) => `<div class="badge">ANTICONVULSANT (LD: 15-20 mg/kg)</div><br><div class="highlight">LD Dose: ${(wt*20).toFixed(1)} mg Stat</div><div class="highlight">LD Vol (200mg/ml): ${(wt*20/200).toFixed(2)} ml IV Stat</div><div class="highlight">MD Vol: ${(wt*5/200).toFixed(2)} ml BD</div><div class="note" style="color:#c53030;">⚠️ Verify Strength! High Concentration 200 mg/ml logic applied.</div>` },
+            { name: "Inj Gardinal (Phenobarbital)", category: "Neuro", tags: "gardinal seizure", calc: (wt) => `<div class="badge">ANTICONVULSANT (LD: 20 mg/kg)</div><br><div class="highlight">LD Dose: ${(wt*20).toFixed(1)} mg Stat</div><div class="highlight">LD Vol (200mg/ml): ${(wt*20/200).toFixed(2)} ml IV Stat</div><div class="highlight">MD Vol: ${(wt*5/200).toFixed(2)} ml BD</div><div class="note" style="color:#c53030;">Dilute 1:10. Max rate 1mg/kg/min to avoid resp depression.</div>` },
             { name: "Inj Mannitol (20%)", category: "Neuro", tags: "mannitol edema icp", calc: (wt) => `<div class="badge">DIURETIC (0.5-1 g/kg = 2.5-5 ml/kg)</div><br><div class="highlight">LD Vol: ${(wt * 5).toFixed(1)} ml rapidly</div><div class="highlight">MD Vol: ${(wt * 2.5).toFixed(1)} ml Q6H for 48hr</div><div class="note">Strength: 20% (200 mg/ml).</div>` },
             { name: "Inj Lopex (Lorazepam)", category: "Neuro", tags: "lopex lorazepam seizure", calc: (wt) => `<div class="badge">ANTICONVULSANT (0.05-0.1 mg/kg)</div><br><div class="highlight">Dose: ${(wt*0.1).toFixed(2)} mg | Vol: ${(wt*0.1/2).toFixed(2)} ml Stat</div><div class="note">Strength: 2 mg/ml. Slow IV.</div>` },
-            { name: "Tab Haloperidol / Syp Beclof", category: "Neuro", tags: "haloperidol beclof trembling", calc: (wt) => `<div class="badge">TREMBLING / CHOREA</div><br><div class="highlight">Tab Haloperidol: 0.25mg BD</div><div class="highlight">Syp Beclof: As per Wt</div>` },
 
             // ================== SYRUPS ==================
             { name: "Syp Calpol / Sumol (Paracetamol)", category: "Syrup", tags: "calpol sumol pcm fever", calc: (wt) => `<div class="badge">ANALGESIC (10-15 mg/kg/dose)</div><br><div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS/QDS</div><div class="highlight">Vol (120mg/5ml): ${(wt*15*5/120).toFixed(2)} ml</div><div class="highlight">Vol (250mg/5ml): ${(wt*15*5/250).toFixed(2)} ml</div>` },
@@ -356,7 +370,6 @@
             { name: "Syp LCF Kid / Zyrcol", category: "Syrup", tags: "lcf kid zyrcol cold", calc: (wt) => `<div class="badge">COUGH / COLD</div><br><div class="highlight">Vol: ${(wt*0.25).toFixed(2)} ml BD</div>` },
 
             // ================== DROPS ==================
-            { name: "Drop Pru / Atarax (Hydroxyzine)", category: "Drops", tags: "atarax pru allergy hydroxyzine", calc: (wt) => `<div class="badge">ANTIHISTAMINE (0.5-1 mg/kg)</div><br><div class="highlight">Give: ${(wt*1).toFixed(1)} drop/dose TDS</div><div class="note">Strength: Approx 0.5 mg per drop.</div>` },
             { name: "Domstal Drops (Domperidone)", category: "Drops", tags: "domstal vomiting domperidone", calc: (wt) => `<div class="badge">ANTIEMETIC (0.2-0.4 mg/kg)</div><br><div class="highlight">Give: ${(wt*1).toFixed(1)} drop TDS</div><div class="note">Strength: 10 mg/ml (1 drop = 0.5 mg).</div>` },
             { name: "Sumol / Calpol Drops", category: "Drops", tags: "sumol calpol pcm drops fever", calc: (wt) => `<div class="badge">ANALGESIC (15 mg/kg)</div><br><div class="highlight">Give: ${(wt*3).toFixed(1)} drops TDS</div><div class="note">Strength: 150 mg/ml (Approx 15 mg per 3 drops). Or give ${(wt*0.1).toFixed(2)} ml.</div>` },
             { name: "Z & D / Vitanova drops", category: "Drops", tags: "zinc vitanova d3 drops", calc: (wt, age, unit) => { let text = (!isNaN(age) && ((unit === 'Months' && age >= 6) || unit === 'Years')) ? '10 drops BD' : '5 drops BD'; return `<div class="badge">SUPPLEMENT (Zinc/D3)</div><br><div class="highlight">Give: ${text}</div>`; } },
@@ -369,7 +382,6 @@
             { name: "Tab Vasosure", category: "GI", tags: "vasosure", calc: (wt) => `<div class="badge">TABLET</div><br><div class="highlight">1 tab in 20ml DW -> give wt jetlu ml TDS</div>` },
             { name: "Tab Cabergolin 0.5mg", category: "GI", tags: "cabergolin", calc: (wt) => `<div class="badge">TABLET</div><br><div class="highlight">Give: 2 tab only for 2 days</div>` },
             { name: "Tab Genpro-L", category: "GI", tags: "genpro l breast", calc: (wt) => `<div class="badge">SUPPLEMENT</div><br><div class="highlight">For breast milk: 7 days TDS</div>` },
-            { name: "Tab Udisafe 75mg", category: "GI", tags: "udisafe liver", calc: (wt) => `<div class="badge">TABLET</div><br><div class="highlight">Give: BD</div>` },
 
             // ================== FORMULAS ==================
             { name: "LBW Pre NAN, Similac Neosure", category: "Formula", tags: "pre nan similac lbw neosure", calc: (wt) => `<div class="badge">FORMULA</div><br><div class="highlight">Weight: Below 2.5 kg (Premature / Low Birth Weight)</div>` },
@@ -415,6 +427,7 @@
                 if(curCat !== 'All' && x.category !== curCat) return;
                 if(s && !smartSearch(x, s)) return;
                 
+                // NICU અને PICU ને ઉંમર પ્રમાણે હાઈડ કરવાનું લોજીક (જે તમે માંગેલું)
                 if(!isNaN(a) && a >= 0) {
                     let mode = getPatientMode(a, u);
                     if(mode.includes("NICU") && x.category === "PICU") return; 
