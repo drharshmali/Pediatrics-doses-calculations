@@ -33,34 +33,33 @@
         .copy-all-btn { width:100%; margin-top:10px; padding:12px; background:#3182ce; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; }
         .calc-inputs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0; }
         
-        .b { display:inline-block; font-size:12px; font-weight:bold; background:#e2e8f0; padding:4px 8px; border-radius:4px; color:#2d3748; margin-bottom:6px; letter-spacing:0.5px; }
-        .h { font-size:15px; font-weight:bold; color:#c53030; background-color:#fff5f5; padding:6px 10px; border-radius:6px; display:block; margin-bottom:4px; border:1px solid #fed7d7; }
-        .n { font-size:13px; color:#4a5568; margin-top:6px; font-style:italic; background:#edf2f7; padding:8px; border-radius:6px; border-left:3px solid #a0aec0; }
+        .b, .badge { display:inline-block; font-size:12px; font-weight:bold; background:#e2e8f0; padding:4px 8px; border-radius:4px; color:#2d3748; margin-bottom:6px; letter-spacing:0.5px; }
+        .h, .highlight { font-size:15px; font-weight:bold; color:#c53030; background-color:#fff5f5; padding:6px 10px; border-radius:6px; display:block; margin-bottom:4px; border:1px solid #fed7d7; }
+        .n, .note { font-size:13px; color:#4a5568; margin-top:6px; font-style:italic; background:#edf2f7; padding:8px; border-radius:6px; border-left:3px solid #a0aec0; }
     </style>
 </head>
 <body>
     <div class="sticky-header">
-        <h2>Pediatric Dose Calculator</h2>
- <script>
-    function getPatientMode(age, ageUnit) {
-        let days = 0;
-        if(ageUnit === "Days") days = age;
-        else if(ageUnit === "Months") days = age * 30;
-        else if(ageUnit === "Years") days = age * 365;
-
-        if (days <= 28) {
-            return "NICU";
-        } else {
-            return "PICU";
-        }
-    }
-</script>
-                            <option value="Days">Days</option><option value="Months">Months</option><option value="Years" selected>Years</option>
+        <div class="header-card">
+            <h2>Pediatric Dose Calculator</h2>
+            <div class="input-group">
+                <div>
+                    <label>Weight (kg)</label>
+                    <input type="number" id="weight" placeholder="e.g. 10" oninput="calculate()">
+                </div>
+                <div>
+                    <label>Age <span id="patientModeBadge" style="display:none; font-size:11px; background:#e2e8f0; padding:2px 5px; border-radius:4px; margin-left:5px;"></span></label>
+                    <div class="age-container">
+                        <input type="number" id="age" placeholder="e.g. 2" oninput="calculate()">
+                        <select id="ageUnit" onchange="calculate()">
+                            <option value="Days">Days</option>
+                            <option value="Months">Months</option>
+                            <option value="Years" selected>Years</option>
                         </select>
                     </div>
                 </div>
             </div>
-            <input type="text" id="search" placeholder="🔍 Search medicine, antibiotic, emergency..." onkeyup="calcAll()">
+            <input type="text" id="search" placeholder="🔍 Search medicine, antibiotic, emergency..." onkeyup="calculate()">
             <button onclick="copyAll()" class="copy-all-btn">📋 Copy All Results</button>
 
             <div class="category-tabs" id="tabs" style="margin-top:15px;">
@@ -87,7 +86,32 @@
         const h = (t, bg="#fff5f5", c="#c53030", bc="#fed7d7") => `<div class='h' style='background:${bg}; color:${c}; border-color:${bc};'>${t}</div>`;
         const n = (t) => `<div class='n'>${t}</div>`;
         
-        function getPatientMode(age, ageUnit){ let d = 0; if(ageUnit === "Days") d = age; else if(ageUnit === "Months") d = age * 30; else if(ageUnit === "Years") d = age * 365; return d < 28 ? "NICU" : "PICU"; }
+        function getPatientMode(age, ageUnit){ 
+            let d = 0; 
+            if(ageUnit === "Days") d = age; 
+            else if(ageUnit === "Months") d = age * 30; 
+            else if(ageUnit === "Years") d = age * 365; 
+            return d <= 28 ? "NICU" : "PICU"; 
+        }
+
+        window.runGIR = function() {
+            let wt = parseFloat(document.getElementById('weight').value);
+            let dex = parseFloat(document.getElementById('girDex').value);
+            let rate = parseFloat(document.getElementById('girRate').value);
+            if(!isNaN(wt) && !isNaN(dex) && !isNaN(rate) && wt > 0) {
+                let gir = (rate * dex) / (wt * 6);
+                document.getElementById('girResText').innerHTML = `GIR: ${gir.toFixed(2)} mg/kg/min`;
+            } else {
+                document.getElementById('girResText').innerHTML = `Enter Details`;
+            }
+        };
+
+        function amikacinDose(wt, strength) {
+            let mg = wt * 15;
+            let ml = (mg / strength) * 2;
+            return { mg: mg.toFixed(1), ml: ml.toFixed(2) };
+        }
+
         window.runABG = function() {
             let wt = parseFloat(document.getElementById('weight').value);
             let ph = parseFloat(document.getElementById('abgPh').value);
@@ -95,7 +119,7 @@
             let hco3 = parseFloat(document.getElementById('abgHco3').value);
             let na = parseFloat(document.getElementById('abgNa').value);
             let cl = parseFloat(document.getElementById('abgCl').value);
-            let k = parseFloat(document.getElementById('abgK').value); // New Potassium variable
+            let k = parseFloat(document.getElementById('abgK').value); 
 
             if(!isNaN(ph) && !isNaN(pco2) && !isNaN(hco3)) {
                 let analysis = "Near Normal / Mixed Disorder";
@@ -108,12 +132,10 @@
                 let ag = 0;
                 let result = "";
                 if(!isNaN(k)) {
-                    // પોટેશિયમ (K+) સાથેની ફોર્મ્યુલા
                     ag = (na + k) - (cl + hco3);
                     result = ag > 16 ? "High Anion Gap" : (ag >= 12 ? "Normal" : "Low Anion Gap");
                     document.getElementById('agResText').innerHTML = `Anion Gap: ${ag.toFixed(1)} (${result}) <span style="font-size:12px; font-weight:normal; color:#4a5568;">[With K+]</span>`;
                 } else {
-                    // પોટેશિયમ (K+) વગરની ફોર્મ્યુલા
                     ag = na - (cl + hco3);
                     result = ag > 12 ? "High Anion Gap" : (ag >= 8 ? "Normal" : "Low Anion Gap");
                     document.getElementById('agResText').innerHTML = `Anion Gap: ${ag.toFixed(1)} (${result})`;
@@ -125,8 +147,8 @@
                 document.getElementById('bicarbResText').innerHTML = `HCO3 Deficit: ${deficit} mEq`;
             }
         };
-          const drugs = [
-            
+
+        const drugs = [
             // ================== CALCULATORS & TOOLS ==================
             {
                 name: "Airway Calculator & Neonatal ET Tube Size", category: "Emergency", tags: "airway et tube intubation neonate pediatric depth",
@@ -155,7 +177,6 @@
                 calc: (wt) => `<div class="badge">CALCULATOR</div><br><div class="calc-inputs"><input type="number" id="girDex" placeholder="% Dextrose" oninput="runGIR()"><input type="number" id="girRate" placeholder="Rate (ml/hr)" oninput="runGIR()"></div><div class="highlight" id="girResText" style="display:block; width:100%;">Enter Details</div>`
             },
             {
-               {
                 name: "ABG, Anion Gap & Bicarb Calculator", category: "Calculators", tags: "abg anion gap acid base bicarbonate deficit hco3 potassium",
                 calc: (wt) => `
                     <div class="badge">CALCULATOR</div><br>
@@ -342,11 +363,17 @@
             { name: "NAN-2, Similac-2, Dexolac-2", category: "Formula", tags: "nan 2 similac 2 dexolac 2", calc: (wt) => `<div class="badge">FORMULA</div><br><div class="highlight">Age: 6 months to 1 year</div>` },
             { name: "PediaSure, NAN Grow, Groviva", category: "Formula", tags: "pediasure nan grow groviva", calc: (wt) => `<div class="badge">FORMULA</div><br><div class="highlight">Age: 2 to 5 Years</div>` }
         ];
+
         let curCat = 'All';
-        function setCat(c, btn){ curCat=c; document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); calcAll(); }
+        function setCat(c, btn){ 
+            curCat = c; 
+            document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); 
+            btn.classList.add('active'); 
+            calculate(); 
+        }
 
         function smartSearch(drug, search){
-            return ((drug.n || "") + " " + (drug.t || "")).toLowerCase().includes(search.toLowerCase());
+            return ((drug.name || "") + " " + (drug.tags || "")).toLowerCase().includes(search.toLowerCase());
         }
 
         function calculate() {
@@ -358,7 +385,7 @@
             let mb = document.getElementById('patientModeBadge');
             
             if(!isNaN(a) && a >= 0){ 
-                mb.style.display="block"; 
+                mb.style.display="inline-block"; 
                 mb.innerText=`👤 ${getPatientMode(a,u)}`; 
             } else { 
                 mb.style.display="none"; 
@@ -371,14 +398,13 @@
             
             let grouped = {};
             drugs.forEach(x => {
-                if(currentCategory !== 'All' && x.category !== currentCategory) return;
+                if(curCat !== 'All' && x.category !== curCat) return;
                 if(s && !smartSearch(x, s)) return;
                 
-                // ઓટોમેટિક NICU / PICU અલગ કરવાની કન્ડિશન
                 if(!isNaN(a) && a >= 0) {
                     let mode = getPatientMode(a, u);
-                    if(mode.includes("NICU") && x.category === "PICU") return; // NICU માં PICU હાઈડ કરો
-                    if(mode.includes("PICU") && x.category === "NICU") return; // PICU માં NICU હાઈડ કરો
+                    if(mode.includes("NICU") && x.category === "PICU") return; 
+                    if(mode.includes("PICU") && x.category === "NICU") return; 
                 }
                 
                 if(!grouped[x.category]) grouped[x.category] = [];
@@ -394,7 +420,7 @@
                     <div class="${cls}">
                         <div class="drug-name">${x.name}</div>
                         ${x.calc(w, a, u)}
-                        <button class="copy-all-btn" style="margin-top:8px; padding:6px; font-size:14px;" onclick="copyDose(this)">📋 Copy Dose</button>
+                        <button class="copy-all-btn" style="margin-top:8px; padding:6px; font-size:14px;" onclick="cp(this)">📋 Copy Dose</button>
                     </div>`;
                     
                 grouped[x.category].push(cardHtml);
@@ -418,7 +444,7 @@
 
             catOrder.forEach(c => {
                 if(grouped[c] && grouped[c].length > 0) {
-                    if(currentCategory === 'All' || s) {
+                    if(curCat === 'All' || s) {
                         html += `<div class="cat-header">${catTitles[c]}</div>`;
                     }
                     html += grouped[c].join("");
@@ -428,12 +454,19 @@
             d.innerHTML = html || '<p style="text-align:center; color:#718096; margin-top:30px;">No medicines found.</p>';
         }
 
-        function cp(b){ let txt=b.closest('.card').innerText.replace("📋 Copy Dose","").trim(); navigator.clipboard.writeText(txt); b.innerText="✅ Copied"; setTimeout(()=>b.innerText="📋 Copy Dose",1500); }
+        function cp(b){ 
+            let txt = b.closest('.card').innerText.replace("📋 Copy Dose","").trim(); 
+            navigator.clipboard.writeText(txt); 
+            b.innerText="✅ Copied"; 
+            setTimeout(() => b.innerText="📋 Copy Dose", 1500); 
+        }
         
         function copyAll(){ 
-            let w=document.getElementById('weight').value, a=document.getElementById('age').value, u=document.getElementById('ageUnit').value; 
+            let w = document.getElementById('weight').value;
+            let a = document.getElementById('age').value;
+            let u = document.getElementById('ageUnit').value; 
             if(!w){alert("Enter weight!"); return;} 
-            let t=`PEDIATRIC DOSE CALCULATOR\nWeight: ${w} kg\n`+(a?`Age: ${a} ${u}\n\n`:"\n"); 
+            let t = `PEDIATRIC DOSE CALCULATOR\nWeight: ${w} kg\n` + (a ? `Age: ${a} ${u}\n\n` : "\n"); 
             
             Array.from(document.getElementById('results').children).forEach(x => {
                 if(x.classList.contains('cat-header')) {
@@ -443,7 +476,11 @@
                 }
             });
             
-            navigator.clipboard.writeText(t).then(()=> { alert("✅ All results copied successfully!"); }).catch(err => { alert("Failed to copy"); });
+            navigator.clipboard.writeText(t).then(()=> { 
+                alert("✅ All results copied successfully!"); 
+            }).catch(err => { 
+                alert("Failed to copy"); 
+            });
         }
     </script>
 </body>
