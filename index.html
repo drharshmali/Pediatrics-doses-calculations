@@ -71,19 +71,6 @@
             margin: 0; 
         }
 
-        .credits { 
-            text-align: center; 
-            font-size: 13px; 
-            color: var(--text-muted); 
-            margin-bottom: 15px; 
-            font-weight: bold; 
-            letter-spacing: 0.5px; 
-            padding: 8px;
-            background: var(--note-bg);
-            border-radius: 8px;
-            border: 1px dashed var(--border);
-        }
-
         .sticky-header { 
             position: sticky; 
             top: 0; 
@@ -100,7 +87,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
         }
         
-        .input-group { display: flex; gap: 10px; margin-bottom: 10px; } 
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; margin-top: 10px; } 
         .input-group div { flex: 1; } 
         .age-container { display: flex; gap: 5px; }
         
@@ -332,6 +319,30 @@
             padding: 6px;
             border-radius: 5px;
         }
+
+        /* Footer Credits */
+        .footer-credits {
+            text-align: center;
+            font-size: 11px;
+            color: #a0aec0;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+        }
+        body.dark-mode .footer-credits {
+            color: #718096;
+        }
+
+        /* About Section Custom Style */
+        .about-section {
+            background: var(--note-bg);
+            border: 1px dashed var(--note-border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 25px;
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
@@ -344,12 +355,6 @@
                 <div>
                     <button class="action-btn" onclick="document.body.classList.toggle('dark-mode')" style="background:#4a5568;">🌙 Dark Mode</button>
                 </div>
-            </div>
-            
-            <!-- Credits Section -->
-            <div class="credits">
-                Made by <span style="color:var(--primary); font-size:14px;">Dr. Harsh Mali</span> | 
-                Guided by <span style="color:var(--primary); font-size:14px;">Dr. Nikul Thakkar</span>
             </div>
             
             <div class="input-group">
@@ -393,6 +398,16 @@
         <div class="menu-item" onclick="openCat('Formula')"><div class="menu-icon">🍼</div>Infant Formulas</div>
     </div>
 
+    <!-- ABOUT SECTION (Visible only on Home Page) -->
+    <div id="aboutSection" class="about-section">
+        <div style="font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 10px;">ℹ️ About</div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
+            <b style="color:var(--text-main);">📚 Scientific References:</b> IAP Guidelines & Dr. Meharban Singh<br>
+            <b style="color:var(--text-main);">👨‍⚕️ Under the Expert Guidance of:</b> Dr. Nikul Thakkar<br>
+            <b style="color:var(--text-main);">💻 Developed by:</b> Dr. Harsh Mali
+        </div>
+    </div>
+
     <!-- CATEGORY VIEW (List of Drugs) -->
     <div id="categoryView" style="display:none; padding-top:10px;">
         <button class="action-btn back-btn" id="btnBack" onclick="goHome()">🔙 Back to Main Menu</button>
@@ -401,6 +416,9 @@
         </div>
         <button onclick="copyAll()" class="copy-all-btn" id="btnCopy" style="display:none;">📋 Copy Results</button>
     </div>
+
+    <!-- Footer Credit -->
+    <div class="footer-credits">Developed by Dr. Harsh Mali</div>
 
     <!-- CORE LOGIC SCRIPT -->
     <script>
@@ -429,6 +447,7 @@
         function openCat(cat) {
             currentCategory = cat;
             document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('aboutSection').style.display = 'none';
             document.getElementById('categoryView').style.display = 'block';
             document.getElementById('btnBack').style.display = 'block';
             document.getElementById('btnCopy').style.display = 'block';
@@ -439,6 +458,7 @@
             document.getElementById('search').value = "";
             currentCategory = 'All';
             document.getElementById('mainMenu').style.display = 'grid';
+            document.getElementById('aboutSection').style.display = 'block';
             document.getElementById('categoryView').style.display = 'none';
         }
 
@@ -446,6 +466,7 @@
             let s = document.getElementById('search').value;
             if(s.length > 0) {
                 document.getElementById('mainMenu').style.display = 'none';
+                document.getElementById('aboutSection').style.display = 'none';
                 document.getElementById('categoryView').style.display = 'block';
                 document.getElementById('btnBack').style.display = 'block';
                 document.getElementById('btnCopy').style.display = 'block';
@@ -913,7 +934,7 @@
                 tags: "fluid restriction nephrotic maintenance 1/3 2/3 manual", 
                 calc: (wt) => `
                     <div class="badge">MAINTENANCE FLUID (Holliday-Segar)</div><br>
-                    <div class="note" style="margin-bottom:8px;">Enter manual ml/day (leave blank for auto calc):</div>
+                    <div class="note" style="margin-bottom:8px;">Enter manual ml/day (leave blank for weight-based auto calc):</div>
                     <input type="number" id="manualFluidTotal" placeholder="Manual Total Fluid (ml/day)" oninput="window.runManualFluid()" style="margin-bottom:8px; background:var(--bg-card); color:var(--text-main);">
                     <div id="fluidResDiv">Enter weight or fluid to calculate...</div>
                 `
@@ -2103,11 +2124,11 @@
                 category: "Syrup", 
                 tags: "calpol sumol pcm fever", 
                 calc: (wt) => `
-                    <div class="badge">ANALGESIC (15 mg/kg/dose)</div><br>
+                    <div class="badge">ANALGESIC (10-15 mg/kg/dose)</div><br>
                     <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS/QDS</div>
                     <div class="highlight">Vol (120mg/5ml): ${(wt*15*5/120).toFixed(2)} ml</div>
                     <div class="highlight">Vol (250mg/5ml): ${(wt*15*5/250).toFixed(2)} ml</div>
-                    <div class="note">⚠️ Max daily limit: 60 mg/kg/day.</div>
+                    <div class="note" style="color:#c53030;">⚠️ Max daily limit: 60 mg/kg/day to prevent hepatotoxicity.</div>
                 ` 
             },
             { 
@@ -2118,7 +2139,7 @@
                     <div class="badge">NSAID (5-10 mg/kg/dose)</div><br>
                     <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS</div>
                     <div class="highlight">Vol (100mg/5ml): ${(wt*10*5/100).toFixed(2)} ml TDS</div>
-                    <div class="note">⚠️ Max daily limit: 40 mg/kg/day.</div>
+                    <div class="note" style="color:#c53030;">⚠️ Max daily limit: 40 mg/kg/day.</div>
                 ` 
             },
             { 
