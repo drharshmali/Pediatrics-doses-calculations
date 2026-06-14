@@ -463,6 +463,7 @@
                 if(window.runGIR) window.runGIR();
                 if(window.runABG) window.runABG();
                 if(window.runNa) window.runNa();
+                if(window.runK) window.runK();
                 if(window.runDKA) window.runDKA();
                 if(window.runGCS) window.runGCS();
                 if(window.calcRabies && window.savedRabiesDate) window.calcRabies();
@@ -533,18 +534,30 @@
             let fRes = document.getElementById('dkaFluidRes'); 
             let iRes = document.getElementById('dkaInsulinRes');
             
-            if(fRes && iRes && wt > 0 && rbs > 0) {
-                let d = wt * 85; 
-                let m = wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20); 
-                let rem = (d + m) - (wt * 20); 
-                let rate = (rem/24).toFixed(1);
+            if(fRes && iRes && wt > 0) {
+                let deficitPerKg = 85; // 8.5% deficit average for DKA
+                let deficitVol = wt * deficitPerKg;
+                let maintVol = wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20); 
+                let totalReq = deficitVol + maintVol;
                 
-                if(rbs > 250) {
-                    fRes.innerHTML = `<span style="color:#c53030;">RBS > 250:</span> Give <b>0.45% NS + 5ml KCl (in 500ml)</b> @ ${rate} ml/hr`;
-                    iRes.innerHTML = `Actrapid Infusion: <b>0.1 U/kg/hr</b><br><span style="font-size:12px;">(Mix 50U in 50ml NS @ ${(wt*0.1).toFixed(1)} ml/hr)</span>`;
+                let bolusVol = wt * 20; 
+                let remVol = totalReq - bolusVol; 
+                let rate = (remVol/24).toFixed(1);
+                
+                let fOut = `<div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Deficit: ${deficitVol.toFixed(0)}ml + Maint: ${maintVol.toFixed(0)}ml = Total 24h: ${totalReq.toFixed(0)}ml</div>`;
+                fOut += `<div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Remaining (Total - 20ml/kg Bolus): ${remVol.toFixed(0)}ml</div>`;
+                
+                if(rbs > 0) {
+                    if(rbs > 250) {
+                        fRes.innerHTML = fOut + `<span style="color:#c53030;">RBS > 250:</span> Give <b>0.45% NS + 5ml KCl (in 500ml)</b> @ ${rate} ml/hr`;
+                        iRes.innerHTML = `Actrapid Infusion: <b>0.1 U/kg/hr</b><br><span style="font-size:12px;">(Mix 50U in 50ml NS @ ${(wt*0.1).toFixed(1)} ml/hr)</span>`;
+                    } else {
+                        fRes.innerHTML = fOut + `<span style="color:#2f855a;">RBS ≤ 250:</span> Give <b>5% Dextrose in 0.45% NS + 5ml KCl</b> @ ${rate} ml/hr`;
+                        iRes.innerHTML = `Actrapid Infusion: Reduce to <b>0.05 U/kg/hr</b> (@ ${(wt*0.05).toFixed(1)} ml/hr)<br>Transition to SC Lantus: <b>${(wt*0.25).toFixed(1)} Units SC OD</b>`;
+                    }
                 } else {
-                    fRes.innerHTML = `<span style="color:#2f855a;">RBS ≤ 250:</span> Give <b>5% Dextrose in 0.45% NS + 5ml KCl</b> @ ${rate} ml/hr`;
-                    iRes.innerHTML = `Actrapid Infusion: Reduce to <b>0.05 U/kg/hr</b> (@ ${(wt*0.05).toFixed(1)} ml/hr)<br>Transition to SC Lantus: <b>${(wt*0.25).toFixed(1)} Units SC OD</b>`;
+                    fRes.innerHTML = fOut + `Enter RBS to see DKA Fluid Type`;
+                    iRes.innerHTML = `Enter RBS for Insulin Suggestion`;
                 }
             }
         };
@@ -643,8 +656,17 @@
         window.runNa = function() {
             let wt = val('weight'); let aNa = val('naActual'); let tNa = val('naTarget') || 135;
             if(document.getElementById('naRes') && wt > 0 && aNa > 0) {
-                let def = Math.max(0, (tNa - aNa) * wt * 0.6);
-                document.getElementById('naRes').innerHTML = `Na Deficit: <b>${def.toFixed(1)} mEq</b><br>Give 3% NS: <b>${(def / 0.513).toFixed(1)} ml</b><div class="note">Max 10-12 mEq/day. Give over 4-6 hrs.</div>`;
+                let def = Math.max(0, (tNa - aNa) * wt * 0.6).toFixed(1);
+                let vol = (def / 0.513).toFixed(1);
+                document.getElementById('naRes').innerHTML = `Na Deficit: <b>${def} mEq</b><br>Give 3% NS: <b>${vol} ml</b><div class="note">Max 10-12 mEq/day to avoid ODS. Give over 4-6 hrs.</div>`;
+            }
+        };
+
+        window.runK = function() {
+            let wt = val('weight'); let aK = val('kActual');
+            if(document.getElementById('kRes') && wt > 0 && aK > 0) {
+                let def = Math.max(0, (4.5 - aK) * wt * 0.3).toFixed(1);
+                document.getElementById('kRes').innerHTML = `K+ Deficit: <b>${def} mEq</b><br>Give KCL IV: <b>0.5 - 1.0 mEq/kg</b> slowly.<div class="note" style="color:#c53030;">⚠️ MUST be diluted. Peripheral line max: 40 mEq/Liter. Max rate: 0.5 mEq/kg/hr. NEVER give IV push!</div>`;
             }
         };
 
@@ -652,7 +674,7 @@
             let e = val('gcsE'), v = val('gcsV'), m = val('gcsM');
             if(document.getElementById('gcsRes') && e>0 && v>0 && m>0) {
                 let tot = e+v+m; 
-                let sev = tot<=8 ? "Severe (Coma)" : (tot<=12 ? "Moderate" : "Mild/Normal");
+                let sev = tot<=8 ? "Severe (Coma/Intubate)" : (tot<=12 ? "Moderate" : "Mild/Normal");
                 document.getElementById('gcsRes').innerHTML = `Score: <b>${tot}/15</b> (${sev})`;
             }
         };
@@ -668,6 +690,20 @@
         // ==========================================
         const drugs = [
             // TRAINING & PROCEDURES
+            { 
+                name: "Status Epilepticus Protocol", 
+                category: "Training", 
+                tags: "status epilepticus seizure protocol algorithm", 
+                calc: () => `
+                    <div class="badge">ALGORITHM (0 - 20 Mins)</div><br>
+                    <div class="note" style="color:var(--text-main);">
+                        <b>0-5 min:</b> ABC, O2, Check RBS. Give IV Midazolam (0.1 mg/kg) or Lorazepam (0.1 mg/kg). If no IV line: IM/IN Midazolam (0.2 mg/kg).<br>
+                        <b>5-10 min:</b> If seizing continues, repeat Midaz/Lorazepam.<br>
+                        <b>10-20 min:</b> Load Inj Levetiracetam (30-40 mg/kg) OR Inj Fosphenytoin/Phenytoin (20 mg/kg PE).<br>
+                        <b>>20 min:</b> Refractory. Load Valproate (20 mg/kg) or Phenobarbital (20 mg/kg). Prepare for intubation/PICU.
+                    </div>
+                `
+            },
             { 
                 name: "NRP (NICU Resuscitation) Steps & Video", 
                 category: "Training", 
@@ -883,16 +919,22 @@
                 `
             },
             { 
-                name: "Sodium (Na+) Correction Calculator", 
+                name: "Electrolyte Correction (Na+ & K+)", 
                 category: "Calculators", 
-                tags: "sodium na hyponatremia correction 3% ns", 
+                tags: "sodium na hyponatremia correction 3% ns potassium kcl hypokalemia", 
                 calc: () => `
-                    <div class="badge">HYPONATREMIA</div><br>
+                    <div class="badge">HYPONATREMIA (Na+)</div><br>
                     <div class="calc-inputs">
                         <input type="number" id="naActual" placeholder="Actual Na+" oninput="window.runNa()">
                         <input type="number" id="naTarget" placeholder="Target Na (Def 135)" oninput="window.runNa()">
                     </div>
-                    <div class="highlight" id="naRes" style="display:block; margin-top:5px;">Enter Actual Na+ to calculate 3% NS</div>
+                    <div class="highlight" id="naRes" style="display:block; margin-top:5px; margin-bottom:10px;">Enter Actual Na+</div>
+                    
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">HYPOKALEMIA (K+)</div><br>
+                    <div class="calc-inputs" style="grid-template-columns: 1fr;">
+                        <input type="number" id="kActual" placeholder="Actual K+ (mEq/L)" oninput="window.runK()">
+                    </div>
+                    <div class="highlight" id="kRes" style="display:block; margin-top:5px;">Enter Actual K+</div>
                 `
             },
             { 
@@ -1091,6 +1133,7 @@
                         res += `<div class="highlight" style="display:block;">Child (&gt;10kg / &gt;1yr):</div><div class="note" style="color:var(--text-main);"><b>Mild (3%):</b> ${wt*30} ml<br><b>Moderate (6%):</b> ${wt*60} ml<br><b>Severe (9%):</b> ${wt*90} ml</div>`; 
                     } 
                     res += `<div class="highlight" style="display:block; margin-top:5px; background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;">Severe Bolus: ${(wt*20).toFixed(0)} ml NS/RL Stat</div>`; 
+                    res += `<div class="note" style="color:#c53030;"><b>⚠️ SAM Shock (Malnutrition):</b> Give 15 ml/kg over 1 Hour (Use RL with 5% Dex OR Half NS with 5% Dex). Do NOT give rapid bolus!</div>`;
                     return res; 
                 } 
             },
@@ -1106,7 +1149,7 @@
                         <div class="calc-inputs">
                             <input type="number" id="dkaRbs" placeholder="Enter RBS" oninput="window.runDKA()">
                         </div>
-                        <div class="highlight" id="dkaFluidRes" style="display:block; width:100%; font-size:14px;">Enter RBS for Fluid Suggestion</div>
+                        <div class="highlight" id="dkaFluidRes" style="display:block; width:100%; font-size:14px;">Enter RBS to Calculate Exact Fluid Required</div>
                         <div class="highlight" id="dkaInsulinRes" style="display:block; width:100%; font-size:14px;">Enter RBS for Insulin Suggestion</div>
                         <hr style="margin:10px 0; border-top:1px solid var(--border);">
                         
@@ -1185,6 +1228,17 @@
                     <div class="highlight" style="display:block; margin-top:8px;">2. Survanta / Neosurf (Bovine):</div>
                     <div class="note" style="margin-top:2px;"><b>Dose:</b> 100 mg/kg -> Vol: ${(wt*4).toFixed(2)} ml<br><i>(Strength: 25 mg/ml)</i></div>
                     <div class="note" style="margin-top:8px; background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;"><b>Admin (IAP / Dr. Meharban Singh):</b><br>Warm to room temp naturally (do NOT shake). Give via ETT in aliquots or thin catheter (LISA/MIST). Monitor SpO2 and HR continuously.</div>
+                ` 
+            },
+            { 
+                name: "Inj Aminophylline", 
+                category: "Emergency", 
+                tags: "aminophylline asthma bronchospasm", 
+                calc: (wt) => `
+                    <div class="badge">SEVERE ASTHMA</div><br>
+                    <div class="highlight">Load: ${(wt*5).toFixed(1)} mg IV over 20 mins</div>
+                    <div class="highlight">Infusion: ${(wt*0.9).toFixed(1)} mg/hr</div>
+                    <div class="note">Strength: 25 mg/ml (10ml ampoule). Dilute loading dose in 20ml NS.</div>
                 ` 
             },
             { 
@@ -1330,9 +1384,9 @@
                 category: "Emergency", 
                 tags: "dexona steroid", 
                 calc: (wt) => `
-                    <div class="badge">STEROID (0.15 mg/kg/dose)</div><br>
+                    <div class="badge">STEROID (Standard: 0.15 mg/kg/dose)</div><br>
                     <div class="highlight">Dose: ${(wt*0.15).toFixed(2)} mg TDS | Vol: ${(wt*0.15/4).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 4 mg/ml. Stat dose can be higher.</div>
+                    <div class="note">Strength: 4 mg/ml.<br><b>For Croup:</b> Give 0.6 mg/kg stat.</div>
                 ` 
             },
             { 
@@ -1482,9 +1536,9 @@
                 category: "Emergency", 
                 tags: "hypoglycemia rbs d10", 
                 calc: (wt) => `
-                    <div class="badge">GLUCOSE (2 ml/kg)</div><br>
+                    <div class="badge">GLUCOSE (2-5 ml/kg)</div><br>
                     <div class="highlight">Give D10%: ${(wt * 2).toFixed(2)} ml IV Stat</div>
-                    <div class="note">Check RBS in 1/2 hour.</div>
+                    <div class="note">Check RBS in 1/2 hour. Give 5 ml/kg if seizing.</div>
                 ` 
             },
 
@@ -1587,7 +1641,7 @@
                     return `
                         <div class="badge">ANTIBIOTIC (15 mg/kg/day)</div><br>
                         <div class="highlight">Dose: ${res.mg} mg OD | Vol: ${res.ml} ml OD</div>
-                        <div class="note">Auto-selected <b>${strength}mg/2ml</b> vial.</div>
+                        <div class="note">Auto-selected <b>${strength}mg/2ml</b> vial. Neonates <30 wks: Give q36-48h.</div>
                     `; 
                 } 
             },
@@ -1770,7 +1824,7 @@
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (5-7.5 mg/kg/day)</div><br>
                     <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg OD | Vol: ${(wt*5/40).toFixed(2)} ml OD</div>
-                    <div class="note">Strength: 40 mg/ml.</div>
+                    <div class="note">Strength: 40 mg/ml. Neonates <30 wks: Give q36-48h.</div>
                 ` 
             },
             { 
@@ -1825,6 +1879,17 @@
             },
 
             // NEURO
+            { 
+                name: "Inj Phenytoin (Eptoin)", 
+                category: "Neuro", 
+                tags: "phenytoin eptoin seizure anticonvulsant", 
+                calc: (wt) => `
+                    <div class="badge">ANTICONVULSANT (LD: 15-20 mg/kg)</div><br>
+                    <div class="highlight">LD: ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*20/50).toFixed(2)} ml Stat</div>
+                    <div class="highlight">MD: ${(wt*5).toFixed(1)} mg -> Vol: ${(wt*5/50).toFixed(2)} ml BD</div>
+                    <div class="note" style="color:#c53030;"><b>⚠️ STRICTLY dilute ONLY in NS (Precipitates in Dextrose).</b> Max infusion rate: 1 mg/kg/min.</div>
+                ` 
+            },
             { 
                 name: "Inj Midaz (Midazolam)", 
                 category: "Neuro", 
@@ -2038,10 +2103,11 @@
                 category: "Syrup", 
                 tags: "calpol sumol pcm fever", 
                 calc: (wt) => `
-                    <div class="badge">ANALGESIC (10-15 mg/kg/dose)</div><br>
+                    <div class="badge">ANALGESIC (15 mg/kg/dose)</div><br>
                     <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS/QDS</div>
                     <div class="highlight">Vol (120mg/5ml): ${(wt*15*5/120).toFixed(2)} ml</div>
                     <div class="highlight">Vol (250mg/5ml): ${(wt*15*5/250).toFixed(2)} ml</div>
+                    <div class="note">⚠️ Max daily limit: 60 mg/kg/day.</div>
                 ` 
             },
             { 
@@ -2052,6 +2118,7 @@
                     <div class="badge">NSAID (5-10 mg/kg/dose)</div><br>
                     <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS</div>
                     <div class="highlight">Vol (100mg/5ml): ${(wt*10*5/100).toFixed(2)} ml TDS</div>
+                    <div class="note">⚠️ Max daily limit: 40 mg/kg/day.</div>
                 ` 
             },
             { 
