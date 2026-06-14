@@ -230,12 +230,12 @@
             localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
         }
 
-        const yt = (videoId) => `
-            <div class="video-container">
-                <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
-            </div>
-            <a class="yt-link" href="https://www.youtube.com/watch?v=${videoId}" target="_blank">🔗 Click here if video doesn't load</a>
-        `;
+        const yt = (videoId) => {
+            return `<div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    <a class="yt-link" href="https://www.youtube.com/watch?v=${videoId}" target="_blank">🔗 Click here if video doesn't load</a>`;
+        };
 
         function getPatientMode(age, ageUnit){ 
             if(isNaN(age) || age === "") return "PICU"; // default fallback
@@ -246,7 +246,43 @@
             return d <= 28 ? "NICU" : "PICU"; 
         }
 
-        function val(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
+        // Navigation Functions
+        function openCat(cat) {
+            currentCategory = cat;
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('aboutSection').style.display = 'none';
+            document.getElementById('categoryView').style.display = 'block';
+            document.getElementById('btnBack').style.display = 'block';
+            document.getElementById('btnCopy').style.display = 'block';
+            calculateAll();
+        }
+
+        function goHome() {
+            document.getElementById('search').value = "";
+            currentCategory = 'All';
+            document.getElementById('mainMenu').style.display = 'grid';
+            document.getElementById('aboutSection').style.display = 'block';
+            document.getElementById('categoryView').style.display = 'none';
+        }
+
+        function searchMeds() {
+            let s = document.getElementById('search').value;
+            if(s.length > 0) {
+                document.getElementById('mainMenu').style.display = 'none';
+                document.getElementById('aboutSection').style.display = 'none';
+                document.getElementById('categoryView').style.display = 'block';
+                document.getElementById('btnBack').style.display = 'block';
+                document.getElementById('btnCopy').style.display = 'block';
+                currentCategory = 'All';
+            } else {
+                goHome();
+            }
+            calculateAll();
+        }
+
+        function val(id) { 
+            return parseFloat(document.getElementById(id)?.value) || 0; 
+        }
 
         // Trigger Calcs
         function calculateAll() {
@@ -276,14 +312,18 @@
             if(rDiv && req>0 && vMg>0 && vMl>0) {
                 let ans = (req / vMg) * vMl;
                 rDiv.innerHTML = `<div class="hl hl-green">Draw up: <b>${ans.toFixed(2)} ml</b></div>`;
-            } else if(rDiv) { rDiv.innerHTML = `Enter values...`; }
+            } else if(rDiv) { 
+                rDiv.innerHTML = `Enter values to convert...`; 
+            }
         };
 
         window.runAmk = function() {
             let wt = val('weight'); let str = val('amkStr'); let rDiv = document.getElementById('amkRes');
             if(rDiv && wt>0 && str>0) {
                 let mg = wt * 15; let ml = (mg / str) * 2;
-                rDiv.innerHTML = `<div class="hl hl-blue">Dose: ${mg.toFixed(1)} mg | Vol: ${ml.toFixed(2)} ml OD</div>`;
+                rDiv.innerHTML = `Dose: <b>${mg.toFixed(1)} mg</b> | Vol: <b>${ml.toFixed(2)} ml</b> OD`;
+            } else if (rDiv) {
+                rDiv.innerHTML = `Enter weight to calculate...`;
             }
         };
 
@@ -298,10 +338,12 @@
                 
                 let rate = dose / stdDose; 
                 rDiv.innerHTML = `
-                    <div class="hl hl-purple">1. Add <b>${mgToAdd.toFixed(2)} mg</b> in 50 ml syringe (NS/D5)</div>
+                    <div class="hl hl-purple">1. Add <b>${mgToAdd.toFixed(2)} mg</b> in 50 ml syringe (with NS/D5)</div>
                     <div class="hl hl-green">2. Run at <b>${rate.toFixed(1)} ml/hr</b></div>
                 `;
-            } else if(rDiv) { rDiv.innerHTML = `Enter mcg/kg/min...`; }
+            } else if(rDiv) { 
+                rDiv.innerHTML = `Enter mcg/kg/min...`; 
+            }
         };
 
         window.runManualFluid = function() {
@@ -314,14 +356,19 @@
                     <div class="hl hl-green">2/3rd (Edema): ${t.toFixed(0)} ml/day (@ ${(t/24).toFixed(1)} ml/hr)</div>
                     <div class="hl hl-red">1/3rd (Restrict): ${o.toFixed(0)} ml/day (@ ${(o/24).toFixed(1)} ml/hr)</div>
                 `;
+            } else if (res) {
+                res.innerHTML = `Enter weight or manual fluid...`;
             }
         };
 
         window.runDKA = function() {
             let wt = val('weight'), rbs = val('dkaRbs'), fRes = document.getElementById('dkaFluidRes'), iRes = document.getElementById('dkaInsulinRes');
             if(fRes && iRes && wt > 0) {
-                let deficitVol = wt * 85, maintVol = wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20); 
-                let totalReq = deficitVol + maintVol, bolusVol = wt * 20, remVol = totalReq - bolusVol; 
+                let deficitVol = wt * 85; 
+                let maintVol = wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20); 
+                let totalReq = deficitVol + maintVol;
+                let bolusVol = wt * 20; 
+                let remVol = totalReq - bolusVol; 
                 let rate = (remVol/24).toFixed(1);
                 
                 let fOut = `<div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Deficit: ${deficitVol.toFixed(0)} + Maint: ${maintVol.toFixed(0)} = 24h Total: ${totalReq.toFixed(0)}ml</div>`;
@@ -335,7 +382,10 @@
                         fRes.innerHTML = fOut + `<span style="color:#2f855a;">RBS ≤ 250:</span> Give <b>5% Dextrose in 0.45% NS + 5ml KCl</b> @ ${rate} ml/hr`;
                         iRes.innerHTML = `Actrapid Infusion: Reduce to <b>0.05 U/kg/hr</b> (@ ${(wt*0.05).toFixed(1)} ml/hr)<br>Transition to SC Lantus: <b>${(wt*0.25).toFixed(1)} Units SC OD</b>`;
                     }
-                } else { fRes.innerHTML = fOut + `Enter RBS`; iRes.innerHTML = `...`; }
+                } else { 
+                    fRes.innerHTML = fOut + `Enter RBS to calculate exact fluid type`; 
+                    iRes.innerHTML = `Enter RBS for Insulin suggestion`; 
+                }
             }
         };
 
@@ -348,7 +398,7 @@
                 else if(rbs > 300) { dose = 0.2 * wt; scale = "0.2 U/kg"; }
                 
                 let out = `<hr style="margin:8px 0; border-top:1px solid var(--border);">`;
-                if(dose > 0) out += `<div class="hl">Actrapid (SC): <b>${dose.toFixed(1)} Units</b> SOS (${scale})</div>`;
+                if(dose > 0) out += `<div class="hl hl-blue">Actrapid (SC): <b>${dose.toFixed(1)} Units</b> SOS (${scale})</div>`;
                 else out += `<div class="hl hl-green">RBS < 200: No Actrapid Needed</div>`;
                 out += `<div class="hl hl-purple">Lantus (Basal SC): <b>${(wt*0.25).toFixed(1)} Units OD</b> (0.25 U/kg)</div>`;
                 res.innerHTML = out;
@@ -402,7 +452,7 @@
                 if(ph<7.35) a = pco2>45 ? "Respiratory Acidosis" : "Metabolic Acidosis"; 
                 if(ph>7.45) a = pco2<35 ? "Respiratory Alkalosis" : "Metabolic Alkalosis";
                 
-                // Winter's Formula
+                // Winter's Formula Logic
                 let w = "";
                 if(a === "Metabolic Acidosis") {
                     let exp = (1.5 * hco3) + 8;
@@ -451,39 +501,43 @@
             if(!d) return; window.savedRabiesDate = d; let date0 = new Date(d);
             let addDays = (days) => { let nd = new Date(date0); nd.setDate(nd.getDate() + days); return nd.toLocaleDateString('en-GB'); };
             let r = document.getElementById('rabiesRes');
-            if(r) r.innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:14px; text-align:left; margin-top:5px; color:var(--text-main);">
-                <div class="badge-red">Day 0: ${addDays(0)}</div><div style="background:var(--note-bg); padding:4px 8px; border-radius:4px;">Day 3: ${addDays(3)}</div>
-                <div style="background:var(--note-bg); padding:4px 8px; border-radius:4px;">Day 7: ${addDays(7)}</div><div style="background:var(--note-bg); padding:4px 8px; border-radius:4px;">Day 14: ${addDays(14)}</div>
-                <div class="badge-green" style="grid-column:span 2;">Day 28: ${addDays(28)}</div></div>`;
+            if(r) r.innerHTML = `
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:14px; text-align:left; margin-top:5px; color:var(--text-main);">
+                    <div class="badge-red" style="padding:4px; border-radius:4px;">Day 0: ${addDays(0)}</div>
+                    <div style="background:var(--note-bg); padding:4px; border-radius:4px;">Day 3: ${addDays(3)}</div>
+                    <div style="background:var(--note-bg); padding:4px; border-radius:4px;">Day 7: ${addDays(7)}</div>
+                    <div style="background:var(--note-bg); padding:4px; border-radius:4px;">Day 14: ${addDays(14)}</div>
+                    <div class="badge-green" style="grid-column:span 2; padding:4px; border-radius:4px;">Day 28: ${addDays(28)}</div>
+                </div>`;
         };
 
         // ==========================================
-        //  DATABASE OF DRUGS & PROTOCOLS
+        //  DATABASE OF DRUGS & PROTOCOLS (Full Length)
         // ==========================================
+        
         const calcTools = [
             { name: "Universal mg → ml Converter", category: "Calculators", tags: "converter mg ml calculate convert dose", calc: () => `
                 <div class="badge badge-purple">DOSE RECONSTITUTION</div><br>
                 <div class="calc-inputs" style="grid-template-columns: 1fr;">
                     <input type="number" id="uniReq" placeholder="Dose Required (mg)" oninput="window.runUniCalc()">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                        <input type="number" id="uniVMg" placeholder="Vial Mg" oninput="window.runUniCalc()">
-                        <input type="number" id="uniVMl" placeholder="Vial Ml" oninput="window.runUniCalc()">
+                        <input type="number" id="uniVMg" placeholder="Vial Mg (e.g. 500)" oninput="window.runUniCalc()">
+                        <input type="number" id="uniVMl" placeholder="Vial Ml (e.g. 2)" oninput="window.runUniCalc()">
                     </div>
-                </div><div id="uniRes" class="hl">Enter values...</div>` 
+                </div><div id="uniRes" class="hl hl-blue">Enter values to convert...</div>` 
             },
             { name: "Inotrope Infusion Calculator", category: "Calculators", tags: "inotrope infusion pump adrenaline noradrenaline dopamine dobutamine milrinone", calc: (wt) => `
                 <div class="badge badge-blue">SMART PUMP (50ml Syringe)</div><br>
                 <div class="calc-inputs" style="grid-template-columns: 1fr;">
                     <select id="inoDrug" onchange="window.runIno()">
                         <option value="" disabled selected>Select Drug</option>
-                        <option value="Adrenaline">Adrenaline</option>
-                        <option value="Noradrenaline">Noradrenaline</option>
+                        <option value="Adrenaline">Adrenaline / Noradrenaline</option>
                         <option value="Dopamine">Dopamine</option>
                         <option value="Dobutamine">Dobutamine</option>
                         <option value="Milrinone">Milrinone</option>
                     </select>
                     <input type="number" id="inoDose" placeholder="Target Rate (mcg/kg/min)" oninput="window.runIno()">
-                </div><div id="inoRes" class="hl">Enter mcg/kg/min...</div>` 
+                </div><div id="inoRes" class="hl hl-blue">Select drug and target dose...</div>` 
             },
             { name: "Advanced GIR Calculator & Fluid Mixer", category: "Calculators", tags: "gir glucose infusion rate dextrose mix fluid target", calc: () => `
                 <div class="badge badge-blue">1. SMART GIR (AUTO DEX %)</div>
@@ -513,28 +567,28 @@
                 <input type="number" id="gTargFluid" placeholder="Fluid ml/kg/day" oninput="window.runGIR()"></div>
                 <div class="hl" id="girMixRes">Enter Target GIR & Fluid</div>` 
             },
-            { name: "ABG, Anion Gap & Winter's Formula", category: "Calculators", tags: "abg anion gap acid base bicarbonate deficit hco3 potassium", calc: () => `
+            { name: "ABG, Anion Gap & Winter's Formula", category: "Calculators", tags: "abg anion gap acid base bicarbonate deficit hco3 potassium winter", calc: () => `
                 <div class="badge badge-blue">ABG ANALYSIS</div><br>
                 <div class="calc-inputs" style="grid-template-columns: 1fr 1fr 1fr;">
                     <input type="number" id="abgPh" placeholder="pH" oninput="window.runABG()"><input type="number" id="abgPco2" placeholder="pCO2" oninput="window.runABG()"><input type="number" id="abgHco3" placeholder="HCO3" oninput="window.runABG()">
                 </div><div class="calc-inputs" style="grid-template-columns: 1fr 1fr 1fr;">
                     <input type="number" id="abgNa" placeholder="Na+" oninput="window.runABG()"><input type="number" id="abgK" placeholder="K+" oninput="window.runABG()"><input type="number" id="abgCl" placeholder="Cl-" oninput="window.runABG()">
                 </div>
-                <div class="hl" id="abgResText">ABG Analysis: ...</div><div class="hl" id="agResText">Anion Gap: ...</div><div class="hl" id="bicarbResText">HCO3 Deficit: ...</div>` 
+                <div class="hl hl-blue" id="abgResText">ABG Analysis: ...</div><div class="hl hl-green" id="agResText">Anion Gap: ...</div><div class="hl hl-purple" id="bicarbResText">HCO3 Deficit: ...</div>` 
             },
             { name: "Electrolyte Correction (Na+ & K+)", category: "Calculators", tags: "sodium na hyponatremia correction 3% ns potassium kcl hypokalemia", calc: () => `
                 <div class="badge badge-blue">HYPONATREMIA (Na+)</div><br>
                 <div class="calc-inputs"><input type="number" id="naActual" placeholder="Actual Na+" oninput="window.runNa()"><input type="number" id="naTarget" placeholder="Target Na (Def 135)" oninput="window.runNa()"></div>
-                <div class="hl" id="naRes" style="margin-bottom:10px;">Enter Actual Na+</div>
+                <div class="hl hl-blue" id="naRes" style="margin-bottom:10px;">Enter Actual Na+</div>
                 <div class="badge badge-red">HYPOKALEMIA (K+)</div><br>
                 <div class="calc-inputs" style="grid-template-columns: 1fr;"><input type="number" id="kActual" placeholder="Actual K+ (mEq/L)" oninput="window.runK()"></div>
-                <div class="hl" id="kRes">Enter Actual K+</div>` 
+                <div class="hl hl-red" id="kRes">Enter Actual K+</div>` 
             },
             { name: "Fluid Restriction (1/3rd & 2/3rd)", category: "Calculators", tags: "fluid restriction nephrotic maintenance manual", calc: (wt) => `
                 <div class="badge badge-blue">MAINTENANCE FLUID</div><br>
                 <div class="note" style="margin-bottom:8px;">Enter manual ml/day (leave blank for wt auto calc):</div>
                 <input type="number" id="manualFluidTotal" placeholder="Manual Total Fluid (ml/day)" oninput="window.runManualFluid()" style="margin-bottom:8px;">
-                <div id="fluidResDiv">Enter weight or fluid to calculate...</div>` 
+                <div id="fluidResDiv" class="hl">Enter weight or fluid to calculate...</div>` 
             },
             { name: "Pediatric GCS Scale", category: "Calculators", tags: "gcs coma scale neurology conscious", calc: () => `
                 <div class="badge badge-purple">NEURO ASSESSMENT</div><br>
@@ -542,7 +596,7 @@
                     <select id="gcsE" onchange="window.runGCS()"><option value="0" selected disabled>Eye Opening (E)</option><option value="4">4 - Spont</option><option value="3">3 - Speech</option><option value="2">2 - Pain</option><option value="1">1 - None</option></select>
                     <select id="gcsV" onchange="window.runGCS()"><option value="0" selected disabled>Verbal (V)</option><option value="5">5 - Normal</option><option value="4">4 - Irritable</option><option value="3">3 - Pain Cry</option><option value="2">2 - Moans</option><option value="1">1 - None</option></select>
                     <select id="gcsM" onchange="window.runGCS()"><option value="0" selected disabled>Motor (M)</option><option value="6">6 - Normal</option><option value="5">5 - Localizes</option><option value="4">4 - Withdraws</option><option value="3">3 - Abn Flex</option><option value="2">2 - Abn Ext</option><option value="1">1 - None</option></select>
-                </div><div class="hl" id="gcsRes">Select all three to see score</div>` 
+                </div><div class="hl hl-blue" id="gcsRes">Select all three to see score</div>` 
             },
             { name: "UVC & UAC Line Fixation", category: "Calculators", tags: "uvc uac line fixation depth nicu umbilical", calc: (wt) => `
                 <div class="badge badge-blue">PROCEDURE</div><br>
@@ -578,14 +632,14 @@
                 <div class="hl hl-purple">Midazolam (0.1 mg/kg): ${(wt*0.1).toFixed(2)} mg IV</div>
                 <div class="note">Dexmedetomidine Infusion: Load 1 mcg/kg over 10 min, Maint: 0.5 mcg/kg/hr.</div>` 
             },
-            { name: "Inj Atracurium (Muscle Relaxant)", category: "Emergency", tags: "atracurium relaxant intubation", calc: (wt) => `
+            { name: "Inj Atracurium (Muscle Relaxant)", category: "Emergency", tags: "atracurium relaxant intubation paralyze", calc: (wt) => `
                 <div class="badge badge-red">MUSCLE RELAXANT</div><br>
                 <div class="hl">LD (0.5 mg/kg): ${(wt*0.5).toFixed(1)} mg -> Vol: ${(wt*0.5/10).toFixed(2)} ml IV Stat</div>
                 <hr><div class="badge badge-blue">INFUSION (0.4 mg/kg/hr)</div><br>
                 <div class="hl">Rate: ${(wt*0.4).toFixed(1)} ml/hr</div>
                 <div class="note">Dilution: 50mg (5ml) in 45ml NS (1 mg/ml).</div>`
             },
-            { name: "Inj Surfactant (RDS)", category: "Emergency", mode: "NICU", tags: "surfactant curosurf survanta neosurf rds nicu iap", calc: (wt) => `
+            { name: "Inj Surfactant (RDS)", category: "Emergency", mode: "NICU", tags: "surfactant curosurf survanta neosurf rds nicu iap meharban", calc: (wt) => `
                 <div class="badge badge-blue">INTRATRACHEAL (ETT / LISA)</div><br>
                 <div class="hl hl-purple">1. Curosurf (Poractant): 200 mg/kg -> ${(wt*2.5).toFixed(2)} ml</div>
                 <div class="note" style="margin-top:2px;">(Repeat 100 mg/kg -> ${(wt*1.25).toFixed(2)} ml. Str: 80mg/ml)</div>
@@ -614,7 +668,7 @@
                 <div class="hl hl-green">Vol (7.5%): ${(wt * 1 / 0.89).toFixed(1)} to ${(wt * 2 / 0.89).toFixed(1)} ml</div>
                 <div class="note">Neonates: Dilute 1:1 with Sterile Water.</div>` 
             },
-            { name: "Inj Magnesium Sulphate", category: "Emergency", tags: "mgso4 seizure asthma", calc: (wt) => `
+            { name: "Inj Magnesium Sulphate", category: "Emergency", tags: "mgso4 seizure asthma eclampsia", calc: (wt) => `
                 <div class="badge badge-red">EMERGENCY (25-50 mg/kg)</div><br>
                 <div class="hl">Dose: ${(wt*50).toFixed(1)} mg | Vol: ${(wt*50/500).toFixed(2)} ml</div>
                 <div class="note">Str: 500 mg/ml (50%). Infuse over 20-30 mins.</div>` 
@@ -633,13 +687,13 @@
         ];
 
         const fluids = [
-            { name: "Shock Protocol (Fluid Boluses)", category: "Fluids", tags: "shock fluid bolus sam 10ml 20ml resuscitation", calc: (wt) => `
+            { name: "Shock Protocol (Fluid Boluses)", category: "Fluids", tags: "shock fluid bolus sam 10ml 20ml resuscitation malnutrition", calc: (wt) => `
                 <div class="badge badge-red">HYPOVOLEMIC / SEPTIC SHOCK</div><br>
-                <div class="hl">Normal Bolus (20 ml/kg): ${(wt*20).toFixed(0)} ml NS/RL Stat</div>
-                <div class="hl hl-blue">Cardiac/Neonate (10 ml/kg): ${(wt*10).toFixed(0)} ml Stat</div>
-                <div class="note" style="color:#c53030;"><b>⚠️ SAM Shock (Malnutrition):</b> Give 15 ml/kg over 1 Hour (Use RL with 5% Dex OR Half NS with 5% Dex). Do NOT give rapid bolus!</div>` 
+                <div class="hl hl-blue">Normal Bolus (20 ml/kg): ${(wt*20).toFixed(0)} ml NS/RL Stat</div>
+                <div class="hl hl-green">Cardiac/Neonate (10 ml/kg): ${(wt*10).toFixed(0)} ml Stat</div>
+                <div class="note" style="color:#c53030; background:var(--bg-red-soft);"><b>⚠️ SAM Shock (Malnutrition):</b> Give 15 ml/kg over 1 Hour (Use RL with 5% Dex OR Half NS with 5% Dex). Do NOT give rapid bolus!</div>` 
             },
-            { name: "Dehydration Fluid Therapy", category: "Fluids", tags: "dehydration deficit mild moderate severe", calc: (wt, age, unit) => { 
+            { name: "Dehydration Fluid Therapy", category: "Fluids", tags: "dehydration deficit mild moderate severe fluid", calc: (wt, age, unit) => { 
                 let mode = getPatientMode(age, unit); let res = `<div class="badge badge-blue">FLUID REPLACEMENT</div><br>`; 
                 if(mode === "NICU" || (unit==="Days" || (unit==="Months" && age<=12) || wt<=10)) { 
                     res += `<div class="hl hl-green">Infant (&lt;10kg / &lt;1yr):</div><div class="note"><b>Mild (5%):</b> ${wt*50} ml<br><b>Moderate (10%):</b> ${wt*100} ml<br><b>Severe (15%):</b> ${wt*150} ml</div>`; 
@@ -647,7 +701,7 @@
                     res += `<div class="hl hl-green">Child (&gt;10kg / &gt;1yr):</div><div class="note"><b>Mild (3%):</b> ${wt*30} ml<br><b>Moderate (6%):</b> ${wt*60} ml<br><b>Severe (9%):</b> ${wt*90} ml</div>`; 
                 } return res; 
             }},
-            { name: "🩸 DKA MASTER PROTOCOL", category: "Fluids", tags: "dka insulin actrapid diabetic fluids", calc: (wt) => { 
+            { name: "🩸 DKA MASTER PROTOCOL", category: "Fluids", tags: "dka insulin actrapid diabetic fluids ketoacidosis", calc: (wt) => { 
                 return `
                 <div class="badge badge-red">DKA MANAGEMENT</div><br>
                 <div class="hl">Stat Bolus (20 ml/kg): ${(wt * 20).toFixed(1)} ml NS</div>
@@ -661,7 +715,7 @@
             { name: "SC Insulin (Sliding Scale & Basal)", category: "Fluids", tags: "insulin sliding scale sc rbs lantus actrapid", calc: (wt) => `
                 <div class="badge badge-blue">SUBCUTANEOUS INSULIN</div><br>
                 <div class="calc-inputs" style="grid-template-columns: 1fr;"><input type="number" id="scRbsInp" placeholder="Enter Patient RBS" oninput="window.runSCInsulin()"></div>
-                <div id="scInsulinRes">Enter RBS to calculate Actrapid.</div>`
+                <div id="scInsulinRes" class="hl hl-purple">Enter RBS to calculate Actrapid.</div>`
             },
             { name: "Sepsis Protocol (Initial Antibiotics)", category: "Fluids", tags: "sepsis shock antibiotics protocol", calc: (wt, age, u) => {
                 let m = getPatientMode(age, u);
@@ -695,8 +749,8 @@
                     <div class="badge badge-green">IV FLUIDS</div>
                     <div class="hl" style="font-size:13px;">${f} ml/kg</div>
                     <div class="badge badge-blue" style="margin-top:10px;">FIXED MEDS</div>
-                    <div class="hl">1. Piptaz (100mg/kg): ${pip.toFixed(1)} mg -> ${pipVol} ml TDS</div>
-                    <div class="hl">2. Zostum (50mg/kg): ${(wt*50).toFixed(1)} mg -> ${(wt*0.5).toFixed(2)} ml BD</div>
+                    <div class="hl hl-blue">1. Piptaz (100mg/kg): ${pip.toFixed(1)} mg -> ${pipVol} ml TDS</div>
+                    <div class="hl hl-blue">2. Zostum (50mg/kg): ${(wt*50).toFixed(1)} mg -> ${(wt*0.5).toFixed(2)} ml BD</div>
                     <div class="badge badge-purple" style="margin-top:10px;">UPGRADE ANTIBIOTICS</div>
                     <div class="hl hl-purple">1. Meropenem (20mg/kg): ${(wt*20).toFixed(1)} mg -> ${(wt*20/50).toFixed(2)} ml TDS</div>
                     <div class="hl hl-purple">2. Vancomycin (15mg/kg): ${(wt*15).toFixed(1)} mg -> ${(wt*15/50).toFixed(2)} ml TDS</div>
@@ -705,22 +759,22 @@
                     <div class="hl hl-yellow">Capnea: LD ${wt.toFixed(2)} ml Stat | MD ${(wt/4).toFixed(2)} ml OD</div>
                 `; 
             }},
-            { name: "NICU Insulin Infusion", category: "NICU", mode: "NICU", tags: "insulin hyperglycemia nicu", calc: (wt) => `
+            { name: "NICU Insulin Infusion", category: "NICU", mode: "NICU", tags: "insulin hyperglycemia nicu actrapid", calc: (wt) => `
                 <div class="badge badge-blue">INFUSION (0.05 U/kg/hr)</div><br>
                 <div class="hl">Rate: ${(wt*0.5).toFixed(1)} ml/hr</div>
                 <div class="note">Mix 1 Unit Actrapid in 10 ml NS. (0.1 U/ml).</div>`
             },
-            { name: "🛏️ COMPLETE PICU PROTOCOL", category: "PICU", mode: "PICU", tags: "picu intensive zostum", calc: (wt) => { 
+            { name: "🛏️ COMPLETE PICU PROTOCOL", category: "PICU", mode: "PICU", tags: "picu intensive zostum protocol", calc: (wt) => { 
                 let f = wt <= 10 ? (wt * 100) : (wt <= 20 ? (1000 + (wt-10)*50) : (1500 + (wt-20)*20)); 
                 return `
                     <div class="badge badge-green">IV FLUIDS</div>
                     <div class="hl">24h Total: ${f.toFixed(0)} ml | Rate: ${(f/24).toFixed(1)} ml/hr</div>
                     <div class="badge badge-blue" style="margin-top:10px;">PICU MEDS</div>
-                    <div class="hl">1. Monocef (50mg/kg): ${(wt*50).toFixed(1)} mg -> ${(wt*0.5).toFixed(2)} ml BD</div>
-                    <div class="hl">2. Piptaz (100mg/kg): ${(wt*100).toFixed(1)} mg -> ${(wt*100/112.5).toFixed(2)} ml TDS</div>
-                    <div class="hl">3. Emeset (0.15mg/kg): ${(wt*0.15).toFixed(2)} mg -> ${(wt*0.075).toFixed(2)} ml TDS</div>
-                    <div class="hl">4. Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> ${(wt*0.1).toFixed(2)} ml BD</div>
-                    <div class="hl">5. Vanco (15mg/kg): ${(wt*15).toFixed(1)} mg -> ${(wt*15/50).toFixed(2)} ml TDS (Slow)</div>
+                    <div class="hl hl-blue">1. Monocef (50mg/kg): ${(wt*50).toFixed(1)} mg -> ${(wt*0.5).toFixed(2)} ml BD</div>
+                    <div class="hl hl-blue">2. Piptaz (100mg/kg): ${(wt*100).toFixed(1)} mg -> ${(wt*100/112.5).toFixed(2)} ml TDS</div>
+                    <div class="hl hl-blue">3. Emeset (0.15mg/kg): ${(wt*0.15).toFixed(2)} mg -> ${(wt*0.075).toFixed(2)} ml TDS</div>
+                    <div class="hl hl-blue">4. Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> ${(wt*0.1).toFixed(2)} ml BD</div>
+                    <div class="hl hl-purple">5. Vanco (15mg/kg): ${(wt*15).toFixed(1)} mg -> ${(wt*15/50).toFixed(2)} ml TDS (Slow)</div>
                     <div class="hl hl-purple">6. Febrinil (15mg/kg): ${(wt*15).toFixed(1)} mg -> ${(wt*15/150).toFixed(2)} ml SOS</div>
                 `; 
             }}
@@ -799,7 +853,7 @@
                 <div class="note">Infiltrate RIG maximum around wound.</div>
                 <hr><div class="note"><b>PEP Schedule (Select Day 0):</b></div>
                 <input type="date" id="rabiesDate" value="${window.savedRabiesDate || ''}" onchange="window.calcRabies()">
-                <div id="rabiesRes" style="margin-top:8px; display:block;">${window.savedRabiesDate ? "" : "<div class='hl'>Select date</div>"}</div>`
+                <div id="rabiesRes" style="margin-top:8px; display:block;">${window.savedRabiesDate ? "" : "<div class='hl hl-blue'>Select date</div>"}</div>`
             },
             { name: "Inj Tetanus Toxoid (TT/Td) & TIG", category: "Vaccine", tags: "tetanus tt tig", calc: (wt) => `
                 <div class="badge badge-yellow">VACCINE</div><br><div class="hl">Dose: 0.5 ml IM Stat</div>
