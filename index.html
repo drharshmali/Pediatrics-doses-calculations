@@ -78,9 +78,10 @@
             margin-bottom: 15px; 
             font-weight: bold; 
             letter-spacing: 0.5px; 
-            padding: 5px;
+            padding: 8px;
             background: var(--note-bg);
-            border-radius: 6px;
+            border-radius: 8px;
+            border: 1px dashed var(--border);
         }
 
         .sticky-header { 
@@ -102,7 +103,15 @@
         .input-group { display: flex; gap: 10px; margin-bottom: 10px; } 
         .input-group div { flex: 1; } 
         .age-container { display: flex; gap: 5px; }
-        label { display: block; font-size: 14px; margin-bottom: 5px; font-weight: bold; color: var(--text-muted); }
+        
+        label { 
+            display: block; 
+            font-size: 14px; 
+            margin-bottom: 5px; 
+            font-weight: bold; 
+            color: var(--text-muted); 
+        }
+
         input, select { 
             width: 100%; 
             padding: 10px; 
@@ -113,6 +122,7 @@
             box-sizing: border-box; 
             background: var(--bg-card); 
             color: var(--text-main); 
+            transition: 0.3s;
         }
         input:focus, select:focus { border-color: var(--primary); outline: none; }
         
@@ -159,6 +169,7 @@
             align-items: center; 
             justify-content: center; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            transition: 0.2s;
         }
 
         .menu-item:hover { 
@@ -191,7 +202,12 @@
             border-left: 5px solid var(--primary); 
         }
 
-        .drug-name { font-weight: 800; font-size: 17px; color: var(--primary-hover); margin-bottom: 8px; }
+        .drug-name { 
+            font-weight: 800; 
+            font-size: 17px; 
+            color: var(--primary-hover); 
+            margin-bottom: 8px; 
+        }
         
         /* Category Specific Colors */
         .card.emergency { border-left-color: #e53e3e; } 
@@ -303,6 +319,19 @@
             width: 100%; 
             height: 100%; 
         }
+        
+        .yt-link {
+            display: block;
+            text-align: center;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+            background: var(--badge-bg);
+            padding: 6px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -317,7 +346,7 @@
                 </div>
             </div>
             
-            <!-- Credits Section As Requested -->
+            <!-- Credits Section -->
             <div class="credits">
                 Made by <span style="color:var(--primary); font-size:14px;">Dr. Harsh Mali</span> | 
                 Guided by <span style="color:var(--primary); font-size:14px;">Dr. Nikul Thakkar</span>
@@ -368,7 +397,7 @@
     <div id="categoryView" style="display:none; padding-top:10px;">
         <button class="action-btn back-btn" id="btnBack" onclick="goHome()">🔙 Back to Main Menu</button>
         <div id="results">
-            <p style="text-align:center; color:var(--text-muted); margin-top:30px;">Please enter weight.</p>
+            <p style="text-align:center; color:var(--text-muted); margin-top:30px;">Please enter weight to see data.</p>
         </div>
         <button onclick="copyAll()" class="copy-all-btn" id="btnCopy" style="display:none;">📋 Copy Results</button>
     </div>
@@ -378,11 +407,17 @@
         let currentCategory = 'All';
         window.savedRabiesDate = "";
 
-        // FIXED YouTube iframe helper function using Direct Video IDs
-        const iframe = (videoId) => {
-            return `<div class="video-container">
-                        <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    </div>`;
+        // Intelligent YouTube iframe helper with Fail-Safe Direct Link
+        const yt = (query, title) => {
+            let encodedQuery = encodeURIComponent(query);
+            return `
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed?listType=search&list=${encodedQuery}" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <a class="yt-link" href="https://www.youtube.com/results?search_query=${encodedQuery}" target="_blank">
+                    🔗 Click here if video doesn't load
+                </a>
+            `;
         };
 
         function getPatientMode(age, ageUnit){ 
@@ -449,16 +484,24 @@
             let manual = val('manualFluidTotal'); 
             let res = document.getElementById('fluidResDiv');
             
-            if(res && wt > 0) {
-                let f = manual > 0 ? manual : (wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20));
-                let t = f * 0.6666; 
-                let o = f * 0.3333;
+            if(res && (wt > 0 || manual > 0)) {
+                let f = 0;
+                if(manual > 0) {
+                    f = manual;
+                } else {
+                    f = (wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20));
+                }
+                
+                let t = f * (2/3); 
+                let o = f * (1/3);
                 
                 res.innerHTML = `
                     <div class="highlight" style="display:block;">100% (Normal): ${f.toFixed(0)} ml/day (@ ${(f/24).toFixed(1)} ml/hr)</div>
                     <div class="highlight" style="display:block; background:#e6fffa; color:#234e52; border-color:#81e6d9;">2/3rd (Nephrotic/Edema): ${t.toFixed(0)} ml/day (@ ${(t/24).toFixed(1)} ml/hr)</div>
                     <div class="highlight" style="display:block; background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">1/3rd (Severe Restriction): ${o.toFixed(0)} ml/day (@ ${(o/24).toFixed(1)} ml/hr)</div>
                 `;
+            } else if (res) {
+                res.innerHTML = `Enter weight or fluid to calculate...`;
             }
         };
 
@@ -640,7 +683,7 @@
                         3. HR < 60 after 30s PPV ➡️ Intubate + Chest Compressions (3:1) + 100% O2.<br>
                         4. HR < 60 after 60s Compressions ➡️ Inj Adrenaline (0.1-0.3 ml/kg of 1:10k IV) + NS Bolus 10 ml/kg.
                     </div>
-                    ${iframe('ch41qyxCcH4')}
+                    ${yt('neonatal resuscitation program nrp demonstration', 'NRP Training')}
                 `
             },
             { 
@@ -654,7 +697,7 @@
                         2. Shockable (VF/pVT): Defib 2 J/kg -> 4 J/kg.<br>
                         3. Non-Shockable (Asystole): Inj Adrenaline 0.1 ml/kg of 1:10k IV ASAP.
                     </div>
-                    ${iframe('8vtSQ24b4sQ')}
+                    ${yt('pediatric advanced life support pals algorithm', 'PALS Training')}
                 `
             },
             { 
@@ -719,7 +762,7 @@
                         <b>Site:</b> 4th/5th Intercostal space (Triangle of safety - Mid/Anterior axillary line).<br>
                         Give LA -> Incision just ABOVE the rib -> Puncture pleura with artery forceps (air rush) -> Insert tube -> Connect to underwater seal.
                     </div>
-                    ${iframe('_6sFa79u6FQ')}
+                    ${yt('neonatal chest tube insertion procedure pneumothorax', 'Neonate ICD')}
                 `
             },
             { 
@@ -731,7 +774,7 @@
                     <div class="note">
                         Follow standard ATLS/PALS trauma guidelines for chest tube insertion in older children.
                     </div>
-                    ${iframe('IdmMR8JxmFo')}
+                    ${yt('pediatric chest tube thoracostomy insertion', 'Pediatric ICD')}
                 `
             },
 
@@ -1109,6 +1152,19 @@
             },
 
             // EMERGENCY & INOTROPES
+            { 
+                name: "Inj Surfactant (For Severe RDS)", 
+                category: "Emergency", 
+                tags: "surfactant curosurf survanta neosurf rds hyaline membrane nicu iap meharban singh", 
+                calc: (wt) => `
+                    <div class="badge">INTRATRACHEAL (Via ETT / INSURE / LISA)</div><br>
+                    <div class="highlight" style="display:block;">1. Curosurf (Poractant alfa):</div>
+                    <div class="note" style="margin-top:2px;"><b>Initial Dose:</b> 200 mg/kg -> Vol: ${(wt*2.5).toFixed(2)} ml<br><b>Repeat Dose:</b> 100 mg/kg -> Vol: ${(wt*1.25).toFixed(2)} ml<br><i>(Strength: 80 mg/ml)</i></div>
+                    <div class="highlight" style="display:block; margin-top:8px;">2. Survanta / Neosurf (Bovine):</div>
+                    <div class="note" style="margin-top:2px;"><b>Dose:</b> 100 mg/kg -> Vol: ${(wt*4).toFixed(2)} ml<br><i>(Strength: 25 mg/ml)</i></div>
+                    <div class="note" style="margin-top:8px; background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;"><b>Admin (IAP / Dr. Meharban Singh):</b><br>Warm to room temp naturally (do NOT shake). Give via ETT in aliquots or thin catheter (LISA/MIST). Monitor SpO2 and HR continuously.</div>
+                ` 
+            },
             { 
                 name: "Inj Atracurium (Muscle Relaxant)", 
                 category: "Emergency", 
@@ -2501,7 +2557,6 @@
                 if(!grouped[x.category]) grouped[x.category] = [];
                 let cls = "card";
                 
-                // Add specific class for side-border color
                 if(x.category === "Emergency") cls += " emergency"; 
                 else if(x.category === "Fluids") cls += " fluids"; 
                 else if(x.category === "Neuro") cls += " neuro"; 
