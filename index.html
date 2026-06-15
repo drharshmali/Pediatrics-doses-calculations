@@ -728,6 +728,212 @@
         //  THE MASSIVE DRUGS & PROTOCOLS DATABASE
         // ==========================================
         const drugs = [
+            
+            // TRAINING & PROCEDURES
+            { 
+                name: "Ventilator, CPAP & HFNC Settings", 
+                category: "Training", 
+                tags: "ventilator settings mode pip peep rds cpap hfnc tutorial video", 
+                calc: () => `
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">VENTILATOR (IAP)</div><br>
+                    <div class="note" style="color:var(--text-main);">
+                        <b>Normal Lungs:</b> PIP 14-16 | PEEP 4-5 | Rate 30-40 | Ti 0.35s<br>
+                        <b>RDS:</b> PIP 16-20 | PEEP 5-6 | Rate 40-50 | Ti 0.3-0.35s<br>
+                        <b>MAS:</b> PIP 20-25 | PEEP 4-5 | Rate 40-60 | Ti 0.35s
+                    </div>
+                    <hr>
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">CPAP & HFNC</div><br>
+                    <div class="note" style="color:var(--text-main);">
+                        <b>CPAP:</b> PEEP 5 to 6 cmH2O | Flow 5 to 8 L/min.<br>
+                        <b>HFNC:</b> Flow 2 L/kg/min (Max 8 L/min in neonates). Titrate FiO2.
+                    </div>
+                    ${yt('aR9U-b903yU', 'Ventilator Basics')}
+                `
+            },
+            { 
+                name: "Status Epilepticus Protocol", 
+                category: "Training", 
+                tags: "status epilepticus seizure algorithm", 
+                calc: () => `
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">ALGORITHM (0 - 20 Mins)</div><br>
+                    <div class="note" style="color:var(--text-main);">
+                        <b>0-5 min:</b> ABC, O2, Check RBS. Give IV Midaz (0.1mg/kg) or Lorazepam (0.1mg/kg).<br>
+                        <b>5-10 min:</b> Repeat Midaz/Lorazepam if seizing.<br>
+                        <b>10-20 min:</b> Load Levetiracetam (30-40mg/kg) OR Fosphenytoin/Phenytoin (20mg/kg).<br>
+                        <b>>20 min:</b> Refractory. Load Valproate or Phenobarbital. Intubate.
+                    </div>
+                `
+            },
+            { 
+                name: "NRP (NICU Resuscitation) Steps & Video", 
+                category: "Training", 
+                tags: "nrp resuscitation cpr nicu algorithm training", 
+                calc: () => `
+                    <div class="badge">NRP ALGORITHM</div><br>
+                    <div class="note">
+                        1. Warm, Dry, Stimulate.<br>
+                        2. HR < 100 or Apnea ➡️ Start PPV.<br>
+                        3. HR < 60 after 30s PPV ➡️ Intubate + Chest Compressions (3:1) + 100% O2.<br>
+                        4. HR < 60 after 60s Compressions ➡️ Inj Adrenaline (0.1-0.3 ml/kg of 1:10k IV) + NS Bolus 10 ml/kg.
+                    </div>
+                    ${yt('ch41qyxCcH4', 'NRP Training')}
+                `
+            },
+            { 
+                name: "PALS (PICU Resuscitation) Steps & Video", 
+                category: "Training", 
+                tags: "pals resuscitation cpr picu algorithm training", 
+                calc: () => `
+                    <div class="badge">PALS ALGORITHM</div><br>
+                    <div class="note">
+                        1. C-A-B (Compressions 100-120/min, 15:2 ratio).<br>
+                        2. Shockable (VF/pVT): Defib 2 J/kg -> 4 J/kg.<br>
+                        3. Non-Shockable (Asystole): Inj Adrenaline 0.1 ml/kg of 1:10k IV ASAP.
+                    </div>
+                    ${yt('8vtSQ24b4sQ', 'PALS Training')}
+                `
+            },
+            { 
+                name: "Pneumonia Management Steps (IAP)", 
+                category: "Training", 
+                tags: "pneumonia steps procedure iap", 
+                calc: () => `
+                    <div class="badge">GUIDELINE</div><br>
+                    <div class="note">
+                        <b>1. Assess:</b> Tachypnea, Retractions, SpO2 < 90%.<br>
+                        <b>2. Supportive:</b> O2 Therapy, IV Fluids (Avoid oral if severe tachypnea to prevent aspiration), PCM for fever.<br>
+                        <b>3. Antibiotics (Severe):</b> Inj Ampicillin + Gentamicin OR Inj Ceftriaxone (Monocef).<br>
+                        <b>4. If Staph suspected:</b> Add Vancomycin or Clindamycin.
+                    </div>
+                `
+            },
+            { 
+                name: "Lumbar Puncture (CSF Collection)", 
+                category: "Training", 
+                tags: "lp lumbar puncture csf procedure steps video", 
+                calc: () => `
+                    <div class="badge">PROCEDURE</div><br>
+                    <div class="note">
+                        <b>Site:</b> L3-L4 or L4-L5 intervertebral space.<br>
+                        <b>Position:</b> Lateral decubitus (knees to chest).<br>
+                        <b>Steps:</b> Aseptic precaution -> Insert 22G/24G spinal needle -> Feel the 'Pop' as dura is pierced -> Remove stylet -> Collect 3-4 drops in 3 separate vials.
+                    </div>
+                    ${yt('nZlCqZgZ0kE', 'Lumbar Puncture')}
+                `
+            },
+            { 
+                name: "IV Cannula (Vigo) Insertion", 
+                category: "Training", 
+                tags: "iv cannula vigo procedure steps insertion video", 
+                calc: () => `
+                    <div class="badge">PROCEDURE</div><br>
+                    <div class="note">
+                        <b>Steps:</b> Select vein (Dorsum of hand/foot) -> Tie Tourniquet -> Clean with alcohol swab -> Insert cannula at 15-20° angle -> Look for Primary Flashback -> Advance catheter gently & remove needle (Secondary flashback) -> Flush with NS -> Apply fixator.
+                    </div>
+                    ${yt('1E70Z6h_zDk', 'IV Cannula')}
+                `
+            },
+            { 
+                name: "Neonatal Cooling (Therapeutic Hypothermia)", 
+                category: "Training", 
+                tags: "cooling hypothermia hie asphyxia training video", 
+                calc: () => `
+                    <div class="badge">PROTOCOL</div><br>
+                    <div class="note">
+                        <b>Criteria:</b> Gestation ≥ 36 wks, Wt ≥ 1800g, within 6 hrs of birth with Mod/Severe HIE.<br>
+                        <b>Target Temp:</b> 33.5°C (Rectal/Esophageal).<br>
+                        <b>Duration:</b> Maintain 33.5°C for 72 hours.<br>
+                        <b>Rewarming:</b> Slowly at 0.5°C per hour after 72 hrs.
+                    </div>
+                    ${yt('mXJ2B4Z5y2M', 'Neonatal Cooling')}
+                `
+            },
+            { 
+                name: "ICD Insertion (Pneumothorax) - Neonate", 
+                category: "Training", 
+                tags: "icd chest tube pneumothorax neonate procedure training video", 
+                calc: () => `
+                    <div class="badge">NEONATE ICD</div><br>
+                    <div class="note">
+                        <b>Site:</b> 4th/5th Intercostal space (Triangle of safety - Mid/Anterior axillary line).<br>
+                        Give LA -> Incision just ABOVE the rib -> Puncture pleura with artery forceps (air rush) -> Insert tube -> Connect to underwater seal.
+                    </div>
+                    ${yt('_6sFa79u6FQ', 'Neonate ICD')}
+                `
+            },
+            { 
+                name: "ICD Insertion (Pneumothorax) - Pediatric", 
+                category: "Training", 
+                tags: "icd chest tube pneumothorax pediatric procedure training video", 
+                calc: () => `
+                    <div class="badge">PEDIATRIC ICD</div><br>
+                    <div class="note">
+                        Follow standard ATLS/PALS trauma guidelines for chest tube insertion in older children.
+                    </div>
+                    ${yt('IdmMR8JxmFo', 'Pediatric ICD')}
+                `
+            },
+
+            // VACCINES
+            { 
+                name: "Rabies Vaccine & RIG (Dog Bite)", 
+                category: "Vaccine", 
+                tags: "rabies vaccine dog bite dogbite antirabies arvs rig immunoglobulin hrig erig", 
+                calc: (wt) => `
+                    <div class="badge">VACCINE DOSE (Standard)</div><br>
+                    <div class="highlight" style="display:block;">Dose: 0.5 ml IM (or 0.1 ml ID per site)</div>
+                    
+                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">IMMUNOGLOBULIN (RIG) DOSE</div><br>
+                    <div class="highlight" style="display:block;">Equine RIG (40 IU/kg): ${wt > 0 ? (wt * 40).toLocaleString() + ' IU ➔ Vol: <b>' + (wt * 40 / 300).toFixed(2) + ' ml</b>' : 'Enter wt...'}</div>
+                    <div class="highlight" style="display:block;">Human RIG (20 IU/kg): ${wt > 0 ? (wt * 20).toLocaleString() + ' IU ➔ Vol: <b>' + (wt * 20 / 150).toFixed(2) + ' ml</b>' : 'Enter wt...'}</div>
+                    <div class="note">Infiltrate RIG maximum around the wound. Give remainder IM at a site distant from vaccine. (Equine=300 IU/ml, Human=150 IU/ml).</div>
+                    
+                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
+                    <div class="note"><b>PEP Schedule (Select Day 0):</b></div>
+                    <input type="date" id="rabiesDate" value="${window.savedRabiesDate || ''}" onchange="window.calcRabies()" style="margin-top:5px; padding:5px; width:100%; border:1px solid var(--border); border-radius:5px; background:var(--bg-card); color:var(--text-main);">
+                    <div id="rabiesRes" style="margin-top:8px; display:block;">
+                        ${window.savedRabiesDate ? "" : "<div class='highlight'>Select date to see schedule</div>"}
+                    </div>
+                `
+            },
+            { 
+                name: "Inj Tetanus Toxoid (TT / Td) & TIG", 
+                category: "Vaccine", 
+                tags: "tetanus tt td toxoid tig immunoglobulin ats wound injury", 
+                calc: (wt) => `
+                    <div class="badge">VACCINE (Prophylaxis)</div><br>
+                    <div class="highlight" style="display:block;">Dose: 0.5 ml IM Stat</div>
+                    <div class="note">Standard dose regardless of age/weight. Give for injury if >5 yrs since last dose.</div>
+                    
+                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">TETANUS IMMUNOGLOBULIN (TIG)</div><br>
+                    <div class="highlight" style="display:block;">Prophylaxis (High Risk Wound): 250 IU IM Stat ➔ Vol: <b>1 ml</b></div>
+                    <div class="highlight" style="display:block;">Treatment (Clinical Tetanus): 3000 to 6000 IU IM ➔ Vol: <b>12 to 24 ml</b></div>
+                    <div class="note">Strength assumed: 250 IU/ml (Check ampoule). TIG is given if immunization status is unknown or incomplete (<3 primary doses).</div>
+                `
+            },
+            { 
+                name: "IAP Immunization Schedule", 
+                category: "Vaccine", 
+                tags: "vaccine immunization schedule iap new routine", 
+                calc: () => `
+                    <div class="badge">IAP GUIDELINES</div><br>
+                    <div class="note" style="color:var(--text-main);">
+                        <b>Birth:</b> BCG, OPV-0, Hep B-1<br>
+                        <b>6, 10, 14 Wks:</b> DTwP/DTaP (1,2,3), IPV (1,2,3), Hep B (2,3,4), Hib (1,2,3), Rotavirus (1,2,3), PCV (1,2,3)<br>
+                        <b>6 Mos:</b> Typhoid (TCV), Flu-1<br>
+                        <b>7 Mos:</b> Flu-2<br>
+                        <b>9-12 Mos:</b> MR-1, JE-1<br>
+                        <b>12 Mos:</b> Hep A-1<br>
+                        <b>15 Mos:</b> MMR-2, Varicella-1, PCV Booster<br>
+                        <b>16-18 Mos:</b> DTwP Booster-1, IPV Booster-1, Hib Booster-1<br>
+                        <b>18-19 Mos:</b> Hep A-2, Varicella-2<br>
+                        <b>4-6 Yrs:</b> DTwP Booster-2, IPV Booster-2, MMR-3
+                    </div>
+                `
+            },
+
             // CALCULATORS
             { 
                 name: "RT Feed vs IVF Drip Adjuster", 
@@ -2568,8 +2774,9 @@
                 mb.style.display="none"; 
             }
 
-            if(w <= 0 && s === ""){ 
-                d.innerHTML='<p style="text-align:center; color:var(--text-muted); margin-top:30px;">Please enter weight.</p>'; 
+            // --- FIX FOR EMPTY SECTIONS: ALLOW VACCINE, TRAINING & CALCS WITHOUT WEIGHT ---
+            if(w <= 0 && s === "" && currentCategory !== 'Training' && currentCategory !== 'Vaccine' && currentCategory !== 'Calculators'){ 
+                d.innerHTML='<p style="text-align:center; color:var(--text-muted); margin-top:30px;">Please enter weight to see data.</p>'; 
                 return; 
             }
             
