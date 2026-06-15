@@ -71,19 +71,6 @@
             margin: 0; 
         }
 
-        .credits { 
-            text-align: center; 
-            font-size: 13px; 
-            color: var(--text-muted); 
-            margin-bottom: 15px; 
-            font-weight: bold; 
-            letter-spacing: 0.5px; 
-            padding: 8px;
-            background: var(--note-bg);
-            border-radius: 8px;
-            border: 1px dashed var(--border);
-        }
-
         .sticky-header { 
             position: sticky; 
             top: 0; 
@@ -332,11 +319,12 @@
             padding: 6px;
             border-radius: 5px;
         }
+        .about-section { background: var(--note-bg); border: 1px dashed var(--note-border); border-radius: 12px; padding: 15px; margin-top: 25px; margin-bottom: 20px; box-shadow: none; }
+        .footer-credits { text-align: center; font-size: 11px; color: #a0aec0; margin-top: 30px; margin-bottom: 10px; letter-spacing: 0.5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <!-- Header Section -->
     <div class="sticky-header">
         <div class="header-card">
             <div class="header-top">
@@ -344,12 +332,6 @@
                 <div>
                     <button class="action-btn" onclick="document.body.classList.toggle('dark-mode')" style="background:#4a5568;">🌙 Dark Mode</button>
                 </div>
-            </div>
-            
-            <!-- Credits Section -->
-            <div class="credits">
-                Made by <span style="color:var(--primary); font-size:14px;">Dr. Harsh Mali</span> | 
-                Guided by <span style="color:var(--primary); font-size:14px;">Dr. Nikul Thakkar</span>
             </div>
             
             <div class="input-group">
@@ -375,7 +357,6 @@
         </div>
     </div>
 
-    <!-- MAIN GRID MENU (Home Page) -->
     <div id="mainMenu" class="menu-grid">
         <div class="menu-item" onclick="openCat('Emergency')"><div class="menu-icon">🚨</div>Emergency / Airway</div>
         <div class="menu-item" onclick="openCat('NICU')"><div class="menu-icon">👶</div>NICU Protocol</div>
@@ -393,7 +374,15 @@
         <div class="menu-item" onclick="openCat('Formula')"><div class="menu-icon">🍼</div>Infant Formulas</div>
     </div>
 
-    <!-- CATEGORY VIEW (List of Drugs) -->
+    <div id="aboutSection" class="about-section">
+        <div style="font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 10px;">ℹ️ About</div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
+            <b style="color:var(--text-main);">📚 Scientific References:</b> IAP Guidelines & Dr. Meharban Singh<br>
+            <b style="color:var(--text-main);">👨‍⚕️ Under the Expert Guidance of:</b> Dr. Nikul Thakkar<br>
+            <b style="color:var(--text-main);">💻 Developed by:</b> Dr. Harsh Mali
+        </div>
+    </div>
+
     <div id="categoryView" style="display:none; padding-top:10px;">
         <button class="action-btn back-btn" id="btnBack" onclick="goHome()">🔙 Back to Main Menu</button>
         <div id="results">
@@ -402,7 +391,6 @@
         <button onclick="copyAll()" class="copy-all-btn" id="btnCopy" style="display:none;">📋 Copy Results</button>
     </div>
 
-    <!-- CORE LOGIC SCRIPT -->
     <script>
         let currentCategory = 'All';
         window.savedRabiesDate = "";
@@ -429,6 +417,7 @@
         function openCat(cat) {
             currentCategory = cat;
             document.getElementById('mainMenu').style.display = 'none';
+            if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'none';
             document.getElementById('categoryView').style.display = 'block';
             document.getElementById('btnBack').style.display = 'block';
             document.getElementById('btnCopy').style.display = 'block';
@@ -439,6 +428,7 @@
             document.getElementById('search').value = "";
             currentCategory = 'All';
             document.getElementById('mainMenu').style.display = 'grid';
+            if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'block';
             document.getElementById('categoryView').style.display = 'none';
         }
 
@@ -446,6 +436,7 @@
             let s = document.getElementById('search').value;
             if(s.length > 0) {
                 document.getElementById('mainMenu').style.display = 'none';
+                if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'none';
                 document.getElementById('categoryView').style.display = 'block';
                 document.getElementById('btnBack').style.display = 'block';
                 document.getElementById('btnCopy').style.display = 'block';
@@ -463,11 +454,15 @@
                 if(window.runGIR) window.runGIR();
                 if(window.runABG) window.runABG();
                 if(window.runNa) window.runNa();
+                if(window.runK) window.runK();
                 if(window.runDKA) window.runDKA();
                 if(window.runGCS) window.runGCS();
                 if(window.calcRabies && window.savedRabiesDate) window.calcRabies();
                 if(window.runSCInsulin) window.runSCInsulin();
                 if(window.runManualFluid) window.runManualFluid();
+                if(window.runRTFeed) window.runRTFeed();
+                if(window.runIno) window.runIno();
+                if(window.runUni) window.runUni();
             }, 50);
         }
 
@@ -648,6 +643,16 @@
             }
         };
 
+        window.runK = function() {
+            let wt = val('weight'); let aK = val('kActual');
+            let res = document.getElementById('kRes');
+            if(res && wt > 0 && aK > 0) {
+                let def = Math.max(0, (4.5 - aK) * wt * 0.3).toFixed(1);
+                let kclMl = (def / 2).toFixed(1);
+                res.innerHTML = `K+ Deficit: <b>${def} mEq</b><br>Give 15% KCl (2 mEq/ml): <b>${kclMl} ml</b> slowly.<div class="note" style="color:#c53030;">⚠️ MUST be diluted. Peripheral max: 40 mEq/Liter. Rate: 0.5 mEq/kg/hr. NEVER push!</div>`;
+            }
+        };
+
         window.runGCS = function() {
             let e = val('gcsE'), v = val('gcsV'), m = val('gcsM');
             if(document.getElementById('gcsRes') && e>0 && v>0 && m>0) {
@@ -655,6 +660,39 @@
                 let sev = tot<=8 ? "Severe (Coma)" : (tot<=12 ? "Moderate" : "Mild/Normal");
                 document.getElementById('gcsRes').innerHTML = `Score: <b>${tot}/15</b> (${sev})`;
             }
+        };
+
+        window.runRTFeed = function() {
+            let ivf = val('rtIvf'), rVol = val('rtVol'), rFreq = val('rtFreq'); 
+            let res = document.getElementById('rtRes');
+            if(res && rVol > 0 && rFreq > 0) {
+                let rtHourly = rVol / rFreq; let newIvf = ivf - rtHourly;
+                let out = `<div class="highlight" style="display:block; background:#ebf8ff; color:#2b6cb0; border-color:#90cdf4;">RT Feed contributes: ${rtHourly.toFixed(2)} ml/hr</div>`;
+                if(document.getElementById('rtIvf').value !== "") {
+                    if(newIvf >= 0) { out += `<div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Adjusted New IVF Drip Rate: <b>${newIvf.toFixed(2)} ml/hr</b></div>`; } 
+                    else { out += `<div class="highlight" style="display:block; background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">⚠️ RT Feed (${rtHourly.toFixed(2)} ml/hr) exceeds total IVF rate (${ivf} ml/hr)! Stop IVF or reduce feed.</div>`; }
+                } else { out += `<div class="note">Enter Current IVF Rate (ml/hr) above to see adjustment.</div>`; }
+                res.innerHTML = out;
+            } else if (res) { res.innerHTML = "Enter feed volume and frequency..."; }
+        };
+
+        window.runUni = function() {
+            let r = val('uniReq'), m = val('uniVMg'), l = val('uniVMl'), res = document.getElementById('uniRes');
+            if(res && m > 0) { res.innerHTML = `<div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Draw up: <b>${(r/m*l).toFixed(2)} ml</b></div>`; } 
+            else if(res) { res.innerHTML = "Enter values to convert..."; }
+        };
+
+        window.runIno = function() {
+            let wt = val('weight'), dose = val('inoDose'), drug = document.getElementById('inoDrug')?.value, rDiv = document.getElementById('inoRes');
+            if(rDiv && wt>0 && dose>0 && drug) {
+                let mgToAdd = 0, stdDose = 1;
+                if(drug==="Adrenaline" || drug==="Noradrenaline") { mgToAdd = wt * 0.3; stdDose = 0.1; } 
+                if(drug==="Dopamine" || drug==="Dobutamine") { mgToAdd = wt * 30; stdDose = 10; }      
+                if(drug==="Milrinone") { mgToAdd = wt * 1.5; stdDose = 0.5; }                          
+                if(drug==="PGE1") { mgToAdd = wt * 0.3; stdDose = 0.1; } 
+                let rate = dose / stdDose; 
+                rDiv.innerHTML = `<div class="highlight" style="display:block; background:#faf5ff; color:#553c9a; border-color:#d6bcfa;">1. Add <b>${mgToAdd.toFixed(2)} mg</b> in 50 ml syringe (with NS/D5)</div><div class="highlight" style="display:block; background:#f0fff4; color:#22543d; border-color:#9ae6b4;">2. Run pump at <b>${rate.toFixed(1)} ml/hr</b></div>`;
+            } else if(rDiv) { rDiv.innerHTML = `Select drug and target dose...`; }
         };
 
         function amikacinDose(wt, strength) {
@@ -667,175 +705,59 @@
         //  THE MASSIVE DRUGS & PROTOCOLS DATABASE
         // ==========================================
         const drugs = [
-            // TRAINING & PROCEDURES
-            { 
-                name: "NRP (NICU Resuscitation) Steps & Video", 
-                category: "Training", 
-                tags: "nrp resuscitation cpr nicu algorithm training", 
-                calc: () => `
-                    <div class="badge">NRP ALGORITHM</div><br>
-                    <div class="note">
-                        1. Warm, Dry, Stimulate.<br>
-                        2. HR < 100 or Apnea ➡️ Start PPV.<br>
-                        3. HR < 60 after 30s PPV ➡️ Intubate + Chest Compressions (3:1) + 100% O2.<br>
-                        4. HR < 60 after 60s Compressions ➡️ Inj Adrenaline (0.1-0.3 ml/kg of 1:10k IV) + NS Bolus 10 ml/kg.
-                    </div>
-                    ${yt('ch41qyxCcH4', 'NRP Training')}
-                `
-            },
-            { 
-                name: "PALS (PICU Resuscitation) Steps & Video", 
-                category: "Training", 
-                tags: "pals resuscitation cpr picu algorithm training", 
-                calc: () => `
-                    <div class="badge">PALS ALGORITHM</div><br>
-                    <div class="note">
-                        1. C-A-B (Compressions 100-120/min, 15:2 ratio).<br>
-                        2. Shockable (VF/pVT): Defib 2 J/kg -> 4 J/kg.<br>
-                        3. Non-Shockable (Asystole): Inj Adrenaline 0.1 ml/kg of 1:10k IV ASAP.
-                    </div>
-                    ${yt('8vtSQ24b4sQ', 'PALS Training')}
-                `
-            },
-            { 
-                name: "Pneumonia Management Steps (IAP)", 
-                category: "Training", 
-                tags: "pneumonia steps procedure iap", 
-                calc: () => `
-                    <div class="badge">GUIDELINE</div><br>
-                    <div class="note">
-                        <b>1. Assess:</b> Tachypnea, Retractions, SpO2 < 90%.<br>
-                        <b>2. Supportive:</b> O2 Therapy, IV Fluids (Avoid oral if severe tachypnea to prevent aspiration), PCM for fever.<br>
-                        <b>3. Antibiotics (Severe):</b> Inj Ampicillin + Gentamicin OR Inj Ceftriaxone (Monocef).<br>
-                        <b>4. If Staph suspected:</b> Add Vancomycin or Clindamycin.
-                    </div>
-                `
-            },
-            { 
-                name: "Lumbar Puncture (CSF Collection)", 
-                category: "Training", 
-                tags: "lp lumbar puncture csf procedure steps", 
-                calc: () => `
-                    <div class="badge">PROCEDURE</div><br>
-                    <div class="note">
-                        <b>Site:</b> L3-L4 or L4-L5 intervertebral space.<br>
-                        <b>Position:</b> Lateral decubitus (knees to chest).<br>
-                        <b>Steps:</b> Aseptic precaution -> Insert 22G/24G spinal needle -> Feel the 'Pop' as dura is pierced -> Remove stylet -> Collect 3-4 drops in 3 separate sterile vials. ⚠️ Never aspirate with syringe!
-                    </div>
-                `
-            },
-            { 
-                name: "IV Cannula (Vigo) Insertion", 
-                category: "Training", 
-                tags: "iv cannula vigo procedure steps insertion", 
-                calc: () => `
-                    <div class="badge">PROCEDURE</div><br>
-                    <div class="note">
-                        <b>Steps:</b> Select vein (Dorsum of hand/foot) -> Tie Tourniquet -> Clean with alcohol swab -> Insert cannula at 15-20° angle -> Look for Primary Flashback -> Advance catheter gently & remove needle (Secondary flashback) -> Flush with NS -> Apply fixator.
-                    </div>
-                `
-            },
-            { 
-                name: "Neonatal Cooling (Therapeutic Hypothermia)", 
-                category: "Training", 
-                tags: "cooling hypothermia hie asphyxia training", 
-                calc: () => `
-                    <div class="badge">PROTOCOL</div><br>
-                    <div class="note">
-                        <b>Criteria:</b> Gestation ≥ 36 wks, Wt ≥ 1800g, within 6 hrs of birth with Mod/Severe HIE.<br>
-                        <b>Target Temp:</b> 33.5°C (Rectal/Esophageal).<br>
-                        <b>Duration:</b> Maintain 33.5°C for 72 hours.<br>
-                        <b>Rewarming:</b> Slowly at 0.5°C per hour after 72 hrs.
-                    </div>
-                `
-            },
-            { 
-                name: "ICD Insertion (Pneumothorax) - Neonate", 
-                category: "Training", 
-                tags: "icd chest tube pneumothorax neonate procedure training video", 
-                calc: () => `
-                    <div class="badge">NEONATE ICD</div><br>
-                    <div class="note">
-                        <b>Site:</b> 4th/5th Intercostal space (Triangle of safety - Mid/Anterior axillary line).<br>
-                        Give LA -> Incision just ABOVE the rib -> Puncture pleura with artery forceps (air rush) -> Insert tube -> Connect to underwater seal.
-                    </div>
-                    ${yt('_6sFa79u6FQ', 'Neonate ICD')}
-                `
-            },
-            { 
-                name: "ICD Insertion (Pneumothorax) - Pediatric", 
-                category: "Training", 
-                tags: "icd chest tube pneumothorax pediatric procedure training video", 
-                calc: () => `
-                    <div class="badge">PEDIATRIC ICD</div><br>
-                    <div class="note">
-                        Follow standard ATLS/PALS trauma guidelines for chest tube insertion in older children.
-                    </div>
-                    ${yt('IdmMR8JxmFo', 'Pediatric ICD')}
-                `
-            },
-
-            // VACCINES
-            { 
-                name: "Rabies Vaccine & RIG (Dog Bite)", 
-                category: "Vaccine", 
-                tags: "rabies vaccine dog bite dogbite antirabies arvs rig immunoglobulin hrig erig", 
-                calc: (wt) => `
-                    <div class="badge">VACCINE DOSE (Standard)</div><br>
-                    <div class="highlight" style="display:block;">Dose: 0.5 ml IM (or 0.1 ml ID per site)</div>
-                    
-                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
-                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">IMMUNOGLOBULIN (RIG) DOSE</div><br>
-                    <div class="highlight" style="display:block;">Equine RIG (40 IU/kg): ${(wt * 40).toLocaleString()} IU</div>
-                    <div class="highlight" style="display:block;">Human RIG (20 IU/kg): ${(wt * 20).toLocaleString()} IU</div>
-                    <div class="note">Infiltrate RIG maximum around the wound. Give remainder IM at a site distant from vaccine.</div>
-                    
-                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
-                    <div class="note"><b>PEP Schedule (Select Day 0):</b></div>
-                    <input type="date" id="rabiesDate" value="${window.savedRabiesDate || ''}" onchange="window.calcRabies()" style="margin-top:5px; padding:5px; width:100%; border:1px solid var(--border); border-radius:5px; background:var(--bg-card); color:var(--text-main);">
-                    <div id="rabiesRes" style="margin-top:8px; display:block;">
-                        ${window.savedRabiesDate ? "" : "<div class='highlight'>Select date to see schedule</div>"}
-                    </div>
-                `
-            },
-            { 
-                name: "Inj Tetanus Toxoid (TT / Td) & TIG", 
-                category: "Vaccine", 
-                tags: "tetanus tt td toxoid tig immunoglobulin ats wound injury", 
-                calc: (wt) => `
-                    <div class="badge">VACCINE (Prophylaxis)</div><br>
-                    <div class="highlight" style="display:block;">Dose: 0.5 ml IM Stat</div>
-                    <div class="note">Standard dose regardless of age/weight. Give for injury if >5 yrs since last dose.</div>
-                    
-                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
-                    <div class="badge" style="background:#bee3f8; color:#2a4365;">TETANUS IMMUNOGLOBULIN (TIG)</div><br>
-                    <div class="highlight" style="display:block;">Prophylaxis (High Risk Wound): 250 IU IM Stat</div>
-                    <div class="highlight" style="display:block;">Treatment (Clinical Tetanus): 3000 to 6000 IU IM</div>
-                    <div class="note">TIG is given if immunization status is unknown or incomplete (<3 primary doses). TIG dose is also generally standard, not weight-dependent.</div>
-                `
-            },
-            { 
-                name: "IAP Immunization Schedule", 
-                category: "Vaccine", 
-                tags: "vaccine immunization schedule iap new routine", 
-                calc: () => `
-                    <div class="badge">IAP GUIDELINES</div><br>
-                    <div class="note" style="color:var(--text-main);">
-                        <b>Birth:</b> BCG, OPV-0, Hep B-1<br>
-                        <b>6, 10, 14 Wks:</b> DTwP/DTaP (1,2,3), IPV (1,2,3), Hep B (2,3,4), Hib (1,2,3), Rotavirus (1,2,3), PCV (1,2,3)<br>
-                        <b>6 Mos:</b> Typhoid (TCV), Flu-1<br>
-                        <b>7 Mos:</b> Flu-2<br>
-                        <b>9-12 Mos:</b> MR-1, JE-1<br>
-                        <b>12 Mos:</b> Hep A-1<br>
-                        <b>15 Mos:</b> MMR-2, Varicella-1, PCV Booster<br>
-                        <b>16-18 Mos:</b> DTwP Booster-1, IPV Booster-1, Hib Booster-1<br>
-                        <b>18-19 Mos:</b> Hep A-2, Varicella-2<br>
-                        <b>4-6 Yrs:</b> DTwP Booster-2, IPV Booster-2, MMR-3
-                    </div>
-                `
-            },
-
             // CALCULATORS
+            { 
+                name: "RT Feed vs IVF Drip Adjuster", 
+                category: "Calculators", 
+                tags: "rt feed ivf adjustment maintenance tube feeding drip rate", 
+                calc: (wt) => `
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">FEED CALCULATION</div><br>
+                    <div class="calc-inputs" style="grid-template-columns: 1fr;">
+                        <input type="number" id="rtIvf" placeholder="Current IVF Drip Rate (ml/hr)" oninput="window.runRTFeed()">
+                    </div>
+                    <div class="calc-inputs">
+                        <input type="number" id="rtVol" placeholder="RT Feed Vol (ml)" oninput="window.runRTFeed()">
+                        <select id="rtFreq" onchange="window.runRTFeed()">
+                            <option value="1">1 Hourly</option>
+                            <option value="2">2 Hourly</option>
+                            <option value="3" selected>3 Hourly</option>
+                            <option value="4">4 Hourly</option>
+                        </select>
+                    </div>
+                    <div id="rtRes" style="margin-top:10px;">Enter feed volume and frequency...</div>
+                ` 
+            },
+            { 
+                name: "Universal mg → ml Converter", 
+                category: "Calculators", 
+                tags: "converter mg ml calculate convert dose", 
+                calc: () => `
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">DOSE RECONSTITUTION</div><br>
+                    <div class="calc-inputs" style="grid-template-columns: 1fr;">
+                        <input type="number" id="uniReq" placeholder="Dose Required (mg)" oninput="window.runUni()">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                            <input type="number" id="uniVMg" placeholder="Vial Mg (e.g. 500)" oninput="window.runUni()">
+                            <input type="number" id="uniVMl" placeholder="Vial Ml (e.g. 2)" oninput="window.runUni()">
+                        </div>
+                    </div><div id="uniRes" class="highlight" style="display:block;">Enter values to convert...</div>` 
+            },
+            { 
+                name: "Inotrope Infusion Calculator (Rule of 6)", 
+                category: "Calculators", 
+                tags: "inotrope infusion pump adrenaline noradrenaline dopamine dobutamine milrinone pge1 alprostadil", 
+                calc: (wt) => `
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">SMART PUMP (50ml Syringe)</div><br>
+                    <div class="calc-inputs" style="grid-template-columns: 1fr;">
+                        <select id="inoDrug" onchange="window.runIno()">
+                            <option value="" disabled selected>Select Drug</option>
+                            <option value="Adrenaline">Adrenaline / Noradrenaline</option>
+                            <option value="Dopamine">Dopamine / Dobutamine</option>
+                            <option value="Milrinone">Milrinone</option>
+                            <option value="PGE1">PGE1 (Alprostadil)</option>
+                        </select>
+                        <input type="number" id="inoDose" placeholder="Target Rate (mcg/kg/min)" oninput="window.runIno()">
+                    </div><div id="inoRes" style="margin-top:10px;">Select drug and target dose...</div>` 
+            },
             { 
                 name: "Pediatric GCS (Glasgow Coma Scale)", 
                 category: "Calculators", 
@@ -883,41 +805,17 @@
                 `
             },
             { 
-                name: "Sodium (Na+) Correction Calculator", 
+                name: "Electrolyte Correction (Na+ & K+)", 
                 category: "Calculators", 
-                tags: "sodium na hyponatremia correction 3% ns", 
+                tags: "sodium na hyponatremia correction 3% ns potassium kcl hypokalemia", 
                 calc: () => `
-                    <div class="badge">HYPONATREMIA</div><br>
-                    <div class="calc-inputs">
-                        <input type="number" id="naActual" placeholder="Actual Na+" oninput="window.runNa()">
-                        <input type="number" id="naTarget" placeholder="Target Na (Def 135)" oninput="window.runNa()">
-                    </div>
-                    <div class="highlight" id="naRes" style="display:block; margin-top:5px;">Enter Actual Na+ to calculate 3% NS</div>
-                `
-            },
-            { 
-                name: "Airway Calculator & Neonatal ET Tube Size", 
-                category: "Emergency", 
-                tags: "airway et tube intubation neonate pediatric depth", 
-                calc: (wt, age, unit) => { 
-                    if (unit === "Days" || unit === "Months" || wt <= 4.0) { 
-                        let etSize = (wt <= 1.0) ? "2.0" : (wt <= 1.5) ? "2.5 or 3.0" : "3.0 or 3.5"; 
-                        return `
-                            <div class="badge" style="background:#fed7d7; color:#9b2c2c;">NEONATE AIRWAY MATRIX</div><br>
-                            <div class="highlight">ET Size: ${etSize} mm</div>
-                            <div class="highlight">Fixation Depth: ${(wt + 6).toFixed(1)} cm (At Lip)</div>
-                            <div class="note">⚠️ Check bilateral air entry!</div>
-                        `; 
-                    } else { 
-                        if (isNaN(age) || age <= 0) return `<div class="note">Enter age in years at the top for pediatric sizes.</div>`; 
-                        return `
-                            <div class="badge">PEDIATRIC AIRWAY</div><br>
-                            <div class="highlight">Uncuffed ET: ${(age/4 + 4).toFixed(1)} mm</div>
-                            <div class="highlight">Cuffed ET: ${(age/4 + 3.5).toFixed(1)} mm</div>
-                            <div class="highlight">Depth at Lip: ${(age/2 + 12).toFixed(1)} cm</div>
-                        `; 
-                    } 
-                } 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">HYPONATREMIA (Na+)</div><br>
+                    <div class="calc-inputs"><input type="number" id="naActual" placeholder="Actual Na+" oninput="window.runNa()"><input type="number" id="naTarget" placeholder="Target Na (Def 135)" oninput="window.runNa()"></div>
+                    <div class="highlight" id="naRes" style="display:block; margin-bottom:10px;">Enter Actual Na+ to calculate 3% NS</div>
+                    
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">HYPOKALEMIA (K+)</div><br>
+                    <div class="calc-inputs" style="grid-template-columns: 1fr;"><input type="number" id="kActual" placeholder="Actual K+ (mEq/L)" oninput="window.runK()"></div>
+                    <div class="highlight" id="kRes" style="display:block;">Enter Actual K+ (Calculates 15% KCl Ampoule ml)</div>` 
             },
             { 
                 name: "UVC Line Fixation", 
@@ -1173,7 +1071,53 @@
                 } 
             },
 
-            // EMERGENCY & INOTROPES
+            // EMERGENCY & AIRWAY
+            { 
+                name: "Airway Calculator & Neonatal ET Tube Size", 
+                category: "Emergency", 
+                tags: "airway et tube intubation neonate pediatric depth", 
+                calc: (wt, age, unit) => { 
+                    if (unit === "Days" || unit === "Months" || wt <= 4.0) { 
+                        let etSize = (wt <= 1.0) ? "2.0" : (wt <= 1.5) ? "2.5 or 3.0" : "3.0 or 3.5"; 
+                        return `
+                            <div class="badge" style="background:#fed7d7; color:#9b2c2c;">NEONATE AIRWAY MATRIX</div><br>
+                            <div class="highlight">ET Size: ${etSize} mm</div>
+                            <div class="highlight">Fixation Depth: ${(wt + 6).toFixed(1)} cm (At Lip)</div>
+                            <div class="note">⚠️ Check bilateral air entry!</div>
+                        `; 
+                    } else { 
+                        if (isNaN(age) || age <= 0) return `<div class="note">Enter age in years at the top for pediatric sizes.</div>`; 
+                        return `
+                            <div class="badge">PEDIATRIC AIRWAY</div><br>
+                            <div class="highlight">Uncuffed ET: ${(age/4 + 4).toFixed(1)} mm</div>
+                            <div class="highlight">Cuffed ET: ${(age/4 + 3.5).toFixed(1)} mm</div>
+                            <div class="highlight">Depth at Lip: ${(age/2 + 12).toFixed(1)} cm</div>
+                        `; 
+                    } 
+                } 
+            },
+            { 
+                name: "Defibrillation / DC Shock", 
+                category: "Emergency", 
+                tags: "shock defibrillator joules arrest vf pvt", 
+                calc: (wt) => `
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">CARDIAC ARREST (VF / pVT)</div><br>
+                    <div class="highlight" style="display:block;">1st Shock: ${(wt * 2).toFixed(0)} Joules (2 J/kg)</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">2nd & Subs. Shocks: ${(wt * 4).toFixed(0)} Joules (4 J/kg)</div>
+                    <div class="note">Resume CPR immediately after shock! Do not check rhythm immediately.</div>` 
+            },
+            { 
+                name: "Sedation (Ketamine / Propofol / Dexmed)", 
+                category: "Emergency", 
+                tags: "sedation ketamine propofol dexmedetomidine fentanyl midazolam intubation", 
+                calc: (wt) => `
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">SEDATION DOSES</div><br>
+                    <div class="highlight" style="display:block; background:#ebf8ff; color:#2b6cb0; border-color:#90cdf4;">Ketamine (1-2 mg/kg): ${(wt*1.5).toFixed(1)} mg IV push</div>
+                    <div class="highlight" style="display:block; background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">Propofol (1-2 mg/kg): ${(wt*1.5).toFixed(1)} mg IV push</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Fentanyl (1-2 mcg/kg): ${(wt*1.5).toFixed(1)} mcg IV</div>
+                    <div class="highlight" style="display:block;">Midazolam (0.1 mg/kg): ${(wt*0.1).toFixed(2)} mg IV</div>
+                    <div class="note">Dexmedetomidine Infusion: Load 1 mcg/kg over 10 min, Maint: 0.5 mcg/kg/hr.</div>` 
+            },
             { 
                 name: "Inj Surfactant (For Severe RDS)", 
                 category: "Emergency", 
@@ -2208,7 +2152,7 @@
                 tags: "tonoferon iron drop anemia", 
                 calc: (wt) => `
                     <div class="badge">HAEMATINIC (3-6 mg/kg/day Elemental Fe)</div><br>
-                    <div class="highlight">Dose: ${(wt*4.5).toFixed(1)} mg/day</div>
+                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} mg/day</div>
                     <div class="highlight">Vol: ${(wt*4.5/25).toFixed(2)} ml/day (Divide in BD)</div>
                     <div class="note">Strength: 25 mg elemental iron / ml.</div>
                 ` 
@@ -2275,6 +2219,17 @@
             },
 
             // GI / TABS / TOPICAL
+            { 
+                name: "Tab Aspirin (Acetylsalicylic acid)", 
+                category: "GI", 
+                tags: "aspirin antiplatelet kawasaki", 
+                calc: (wt) => `
+                    <div class="badge">ANTIPLATELET / KAWASAKI</div><br>
+                    <div class="highlight" style="display:block;">Antiplatelet Dose (3-5 mg/kg): ${(wt*4).toFixed(1)} mg OD</div>
+                    <div class="highlight" style="display:block; background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">Kawasaki Acute (80-100 mg/kg): ${(wt*90).toFixed(1)} mg/day (divide in QDS)</div>
+                    <div class="note">Kawasaki high dose is given during febrile phase, then switched to low dose antiplatelet therapy.</div>
+                ` 
+            },
             { 
                 name: "Tab / Cap Nicardia (Nifedipine)", 
                 category: "GI", 
