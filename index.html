@@ -71,6 +71,19 @@
             margin: 0; 
         }
 
+        .credits { 
+            text-align: center; 
+            font-size: 13px; 
+            color: var(--text-muted); 
+            margin-bottom: 15px; 
+            font-weight: bold; 
+            letter-spacing: 0.5px; 
+            padding: 8px;
+            background: var(--note-bg);
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+        }
+
         .sticky-header { 
             position: sticky; 
             top: 0; 
@@ -325,6 +338,7 @@
 </head>
 <body>
 
+    <!-- Header Section -->
     <div class="sticky-header">
         <div class="header-card">
             <div class="header-top">
@@ -357,6 +371,7 @@
         </div>
     </div>
 
+    <!-- MAIN GRID MENU (Home Page) -->
     <div id="mainMenu" class="menu-grid">
         <div class="menu-item" onclick="openCat('Emergency')"><div class="menu-icon">🚨</div>Emergency / Airway</div>
         <div class="menu-item" onclick="openCat('NICU')"><div class="menu-icon">👶</div>NICU Protocol</div>
@@ -374,6 +389,7 @@
         <div class="menu-item" onclick="openCat('Formula')"><div class="menu-icon">🍼</div>Infant Formulas</div>
     </div>
 
+    <!-- ABOUT SECTION -->
     <div id="aboutSection" class="about-section">
         <div style="font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 10px;">ℹ️ About</div>
         <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
@@ -383,6 +399,7 @@
         </div>
     </div>
 
+    <!-- CATEGORY VIEW (List of Drugs) -->
     <div id="categoryView" style="display:none; padding-top:10px;">
         <button class="action-btn back-btn" id="btnBack" onclick="goHome()">🔙 Back to Main Menu</button>
         <div id="results">
@@ -391,6 +408,7 @@
         <button onclick="copyAll()" class="copy-all-btn" id="btnCopy" style="display:none;">📋 Copy Results</button>
     </div>
 
+    <!-- CORE LOGIC SCRIPT -->
     <script>
         let currentCategory = 'All';
         window.savedRabiesDate = "";
@@ -454,7 +472,6 @@
                 if(window.runGIR) window.runGIR();
                 if(window.runABG) window.runABG();
                 if(window.runNa) window.runNa();
-                if(window.runK) window.runK();
                 if(window.runDKA) window.runDKA();
                 if(window.runGCS) window.runGCS();
                 if(window.calcRabies && window.savedRabiesDate) window.calcRabies();
@@ -573,6 +590,8 @@
             let r1 = val('g1R'), d0_1 = val('g1D0'), d5_1 = val('g1D5'), d10_1 = val('g1D10'), d25_1 = val('g1D25');
             let r2 = val('g2R'), d0_2 = val('g2D0'), d5_2 = val('g2D5'), d10_2 = val('g2D10'), d25_2 = val('g2D25');
             let r3 = val('g3R'), d0_3 = val('g3D0'), d5_3 = val('g3D5'), d10_3 = val('g3D10'), d25_3 = val('g3D25');
+            let r4 = val('g4R'), d0_4 = val('g4D0'), d5_4 = val('g4D5'), d10_4 = val('g4D10'), d25_4 = val('g4D25');
+            let r5 = val('g5R'), d0_5 = val('g5D0'), d5_5 = val('g5D5'), d10_5 = val('g5D10'), d25_5 = val('g5D25');
 
             function getLineData(r, d0, d5, d10, d25) {
                 let totalVol = d0 + d5 + d10 + d25;
@@ -583,9 +602,11 @@
             let l1 = getLineData(r1, d0_1, d5_1, d10_1, d25_1); 
             let l2 = getLineData(r2, d0_2, d5_2, d10_2, d25_2); 
             let l3 = getLineData(r3, d0_3, d5_3, d10_3, d25_3);
+            let l4 = getLineData(r4, d0_4, d5_4, d10_4, d25_4);
+            let l5 = getLineData(r5, d0_5, d5_5, d10_5, d25_5);
             
-            let totalRate = l1.rate + l2.rate + l3.rate; 
-            let totalDexWeight = l1.dexWeight + l2.dexWeight + l3.dexWeight;
+            let totalRate = l1.rate + l2.rate + l3.rate + l4.rate + l5.rate; 
+            let totalDexWeight = l1.dexWeight + l2.dexWeight + l3.dexWeight + l4.dexWeight + l5.dexWeight;
             let currentGir = (wt > 0 && totalRate > 0) ? (totalDexWeight / (wt * 6)) : 0;
 
             let curRes = document.getElementById('girCurrentRes');
@@ -594,8 +615,10 @@
                     let b = `<div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">`;
                     if(l1.rate>0) b+=`L1: ${l1.dexPercent.toFixed(1)}% | `; 
                     if(l2.rate>0) b+=`L2: ${l2.dexPercent.toFixed(1)}% | `; 
-                    if(l3.rate>0) b+=`L3: ${l3.dexPercent.toFixed(1)}%`;
-                    curRes.innerHTML = `${b}</div>Total Rate: <b>${totalRate.toFixed(1)} ml/hr</b><br><span style="font-size:18px;">Total GIR: <b>${currentGir.toFixed(2)}</b> mg/kg/min</span>`;
+                    if(l3.rate>0) b+=`L3: ${l3.dexPercent.toFixed(1)}% | `;
+                    if(l4.rate>0) b+=`L4: ${l4.dexPercent.toFixed(1)}% | `;
+                    if(l5.rate>0) b+=`L5: ${l5.dexPercent.toFixed(1)}%`;
+                    curRes.innerHTML = `${b.replace(/ \| $/, '')}</div>Total Rate: <b>${totalRate.toFixed(1)} ml/hr</b><br><span style="font-size:18px;">Total GIR: <b>${currentGir.toFixed(2)}</b> mg/kg/min</span>`;
                 } else curRes.innerHTML = `Total Rate: 0 ml/hr | GIR: 0`;
             }
 
@@ -873,7 +896,38 @@
                             <div><input type="number" id="g3D25" placeholder="ml" oninput="window.runGIR()"><br>25%</div>
                         </div>
                     </div>
-                    <button onclick="document.getElementById('line3div').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568; margin-bottom:8px;">+ Add Line 3</button>
+                    
+                    <div class="mix-row" style="display:none;" id="line4div">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <b>L4 (Extra)</b>
+                            <span>Rate: <input type="number" id="g4R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span>
+                        </div>
+                        <div class="gir-grid">
+                            <div><input type="number" id="g4D0" placeholder="ml" oninput="window.runGIR()"><br>0%</div>
+                            <div><input type="number" id="g4D5" placeholder="ml" oninput="window.runGIR()"><br>5%</div>
+                            <div><input type="number" id="g4D10" placeholder="ml" oninput="window.runGIR()"><br>10%</div>
+                            <div><input type="number" id="g4D25" placeholder="ml" oninput="window.runGIR()"><br>25%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mix-row" style="display:none;" id="line5div">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <b>L5 (Extra)</b>
+                            <span>Rate: <input type="number" id="g5R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span>
+                        </div>
+                        <div class="gir-grid">
+                            <div><input type="number" id="g5D0" placeholder="ml" oninput="window.runGIR()"><br>0%</div>
+                            <div><input type="number" id="g5D5" placeholder="ml" oninput="window.runGIR()"><br>5%</div>
+                            <div><input type="number" id="g5D10" placeholder="ml" oninput="window.runGIR()"><br>10%</div>
+                            <div><input type="number" id="g5D25" placeholder="ml" oninput="window.runGIR()"><br>25%</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <button onclick="document.getElementById('line3div').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568;">+ L3</button>
+                        <button onclick="document.getElementById('line4div').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568;">+ L4</button>
+                        <button onclick="document.getElementById('line5div').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568;">+ L5</button>
+                    </div>
 
                     <div class="highlight" id="girCurrentRes" style="display:block; width:100%;">Total Rate: 0 ml/hr | Net Dex: 0% | GIR: 0</div>
                     
