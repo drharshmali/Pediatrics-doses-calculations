@@ -49,7 +49,7 @@
         body { 
             font-family: 'Segoe UI', Roboto, sans-serif; 
             padding: 10px; 
-            max-width: 800px; 
+            max-width: 900px; 
             margin: auto; 
             background: var(--bg-main); 
             color: var(--text-main); 
@@ -83,7 +83,6 @@
         .card { background: var(--bg-card); padding: 15px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); margin-bottom: 12px; border-left: 5px solid var(--primary); }
         .drug-name { font-weight: 800; font-size: 17px; color: var(--primary-hover); margin-bottom: 8px; }
         
-        /* Category Specific Colors */
         .card.emergency { border-left-color: #e53e3e; } .card.emergency .drug-name { color: #c53030; } .dark-mode .card.emergency .drug-name { color: #fc8181; }
         .card.fluids { border-left-color: #38a169; } .card.fluids .drug-name { color: #2f855a; } .dark-mode .card.fluids .drug-name { color: #68d391; }
         .card.neuro { border-left-color: #805ad5; } .card.neuro .drug-name { color: #6b46c1; } .dark-mode .card.neuro .drug-name { color: #b794f4; }
@@ -96,27 +95,28 @@
         .calc-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
         .gir-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; text-align: center; font-size: 11px; margin-bottom: 5px; }
         
-        /* Badges and Highlights */
         .badge { display: inline-block; font-size: 12px; font-weight: bold; background: var(--badge-bg); padding: 4px 8px; border-radius: 4px; color: var(--badge-text); margin-bottom: 6px; }
         .highlight { font-size: 15px; font-weight: bold; color: var(--hl-text); background-color: var(--hl-bg); padding: 6px 10px; border-radius: 6px; display: block; margin-bottom: 4px; border: 1px solid var(--hl-border); }
         .note { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-style: italic; background: var(--note-bg); padding: 8px; border-radius: 6px; border-left: 3px solid var(--note-border); line-height: 1.5; }
         .mix-row { background: var(--note-bg); padding: 8px; border-radius: 6px; margin-bottom: 8px; }
         
-        /* YouTube Video Container */
         .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; margin-top: 10px; border: 2px solid var(--border); background: #000; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .yt-link { display: block; text-align: center; margin-top: 8px; font-size: 13px; color: var(--primary); text-decoration: none; font-weight: bold; background: var(--badge-bg); padding: 6px; border-radius: 5px; }
+
+        /* About Section Styles */
+        .about-section { background: var(--note-bg); border: 1px dashed var(--note-border); border-radius: 12px; padding: 15px; margin-top: 25px; margin-bottom: 20px; box-shadow: none; }
+        .footer-credits { text-align: center; font-size: 11px; color: #a0aec0; margin-top: 30px; margin-bottom: 10px; letter-spacing: 0.5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
+    <!-- Header Section -->
     <div class="sticky-header">
         <div class="header-card">
             <div class="header-top">
                 <h2>Master Dose Calculator</h2>
-                <div>
-                    <button class="action-btn" onclick="document.body.classList.toggle('dark-mode')" style="background:#4a5568;">🌙 Dark Mode</button>
-                </div>
+                <div><button class="action-btn" onclick="document.body.classList.toggle('dark-mode')" style="background:#4a5568;">🌙 Dark Mode</button></div>
             </div>
             
             <div class="credits">
@@ -147,6 +147,7 @@
         </div>
     </div>
 
+    <!-- MAIN GRID MENU -->
     <div id="mainMenu" class="menu-grid">
         <div class="menu-item" onclick="openCat('Emergency')"><div class="menu-icon">🚨</div>Emergency / Airway</div>
         <div class="menu-item" onclick="openCat('NICU')"><div class="menu-icon">👶</div>NICU Protocol</div>
@@ -164,6 +165,17 @@
         <div class="menu-item" onclick="openCat('Formula')"><div class="menu-icon">🍼</div>Infant Formulas</div>
     </div>
 
+    <!-- ABOUT SECTION -->
+    <div id="aboutSection" class="about-section">
+        <div style="font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 10px;">ℹ️ About</div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
+            <b style="color:var(--text-main);">📚 Scientific References:</b> IAP Guidelines & Dr. Meharban Singh<br>
+            <b style="color:var(--text-main);">👨‍⚕️ Under the Expert Guidance of:</b> Dr. Nikul Thakkar<br>
+            <b style="color:var(--text-main);">💻 Developed by:</b> Dr. Harsh Mali
+        </div>
+    </div>
+
+    <!-- CATEGORY VIEW -->
     <div id="categoryView" style="display:none; padding-top:10px;">
         <button class="action-btn back-btn" id="btnBack" onclick="goHome()">🔙 Back to Main Menu</button>
         <div id="results">
@@ -172,6 +184,10 @@
         <button onclick="copyAll()" class="copy-all-btn" id="btnCopy" style="display:none;">📋 Copy Results</button>
     </div>
 
+    <!-- FOOTER -->
+    <div id="footerCredits" class="footer-credits">Developed by Dr. Harsh Mali</div>
+
+    <!-- CORE LOGIC SCRIPT -->
     <script>
         let currentCategory = 'All';
         window.savedRabiesDate = "";
@@ -196,6 +212,8 @@
         function openCat(cat) {
             currentCategory = cat;
             document.getElementById('mainMenu').style.display = 'none';
+            if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'none';
+            if(document.getElementById('footerCredits')) document.getElementById('footerCredits').style.display = 'none';
             document.getElementById('categoryView').style.display = 'block';
             document.getElementById('btnBack').style.display = 'block';
             document.getElementById('btnCopy').style.display = 'block';
@@ -206,6 +224,8 @@
             document.getElementById('search').value = "";
             currentCategory = 'All';
             document.getElementById('mainMenu').style.display = 'grid';
+            if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'block';
+            if(document.getElementById('footerCredits')) document.getElementById('footerCredits').style.display = 'block';
             document.getElementById('categoryView').style.display = 'none';
         }
 
@@ -213,6 +233,8 @@
             let s = document.getElementById('search').value;
             if(s.length > 0) {
                 document.getElementById('mainMenu').style.display = 'none';
+                if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'none';
+                if(document.getElementById('footerCredits')) document.getElementById('footerCredits').style.display = 'none';
                 document.getElementById('categoryView').style.display = 'block';
                 document.getElementById('btnBack').style.display = 'block';
                 document.getElementById('btnCopy').style.display = 'block';
@@ -221,6 +243,10 @@
                 goHome();
             }
             calculateAll();
+        }
+
+        function val(id) { 
+            return parseFloat(document.getElementById(id)?.value) || 0; 
         }
 
         function calculateAll() {
@@ -241,14 +267,10 @@
             }, 50);
         }
 
-        function val(id) { 
-            return parseFloat(document.getElementById(id)?.value) || 0; 
-        }
-
         // =====================================
         // SMART DYNAMIC CALCULATORS LOGIC
         // =====================================
-
+        
         window.runRTFeed = function() {
             let ivf = val('rtIvf'); 
             let rVol = val('rtVol'); 
@@ -276,11 +298,14 @@
             }
         };
 
-        window.runUni = function() { 
-            let r = val('uniReq'), m = val('uniVMg'), l = val('uniVMl'); 
+        window.runUni = function() {
+            let r = val('uniReq'), m = val('uniVMg'), l = val('uniVMl');
             let res = document.getElementById('uniRes');
-            if(res && m > 0) res.innerHTML = `<div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Draw up: <b>${(r/m*l).toFixed(2)} ml</b></div>`; 
-            else if(res) res.innerHTML = "Enter values to convert...";
+            if(res && m > 0) {
+                res.innerHTML = `<div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Draw up: <b>${(r/m*l).toFixed(2)} ml</b></div>`;
+            } else if(res) {
+                res.innerHTML = "Enter values to convert...";
+            }
         };
 
         window.runIno = function() {
@@ -298,22 +323,16 @@
                     <div class="highlight" style="display:block; background:#faf5ff; color:#553c9a; border-color:#d6bcfa;">1. Add <b>${mgToAdd.toFixed(2)} mg</b> in 50 ml syringe (with NS/D5)</div>
                     <div class="highlight" style="display:block; background:#f0fff4; color:#22543d; border-color:#9ae6b4;">2. Run pump at <b>${rate.toFixed(1)} ml/hr</b></div>
                 `;
-            } else if(rDiv) rDiv.innerHTML = `Enter target dose (mcg/kg/min)...`; 
+            } else if(rDiv) { 
+                rDiv.innerHTML = `Enter target dose (mcg/kg/min)...`; 
+            }
         };
 
         window.runManualFluid = function() {
-            let wt = val('weight');
-            let manual = val('manualFluidTotal'); 
-            let res = document.getElementById('fluidResDiv');
-            
+            let wt = val('weight'), manual = val('manualFluidTotal'), res = document.getElementById('fluidResDiv');
             if(res && (wt > 0 || manual > 0)) {
-                let f = 0;
-                if(manual > 0) { f = manual; } 
-                else { f = (wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20)); }
-                
-                let t = f * (2/3);
-                let o = f * (1/3);
-                
+                let f = manual > 0 ? manual : (wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20));
+                let t = f * (2/3), o = f * (1/3);
                 res.innerHTML = `
                     <div class="highlight" style="display:block;">100% (Normal): ${f.toFixed(0)} ml/day (@ ${(f/24).toFixed(1)} ml/hr)</div>
                     <div class="highlight" style="display:block; background:#e6fffa; color:#234e52; border-color:#81e6d9;">2/3rd (Nephrotic/Edema): ${t.toFixed(0)} ml/day (@ ${(t/24).toFixed(1)} ml/hr)</div>
@@ -323,40 +342,25 @@
         };
 
         window.runSCInsulin = function() {
-            let wt = val('weight');
-            let rbs = val('scRbsInp'); 
-            let res = document.getElementById('scInsulinRes');
-            
+            let wt = val('weight'), rbs = val('scRbsInp'), res = document.getElementById('scInsulinRes');
             if(res && wt > 0 && rbs > 0) {
-                let dose = 0;
-                let scale = "";
-                
+                let dose = 0, scale = "";
                 if(rbs >= 200 && rbs <= 250) { dose = 0.1 * wt; scale = "0.1 U/kg"; }
                 else if(rbs > 250 && rbs <= 300) { dose = 0.15 * wt; scale = "0.15 U/kg"; }
                 else if(rbs > 300) { dose = 0.2 * wt; scale = "0.2 U/kg"; }
-                
                 let out = `<hr style="margin:8px 0; border-top:1px solid var(--border);">`;
-                if(dose > 0) {
-                    out += `<div class="highlight">Actrapid (SC): <b>${dose.toFixed(1)} Units</b> SOS <span style="font-size:12px; font-weight:normal;">(${scale})</span></div>`;
-                } else {
-                    out += `<div class="highlight" style="background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">RBS < 200: No Actrapid Needed</div>`;
-                }
-                
+                if(dose > 0) { out += `<div class="highlight">Actrapid (SC): <b>${dose.toFixed(1)} Units</b> SOS <span style="font-size:12px; font-weight:normal;">(${scale})</span></div>`; } 
+                else { out += `<div class="highlight" style="background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">RBS < 200: No Actrapid Needed</div>`; }
                 out += `<div class="highlight" style="background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Lantus (Basal SC): <b>${(wt*0.25).toFixed(1)} Units OD</b> <span style="font-size:12px; font-weight:normal;">(0.25 U/kg)</span></div>`;
                 res.innerHTML = out;
             }
         };
 
         window.runDKA = function() {
-            let wt = val('weight');
-            let rbs = val('dkaRbs');
-            let fRes = document.getElementById('dkaFluidRes'); 
-            let iRes = document.getElementById('dkaInsulinRes');
+            let wt = val('weight'), rbs = val('dkaRbs'), fRes = document.getElementById('dkaFluidRes'), iRes = document.getElementById('dkaInsulinRes');
             if(fRes && iRes && wt > 0 && rbs > 0) {
-                let d = wt * 85;
-                let m = wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20);
-                let rem = (d + m) - (wt * 20); 
-                let rate = (rem/24).toFixed(1);
+                let d = wt * 85; let m = wt <= 10 ? wt * 100 : (wt <= 20 ? 1000 + (wt-10)*50 : 1500 + (wt-20)*20); 
+                let rem = (d + m) - (wt * 20); let rate = (rem/24).toFixed(1);
                 if(rbs > 250) {
                     fRes.innerHTML = `<span style="color:#c53030;">RBS > 250:</span> Give <b>0.45% NS + 5ml KCl (in 500ml)</b> @ ${rate} ml/hr`;
                     iRes.innerHTML = `Actrapid Infusion: <b>0.1 U/kg/hr</b><br><span style="font-size:12px;">(Mix 50U in 50ml NS @ ${(wt*0.1).toFixed(1)} ml/hr)</span>`;
@@ -369,48 +373,28 @@
 
         window.calcRabies = function() {
             let d = document.getElementById('rabiesDate')?.value;
-            if(!d) return;
-            window.savedRabiesDate = d;
-            let date0 = new Date(d);
-            let addDays = (days) => { 
-                let nd = new Date(date0);
-                nd.setDate(nd.getDate() + days); 
-                return nd.toLocaleDateString('en-GB'); 
-            };
+            if(!d) return; window.savedRabiesDate = d; let date0 = new Date(d);
+            let addDays = (days) => { let nd = new Date(date0); nd.setDate(nd.getDate() + days); return nd.toLocaleDateString('en-GB'); };
             let resDiv = document.getElementById('rabiesRes');
             if(resDiv) {
-                resDiv.innerHTML = `
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:14px; text-align:left; margin-top:5px; color:var(--text-main);">
-                        <div style="background:#fed7d7; padding:4px 8px; border-radius:4px;"><b>Day 0:</b> ${addDays(0)}</div>
-                        <div style="background:var(--note-bg); padding:4px 8px; border-radius:4px;"><b>Day 3:</b> ${addDays(3)}</div>
-                        <div style="background:var(--note-bg); padding:4px 8px; border-radius:4px;"><b>Day 7:</b> ${addDays(7)}</div>
-                        <div style="background:var(--note-bg); padding:4px 8px; border-radius:4px;"><b>Day 14:</b> ${addDays(14)}</div>
-                        <div style="grid-column: span 2; background:#c6f6d5; padding:4px 8px; border-radius:4px; color:#22543d;"><b>Day 28:</b> ${addDays(28)}</div>
-                    </div>
-                `;
+                resDiv.innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:14px; text-align:left; margin-top:5px; color:var(--text-main);">
+                    <div style="background:#fed7d7; padding:4px 8px; border-radius:4px;"><b>Day 0:</b> ${addDays(0)}</div>
+                    <div style="background:var(--note-bg); padding:4px 8px; border-radius:4px;"><b>Day 3:</b> ${addDays(3)}</div>
+                    <div style="background:var(--note-bg); padding:4px 8px; border-radius:4px;"><b>Day 7:</b> ${addDays(7)}</div>
+                    <div style="background:var(--note-bg); padding:4px 8px; border-radius:4px;"><b>Day 14:</b> ${addDays(14)}</div>
+                    <div style="grid-column: span 2; background:#c6f6d5; padding:4px 8px; border-radius:4px; color:#22543d;"><b>Day 28:</b> ${addDays(28)}</div></div>`;
             }
         };
 
         window.runGIR = function() {
             let wt = val('weight');
-            let r1 = val('g1R'), d0_1 = val('g1D0'), d5_1 = val('g1D5'), d10_1 = val('g1D10'), d25_1 = val('g1D25');
-            let r2 = val('g2R'), d0_2 = val('g2D0'), d5_2 = val('g2D5'), d10_2 = val('g2D10'), d25_2 = val('g2D25');
-            let r3 = val('g3R'), d0_3 = val('g3D0'), d5_3 = val('g3D5'), d10_3 = val('g3D10'), d25_3 = val('g3D25');
-            let r4 = val('g4R'), d0_4 = val('g4D0'), d5_4 = val('g4D5'), d10_4 = val('g4D10'), d25_4 = val('g4D25');
-            let r5 = val('g5R'), d0_5 = val('g5D0'), d5_5 = val('g5D5'), d10_5 = val('g5D10'), d25_5 = val('g5D25');
-
-            function getLineData(r, d0, d5, d10, d25) {
-                let totalVol = d0 + d5 + d10 + d25;
-                if (totalVol === 0 || r === 0) return { rate: 0, dexWeight: 0, dexPercent: 0 };
-                return { rate: r, dexWeight: r * ((d5*5 + d10*10 + d25*25)/totalVol), dexPercent: ((d5*5 + d10*10 + d25*25)/totalVol) };
-            }
-
-            let l1 = getLineData(r1, d0_1, d5_1, d10_1, d25_1);
-            let l2 = getLineData(r2, d0_2, d5_2, d10_2, d25_2); 
-            let l3 = getLineData(r3, d0_3, d5_3, d10_3, d25_3);
-            let l4 = getLineData(r4, d0_4, d5_4, d10_4, d25_4);
-            let l5 = getLineData(r5, d0_5, d5_5, d10_5, d25_5);
-
+            function L(r,d0,d5,d10,d25){ let t = d0+d5+d10+d25; return (t===0||r===0) ? {rate:0, dexWeight:0, dexPercent:0} : {rate:r, dexWeight: r * ((d5*5 + d10*10 + d25*25)/t), dexPercent: ((d5*5 + d10*10 + d25*25)/t) }; }
+            let l1 = L(val('g1R'),val('g1D0'),val('g1D5'),val('g1D10'),val('g1D25'));
+            let l2 = L(val('g2R'),val('g2D0'),val('g2D5'),val('g2D10'),val('g2D25'));
+            let l3 = L(val('g3R'),val('g3D0'),val('g3D5'),val('g3D10'),val('g3D25'));
+            let l4 = L(val('g4R'),val('g4D0'),val('g4D5'),val('g4D10'),val('g4D25'));
+            let l5 = L(val('g5R'),val('g5D0'),val('g5D5'),val('g5D10'),val('g5D25'));
+            
             let totalRate = l1.rate + l2.rate + l3.rate + l4.rate + l5.rate; 
             let totalDexWeight = l1.dexWeight + l2.dexWeight + l3.dexWeight + l4.dexWeight + l5.dexWeight;
             let currentGir = (wt > 0 && totalRate > 0) ? (totalDexWeight / (wt * 6)) : 0;
@@ -419,33 +403,22 @@
             if(curRes) {
                 if(wt > 0 && totalRate > 0) {
                     let b = `<div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">`;
-                    if(l1.rate>0) b+=`L1: ${l1.dexPercent.toFixed(1)}% | `; 
-                    if(l2.rate>0) b+=`L2: ${l2.dexPercent.toFixed(1)}% | `; 
-                    if(l3.rate>0) b+=`L3: ${l3.dexPercent.toFixed(1)}% | `;
-                    if(l4.rate>0) b+=`L4: ${l4.dexPercent.toFixed(1)}% | `;
+                    if(l1.rate>0) b+=`L1: ${l1.dexPercent.toFixed(1)}% | `; if(l2.rate>0) b+=`L2: ${l2.dexPercent.toFixed(1)}% | `; 
+                    if(l3.rate>0) b+=`L3: ${l3.dexPercent.toFixed(1)}% | `; if(l4.rate>0) b+=`L4: ${l4.dexPercent.toFixed(1)}% | `;
                     if(l5.rate>0) b+=`L5: ${l5.dexPercent.toFixed(1)}%`;
                     curRes.innerHTML = `${b}</div>Total Rate: <b>${totalRate.toFixed(1)} ml/hr</b><br><span style="font-size:18px;">Total GIR: <b>${currentGir.toFixed(2)}</b> mg/kg/min</span>`;
                 } else curRes.innerHTML = `Total Rate: 0 ml/hr | GIR: 0`;
             }
 
-            let tGir = val('gTargGir');
-            let tFluid = val('gTargFluid'); let mixRes = document.getElementById('girMixRes');
+            let tGir = val('gTargGir'); let tFluid = val('gTargFluid'); let mixRes = document.getElementById('girMixRes');
             if(mixRes && wt > 0 && tGir > 0 && tFluid > 0) {
-                let targetDex = (tGir * 144) / tFluid;
-                let dailyVol = wt * tFluid;
-                if(targetDex < 5) {
-                    mixRes.innerHTML = `<span style="color:#c53030;">⚠️ Need < 5% Dextrose. Use NS.</span>`;
-                } else if(targetDex === 5) {
-                    mixRes.innerHTML = `✅ Give ${dailyVol.toFixed(0)} ml as 0.45 DNS`;
-                } else if(targetDex < 10) {
-                    mixRes.innerHTML = `💧 <b>D10:</b> ${(dailyVol * (targetDex-5)/5).toFixed(0)} ml<br>💧 <b>0.45 DNS:</b> ${(dailyVol - (dailyVol * (targetDex-5)/5)).toFixed(0)} ml`;
-                } else if(targetDex === 10) {
-                    mixRes.innerHTML = `✅ Give 100% as D10: ${dailyVol.toFixed(0)} ml`;
-                } else if(targetDex <= 25) {
-                    mixRes.innerHTML = `💧 <b>D25:</b> ${(dailyVol * (targetDex-10)/15).toFixed(0)} ml<br>💧 <b>D10:</b> ${(dailyVol - (dailyVol * (targetDex-10)/15)).toFixed(0)} ml`;
-                } else {
-                    mixRes.innerHTML = `<span style="color:#c53030;">⚠️ Dextrose > 25% requires Central Line!</span>`;
-                }
+                let targetDex = (tGir * 144) / tFluid; let dailyVol = wt * tFluid;
+                if(targetDex < 5) { mixRes.innerHTML = `<span style="color:#c53030;">⚠️ Target Dex is ${targetDex.toFixed(1)}%. Need < 5% Dextrose. Use NS/DNS appropriately.</span>`; } 
+                else if(targetDex === 5) { mixRes.innerHTML = `✅ Target Dex is exactly 5%. Give ${dailyVol.toFixed(0)} ml as 0.45 DNS / D5`; } 
+                else if(targetDex < 10) { mixRes.innerHTML = `Target Dex: <b>${targetDex.toFixed(1)}%</b><br>💧 <b>D10:</b> ${(dailyVol * (targetDex-5)/5).toFixed(0)} ml<br>💧 <b>D5/DNS:</b> ${(dailyVol - (dailyVol * (targetDex-5)/5)).toFixed(0)} ml`; } 
+                else if(targetDex === 10) { mixRes.innerHTML = `✅ Target Dex is exactly 10%. Give 100% as D10: ${dailyVol.toFixed(0)} ml`; } 
+                else if(targetDex <= 25) { mixRes.innerHTML = `Target Dex: <b>${targetDex.toFixed(1)}%</b><br>💧 <b>D25:</b> ${(dailyVol * (targetDex-10)/15).toFixed(0)} ml<br>💧 <b>D10:</b> ${(dailyVol - (dailyVol * (targetDex-10)/15)).toFixed(0)} ml`; } 
+                else { mixRes.innerHTML = `<span style="color:#c53030;">⚠️ Target Dex ${targetDex.toFixed(1)}% > 25%. Requires Central Line!</span>`; }
             }
         };
 
@@ -455,7 +428,6 @@
                 let a = "Mixed Disorder";
                 if(ph<7.35) a = pco2>45 ? "Respiratory Acidosis" : "Metabolic Acidosis"; 
                 if(ph>7.45) a = pco2<35 ? "Respiratory Alkalosis" : "Metabolic Alkalosis";
-                
                 let w = "";
                 if(a === "Metabolic Acidosis") {
                     let exp = (1.5 * hco3) + 8;
@@ -476,11 +448,10 @@
         };
 
         window.runNa = function() {
-            let wt = val('weight');
-            let aNa = val('naActual'); let tNa = val('naTarget') || 135;
-            if(document.getElementById('naRes') && wt > 0 && aNa > 0) {
-                let def = Math.max(0, (tNa - aNa) * wt * 0.6);
-                document.getElementById('naRes').innerHTML = `Na Deficit: <b>${def.toFixed(1)} mEq</b><br>Give 3% NS: <b>${(def / 0.513).toFixed(1)} ml</b><div class="note">Max 10-12 mEq/day. Give over 4-6 hrs.</div>`;
+            let wt = val('weight'), aNa = val('naActual'), tNa = val('naTarget') || 135;
+            if(document.getElementById('naRes') && wt>0 && aNa>0) {
+                let def = Math.max(0, (tNa - aNa) * wt * 0.6).toFixed(1);
+                document.getElementById('naRes').innerHTML = `Na Deficit: <b>${def} mEq</b><br>Give 3% NS: <b>${(def / 0.513).toFixed(1)} ml</b><div class="note">Max 10-12 mEq/day to avoid ODS. Give over 4-6 hrs.</div>`;
             }
         };
 
@@ -497,8 +468,7 @@
         window.runGCS = function() {
             let e = val('gcsE'), v = val('gcsV'), m = val('gcsM');
             if(document.getElementById('gcsRes') && e>0 && v>0 && m>0) {
-                let tot = e+v+m;
-                let sev = tot<=8 ? "Severe (Coma)" : (tot<=12 ? "Moderate" : "Mild/Normal");
+                let tot = e+v+m, sev = tot<=8 ? "Severe (Intubate)" : (tot<=12 ? "Moderate" : "Mild");
                 document.getElementById('gcsRes').innerHTML = `Score: <b>${tot}/15</b> (${sev})`;
             }
         };
@@ -510,7 +480,7 @@
         }
 
         // ==========================================
-        //  THE MASSIVE DRUGS & PROTOCOLS DATABASE (ALL 160+ ITEMS)
+        //  THE MASSIVE DRUGS & PROTOCOLS DATABASE (ALL 164 ITEMS)
         // ==========================================
         const drugs = [
             
@@ -543,10 +513,10 @@
                 calc: () => `
                     <div class="badge" style="background:#bee3f8; color:#2a4365;">DOSE RECONSTITUTION</div><br>
                     <div class="calc-inputs" style="grid-template-columns: 1fr;">
-                        <input type="number" id="uniReq" placeholder="Dose Required (mg)" oninput="window.runUni()">
+                        <input type="number" id="uniReq" placeholder="Dose Required (mg)" oninput="document.getElementById('uniRes').innerHTML = '<div class=\\'highlight\\' style=\\'display:block;\\'>Draw up: <b>' + (val('uniReq')/val('uniVMg')*val('uniVMl')).toFixed(2) + ' ml</b></div>'">
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                            <input type="number" id="uniVMg" placeholder="Vial Mg (e.g. 500)" oninput="window.runUni()">
-                            <input type="number" id="uniVMl" placeholder="Vial Ml (e.g. 2)" oninput="window.runUni()">
+                            <input type="number" id="uniVMg" placeholder="Vial Mg (e.g. 500)" oninput="document.getElementById('uniRes').innerHTML = '<div class=\\'highlight\\' style=\\'display:block;\\'>Draw up: <b>' + (val('uniReq')/val('uniVMg')*val('uniVMl')).toFixed(2) + ' ml</b></div>'">
+                            <input type="number" id="uniVMl" placeholder="Vial Ml (e.g. 2)" oninput="document.getElementById('uniRes').innerHTML = '<div class=\\'highlight\\' style=\\'display:block;\\'>Draw up: <b>' + (val('uniReq')/val('uniVMg')*val('uniVMl')).toFixed(2) + ' ml</b></div>'">
                         </div>
                     </div><div id="uniRes" class="highlight" style="display:block;">Enter values to convert...</div>` 
             },
@@ -568,32 +538,32 @@
                     </div><div id="inoRes" style="margin-top:10px;">Select drug and target dose...</div>` 
             },
             { 
-                name: "5-Line Advanced GIR Calculator & Fluid Mixer", 
+                name: "5-Line Advanced GIR Calculator & Mixer", 
                 category: "Calculators", 
                 tags: "gir glucose infusion rate dextrose mix fluid target", 
                 calc: () => `
                     <div class="badge" style="background:#bee3f8; color:#2a4365;">1. SMART GIR (AUTO DEX %)</div>
-                    <div style="font-size:12px; margin-bottom:5px; color:var(--text-muted);">સિરીંજ/બ્યુરેટમાં કયું ફ્લુઈડ કેટલા ml મિક્સ કર્યું છે તે નાખો.</div>
+                    <div style="font-size:12px; margin-bottom:5px; color:var(--text-muted);">Enter flow rate and fluid volumes for active lines.</div>
                     
-                    <div class="mix-row"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L1 (Main)</b><span>Rate: <input type="number" id="g1R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
+                    <div class="mix-row"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L1 (Main IVF)</b><span>Rate: <input type="number" id="g1R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
                     <div class="gir-grid"><div><input type="number" id="g1D0" placeholder="ml" oninput="window.runGIR()"><br>0%</div><div><input type="number" id="g1D5" placeholder="ml" oninput="window.runGIR()"><br>5%</div><div><input type="number" id="g1D10" placeholder="ml" oninput="window.runGIR()"><br>10%</div><div><input type="number" id="g1D25" placeholder="ml" oninput="window.runGIR()"><br>25%</div></div></div>
                     
-                    <div class="mix-row"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L2 (Drug)</b><span>Rate: <input type="number" id="g2R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
+                    <div class="mix-row"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L2 (Inotrope/Drug)</b><span>Rate: <input type="number" id="g2R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
                     <div class="gir-grid"><div><input type="number" id="g2D0" placeholder="ml" oninput="window.runGIR()"><br>0%</div><div><input type="number" id="g2D5" placeholder="ml" oninput="window.runGIR()"><br>5%</div><div><input type="number" id="g2D10" placeholder="ml" oninput="window.runGIR()"><br>10%</div><div><input type="number" id="g2D25" placeholder="ml" oninput="window.runGIR()"><br>25%</div></div></div>
                     
-                    <div class="mix-row" style="display:none;" id="line3div"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L3 (Extra)</b><span>Rate: <input type="number" id="g3R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
+                    <div class="mix-row" style="display:none;" id="l3d"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L3 (Extra Drug)</b><span>Rate: <input type="number" id="g3R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
                     <div class="gir-grid"><div><input type="number" id="g3D0" placeholder="ml" oninput="window.runGIR()"><br>0%</div><div><input type="number" id="g3D5" placeholder="ml" oninput="window.runGIR()"><br>5%</div><div><input type="number" id="g3D10" placeholder="ml" oninput="window.runGIR()"><br>10%</div><div><input type="number" id="g3D25" placeholder="ml" oninput="window.runGIR()"><br>25%</div></div></div>
 
-                    <div class="mix-row" style="display:none;" id="line4div"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L4 (Extra)</b><span>Rate: <input type="number" id="g4R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
+                    <div class="mix-row" style="display:none;" id="l4d"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L4 (Extra Line)</b><span>Rate: <input type="number" id="g4R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
                     <div class="gir-grid"><div><input type="number" id="g4D0" placeholder="ml" oninput="window.runGIR()"><br>0%</div><div><input type="number" id="g4D5" placeholder="ml" oninput="window.runGIR()"><br>5%</div><div><input type="number" id="g4D10" placeholder="ml" oninput="window.runGIR()"><br>10%</div><div><input type="number" id="g4D25" placeholder="ml" oninput="window.runGIR()"><br>25%</div></div></div>
 
-                    <div class="mix-row" style="display:none;" id="line5div"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L5 (Extra)</b><span>Rate: <input type="number" id="g5R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
+                    <div class="mix-row" style="display:none;" id="l5d"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>L5 (Extra Line)</b><span>Rate: <input type="number" id="g5R" style="width:60px; padding:2px;" oninput="window.runGIR()"></span></div>
                     <div class="gir-grid"><div><input type="number" id="g5D0" placeholder="ml" oninput="window.runGIR()"><br>0%</div><div><input type="number" id="g5D5" placeholder="ml" oninput="window.runGIR()"><br>5%</div><div><input type="number" id="g5D10" placeholder="ml" oninput="window.runGIR()"><br>10%</div><div><input type="number" id="g5D25" placeholder="ml" oninput="window.runGIR()"><br>25%</div></div></div>
 
                     <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <button onclick="document.getElementById('line3div').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568;">+ L3</button>
-                        <button onclick="document.getElementById('line4div').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568;">+ L4</button>
-                        <button onclick="document.getElementById('line5div').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568;">+ L5</button>
+                        <button onclick="document.getElementById('l3d').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568;">+ L3</button>
+                        <button onclick="document.getElementById('l4d').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568;">+ L4</button>
+                        <button onclick="document.getElementById('l5d').style.display='block'; this.style.display='none';" class="action-btn" style="background:#4a5568;">+ L5</button>
                     </div>
 
                     <div class="highlight" id="girCurrentRes" style="display:block; width:100%;">Total Rate: 0 ml/hr | Net Dex: 0% | GIR: 0</div>
@@ -684,14 +654,16 @@
                 ` 
             },
             { 
-                name: "UVC Line Fixation", 
+                name: "UVC & UAC Line Fixation", 
                 category: "Calculators", 
-                tags: "uvc line fixation depth nicu umbilical", 
+                mode: "NICU", 
+                tags: "uvc line uac fixation depth nicu umbilical catheter", 
                 calc: (wt) => `
-                    <div class="badge">PROCEDURE</div><br>
-                    <div class="highlight">Depth: ${((1.5 * wt) + 5.5).toFixed(1)} cm</div>
-                    <div class="note">Formula: (1.5 * Wt) + 5.5</div>
-                ` 
+                    <div class="badge">PROCEDURE (Depth at Umbilicus)</div><br>
+                    <div class="highlight" style="display:block;">UVC Depth: ${((1.5 * wt) + 5.5).toFixed(1)} cm</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">UAC (High - T6 to T9): ${((wt * 3) + 9).toFixed(1)} cm</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">UAC (Low - L3 to L4): ${((wt * 1) + 7).toFixed(1)} cm</div>
+                    <div class="note">Formula: UVC = (1.5*Wt)+5.5. High UAC = (Wt*3)+9. Confirm placement with X-Ray.</div>` 
             },
 
             // --- EMERGENCY & AIRWAY ---
@@ -704,17 +676,17 @@
                         let etSize = (wt <= 1.0) ? "2.0" : (wt <= 1.5) ? "2.5 or 3.0" : "3.0 or 3.5"; 
                         return `
                             <div class="badge" style="background:#fed7d7; color:#9b2c2c;">NEONATE AIRWAY MATRIX</div><br>
-                            <div class="highlight">ET Size: ${etSize} mm</div>
-                            <div class="highlight">Fixation Depth: ${(wt + 6).toFixed(1)} cm (At Lip)</div>
+                            <div class="highlight" style="display:block;">ET Size: ${etSize} mm</div>
+                            <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Fixation Depth: ${(wt + 6).toFixed(1)} cm (At Lip)</div>
                             <div class="note">⚠️ Check bilateral air entry!</div>
                         `; 
                     } else { 
                         if (isNaN(age) || age <= 0) return `<div class="note">Enter age in years at the top for pediatric sizes.</div>`; 
                         return `
                             <div class="badge">PEDIATRIC AIRWAY</div><br>
-                            <div class="highlight">Uncuffed ET: ${(age/4 + 4).toFixed(1)} mm</div>
-                            <div class="highlight">Cuffed ET: ${(age/4 + 3.5).toFixed(1)} mm</div>
-                            <div class="highlight">Depth at Lip: ${(age/2 + 12).toFixed(1)} cm</div>
+                            <div class="highlight" style="display:block;">Uncuffed ET: ${(age/4 + 4).toFixed(1)} mm</div>
+                            <div class="highlight" style="display:block;">Cuffed ET: ${(age/4 + 3.5).toFixed(1)} mm</div>
+                            <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Depth at Lip: ${(age/2 + 12).toFixed(1)} cm</div>
                         `; 
                     } 
                 } 
@@ -741,6 +713,18 @@
                     <div class="note"><b>Admin:</b> For VF/pVT arrest, give rapid IV push. For stable VT/SVT, infuse over 20-60 mins.</div>` 
             },
             { 
+                name: "Inj Adrenaline / Norad (Stat & Infusion)", 
+                category: "Emergency", 
+                tags: "adrenaline noradrenaline epinephrine norad arrest inotrope shock", 
+                calc: (wt) => `
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">ARREST & ANAPHYLAXIS</div><br>
+                    <div class="highlight" style="display:block;">Arrest IV (1:10,000): ${(wt * 0.1).toFixed(2)} ml Stat</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Anaphylaxis SC/IM (1:1,000): ${(wt * 0.01).toFixed(2)} ml q15 min</div>
+                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (0.1 mcg/kg/min)</div><br>
+                    <div class="highlight" style="display:block;">Mix ${(wt*0.3).toFixed(2)} mg in 50ml NS/D5 @ 1 ml/hr</div>` 
+            },
+            { 
                 name: "Sedation (Ketamine / Propofol / Dexmed)", 
                 category: "Emergency", 
                 tags: "sedation ketamine propofol dexmedetomidine fentanyl midazolam intubation", 
@@ -762,63 +746,69 @@
                     <hr style="margin:8px 0; border-top:1px solid var(--border);">
                     <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (0.4 mg/kg/hr)</div><br>
                     <div class="highlight" style="display:block;">Rate: ${(wt*0.4).toFixed(1)} ml/hr</div>
-                    <div class="note"><b>Dilution:</b> Add 50mg (5ml Ampoule) in 45ml NS. (Total 50ml = 1 mg/ml concentration).</div>` 
+                    <div class="note"><b>Dilution:</b> Add 50mg (5ml Ampoule) in 45ml NS. (Total 50ml = 1 mg/ml).</div>` 
             },
             { 
-                name: "Inj Adrenaline / Norad Infusion", 
+                name: "Inj Surfactant (For Severe RDS)", 
                 category: "Emergency", 
-                tags: "adrenaline noradrenaline epinephrine norad neomate arrest inotrope", 
+                mode: "NICU", 
+                tags: "surfactant curosurf survanta neosurf rds hyaline membrane nicu iap meharban singh", 
                 calc: (wt) => `
-                    <div class="badge">INFUSION (0.1 mcg/kg/min)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.3).toFixed(2)} mg in 50ml NS/D5 @ 1 ml/hr</div>
-                    <hr>
-                    <div class="badge">STAT DOSES</div><br>
-                    <div class="highlight">Arrest IV (1:10,000): ${(wt * 0.1).toFixed(2)} ml Stat</div>
-                    <div class="highlight">Anaphylaxis SC (1:1,000): ${(wt * 0.01).toFixed(2)} ml q15 min</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">INTRATRACHEAL (Via ETT / INSURE / LISA)</div><br>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">1. Curosurf (Poractant alfa):</div>
+                    <div class="note" style="margin-top:2px;"><b>Initial Dose:</b> 200 mg/kg -> Vol: ${(wt*2.5).toFixed(2)} ml<br><b>Repeat Dose:</b> 100 mg/kg -> Vol: ${(wt*1.25).toFixed(2)} ml<br><i>(Strength: 80 mg/ml)</i></div>
+                    <div class="highlight" style="display:block; margin-top:8px; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">2. Survanta / Neosurf (Bovine):</div>
+                    <div class="note" style="margin-top:2px;"><b>Dose:</b> 100 mg/kg -> Vol: ${(wt*4).toFixed(2)} ml<br><i>(Strength: 25 mg/ml)</i></div>
+                    <div class="note" style="margin-top:8px; background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;"><b>Admin (IAP / Dr. Meharban Singh):</b><br>Warm to room temp naturally (do NOT shake). Give via ETT in aliquots or thin catheter (LISA/MIST). Monitor SpO2 and HR continuously.</div>` 
+            },
+            { 
+                name: "Inj PGE1 (Alprostadil)", 
+                category: "Emergency", 
+                mode: "NICU", 
+                tags: "pge1 alprostadil duct dependent chd", 
+                calc: (wt) => `
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">DUCT-DEPENDENT CHD</div><br>
+                    <div class="highlight" style="display:block;">Dose: 0.05 to 0.1 mcg/kg/min</div>
+                    <div class="note"><b>Prep:</b> Mix ${(wt * 0.3).toFixed(2)} mg in 50ml NS. Run at 0.5 to 1.0 ml/hr. Monitor for apnea!</div>` 
             },
             { 
                 name: "Inj Atropine", 
                 category: "Emergency", 
                 tags: "atropine atropin", 
                 calc: (wt) => `
-                    <div class="badge">EMERGENCY (0.02 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt * 0.02).toFixed(2)} mg | Vol: ${((wt * 0.02)/0.6).toFixed(2)} ml IV Stat</div>
-                    <div class="note">Strength: 0.6 mg/ml. Min dose: 0.1 mg.</div>
-                ` 
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">EMERGENCY (0.02 mg/kg/dose)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt * 0.02).toFixed(2)} mg | Vol: ${((wt * 0.02)/0.6).toFixed(2)} ml IV Stat</div>
+                    <div class="note">Strength: 0.6 mg/ml. Min dose: 0.1 mg.</div>` 
             },
             { 
                 name: "Inj Adenosine", 
                 category: "Emergency", 
                 tags: "adenosine svt", 
                 calc: (wt) => `
-                    <div class="badge">SVT (0.1 mg/kg/dose)</div><br>
-                    <div class="highlight">1st Dose: ${(wt*0.1).toFixed(1)} mg -> Vol: ${((wt*0.1)/3).toFixed(2)} ml push</div>
-                    <div class="highlight">2nd Dose: ${(wt*0.2).toFixed(1)} mg -> Vol: ${((wt*0.2)/3).toFixed(2)} ml push</div>
-                    <div class="note">Strength: 3 mg/ml. Flush with 5ml NS fast.</div>
-                ` 
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">SVT (0.1 mg/kg/dose)</div><br>
+                    <div class="highlight" style="display:block;">1st Dose: ${(wt*0.1).toFixed(1)} mg -> Vol: ${((wt*0.1)/3).toFixed(2)} ml push</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">2nd Dose: ${(wt*0.2).toFixed(1)} mg -> Vol: ${((wt*0.2)/3).toFixed(2)} ml push</div>
+                    <div class="note">Strength: 3 mg/ml. Flush with 5ml NS fast.</div>` 
             },
             { 
                 name: "Inj Calcium Gluconate (10%)", 
                 category: "Emergency", 
                 tags: "calcium gluconate", 
                 calc: (wt) => `
-                    <div class="badge">EMERGENCY (100-200 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt * 200).toFixed(1)} mg | Vol: ${(wt * 2).toFixed(1)} ml IV slowly</div>
-                    <div class="note">Strength: 100 mg/ml. Dilute 1:1 with DW under cardiac monitor.</div>
-                ` 
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">EMERGENCY (100-200 mg/kg)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt * 200).toFixed(1)} mg | Vol: ${(wt * 2).toFixed(1)} ml IV slowly</div>
+                    <div class="note">Strength: 100 mg/ml. Dilute 1:1 with DW under cardiac monitor.</div>` 
             },
             { 
                 name: "Inj Sodium Bicarbonate", 
                 category: "Emergency", 
                 tags: "bicarb sodium bicarbonate", 
                 calc: (wt) => `
-                    <div class="badge">EMERGENCY (1-2 mEq/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt * 1).toFixed(1)} to ${(wt * 2).toFixed(1)} mEq</div>
-                    <div class="highlight">Vol (7.5%): ${(wt * 1 / 0.89).toFixed(1)} to ${(wt * 2 / 0.89).toFixed(1)} ml</div>
-                    <div class="highlight">Vol (8.4%): ${(wt * 1).toFixed(1)} to ${(wt * 2).toFixed(1)} ml</div>
-                    <div class="note">Neonates: Dilute 1:1 with Sterile Water. (7.5% = 0.89 mEq/ml, 8.4% = 1 mEq/ml).</div>
-                ` 
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">EMERGENCY (1-2 mEq/kg)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt * 1).toFixed(1)} to ${(wt * 2).toFixed(1)} mEq</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol (7.5%): ${(wt * 1 / 0.89).toFixed(1)} to ${(wt * 2 / 0.89).toFixed(1)} ml</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Vol (8.4%): ${(wt * 1).toFixed(1)} to ${(wt * 2).toFixed(1)} ml</div>
+                    <div class="note">Neonates: Dilute 1:1 with Sterile Water. (7.5% = 0.89 mEq/ml, 8.4% = 1 mEq/ml).</div>` 
             },
             { 
                 name: "Inj Dobutamine / Dopamine Infusion", 
@@ -826,9 +816,8 @@
                 tags: "dobutamine dopamine inotrope", 
                 calc: (wt) => `
                     <div class="badge">INOTROPE (10 mcg/kg/min)</div><br>
-                    <div class="highlight">Mix ${((wt * 30) / 50).toFixed(2)} ml + ${(50 - ((wt * 30) / 50)).toFixed(2)} ml NS/D5 @ 1 ml/hr</div>
-                    <div class="note">Strength: 50 mg/ml (Wt * 30 mg formula).</div>
-                ` 
+                    <div class="highlight" style="display:block;">Mix ${((wt * 30) / 50).toFixed(2)} ml + ${(50 - ((wt * 30) / 50)).toFixed(2)} ml NS/D5 @ 1 ml/hr</div>
+                    <div class="note">Strength: 50 mg/ml (Wt * 30 mg formula).</div>` 
             },
             { 
                 name: "Inj Milrinone Infusion", 
@@ -836,18 +825,16 @@
                 tags: "milrinone inotrope", 
                 calc: (wt) => `
                     <div class="badge">INOTROPE (0.5 mcg/kg/min)</div><br>
-                    <div class="highlight">Mix ${(wt * 1.5).toFixed(2)} mg in 50ml D5W @ 1ml/hr</div>
-                ` 
+                    <div class="highlight" style="display:block;">Mix ${(wt * 1.5).toFixed(2)} mg in 50ml D5W @ 1ml/hr</div>` 
             },
             { 
                 name: "Inj Magnesium Sulphate (MgSO4)", 
                 category: "Emergency", 
-                tags: "mgso4", 
+                tags: "mgso4 magnesium sulphate", 
                 calc: (wt) => `
-                    <div class="badge">ANTICONVULSANT (25-50 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*50/500).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 500 mg/ml (50%).</div>
-                ` 
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">ANTICONVULSANT (25-50 mg/kg)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*50/500).toFixed(2)} ml BD</div>
+                    <div class="note">Strength: 500 mg/ml (50%). Infuse over 20-30 mins.</div>` 
             },
             { 
                 name: "Inj Lidocaine / Xylocard", 
@@ -855,162 +842,146 @@
                 tags: "lidocaine", 
                 calc: (wt) => `
                     <div class="badge">ARRHYTHMIA (1 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt * 1).toFixed(1)} mg | Vol: ${(wt/20).toFixed(2)} ml IV/IO</div>
-                    <div class="note">Strength: 20 mg/ml (2%).</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt * 1).toFixed(1)} mg | Vol: ${(wt/20).toFixed(2)} ml IV/IO</div>
+                    <div class="note">Strength: 20 mg/ml (2%).</div>` 
             },
             { 
                 name: "Inj Lasix (Furosemide)", 
                 category: "Emergency", 
                 tags: "lasix diuretic", 
                 calc: (wt) => `
-                    <div class="badge">DIURETIC (1-2 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*1.5).toFixed(1)} mg | Vol: ${(wt*1.5/10).toFixed(2)} ml</div>
-                    <div class="note">Strength: 10 mg/ml.</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">DIURETIC (1-2 mg/kg/dose)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt*1.5).toFixed(1)} mg | Vol: ${(wt*1.5/10).toFixed(2)} ml</div>
+                    <div class="note">Strength: 10 mg/ml.</div>` 
             },
             { 
                 name: "Inj Hydrocortisone (Primacort)", 
                 category: "Emergency", 
-                tags: "primacort steroid", 
+                tags: "primacort steroid hydrocortisone", 
                 calc: (wt) => `
                     <div class="badge">STEROID (2 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*2).toFixed(1)} mg | Vol: ${(wt*2/50).toFixed(2)} ml BD/TDS</div>
-                    <div class="note">Strength: 50 mg/ml (100mg/2ml).</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*2).toFixed(1)} mg | Vol: ${(wt*2/50).toFixed(2)} ml BD/TDS</div>
+                    <div class="note">Strength: 50 mg/ml (100mg/2ml).</div>` 
             },
             { 
                 name: "Inj Dexona (Dexamethasone)", 
                 category: "Emergency", 
-                tags: "dexona steroid extubation croup stridor", 
+                tags: "dexona steroid dexamethasone extubation stridor croup", 
                 calc: (wt) => `
-                    <div class="badge">STEROID (0.15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.15).toFixed(2)} mg TDS | Vol: ${(wt*0.15/4).toFixed(2)} ml TDS</div>
+                    <div class="badge">STEROID / STRIDOR (0.15 - 0.5 mg/kg)</div><br>
                     <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Post-Extubation Stridor: ${(wt*0.5).toFixed(2)} mg -> Vol: ${(wt*0.5/4).toFixed(2)} ml Stat</div>
-                    <div class="note">Strength: 4 mg/ml. Stat dose for extubation give 4-6 hours prior.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Maintenance Dose: ${(wt*0.15).toFixed(2)} mg TDS -> Vol: ${(wt*0.15/4).toFixed(2)} ml TDS</div>
+                    <div class="note">Strength: 4 mg/ml. For extubation, give 4-6 hours prior.</div>` 
             },
             { 
                 name: "Inj Clexane (Enoxaparin)", 
                 category: "Emergency", 
-                tags: "clexane enoxaparin", 
+                tags: "clexane enoxaparin anticoagulant", 
                 calc: (wt) => `
-                    <div class="badge">ANTICOAGULANT (1 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*1).toFixed(1)} mg SC | Vol: ${(wt/100).toFixed(2)} ml</div>
-                    <div class="note">Strength: 100 mg/ml (40mg/0.4ml).</div>
-                ` 
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">ANTICOAGULANT (1 mg/kg)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt*1).toFixed(1)} mg SC | Vol: ${(wt/100).toFixed(2)} ml</div>
+                    <div class="note">Strength: 100 mg/ml (40mg/0.4ml). Give Subcutaneous.</div>` 
             },
             { 
                 name: "Inj Tramadol", 
                 category: "Emergency", 
-                tags: "tramadol", 
+                tags: "tramadol analgesic pain", 
                 calc: (wt) => `
                     <div class="badge">ANALGESIC (1-2 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*2).toFixed(1)} mg | Vol: ${(wt*2/50).toFixed(2)} ml IV</div>
-                    <div class="note">Strength: 50 mg/ml. Dilute and give slowly.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*2).toFixed(1)} mg | Vol: ${(wt*2/50).toFixed(2)} ml IV</div>
+                    <div class="note">Strength: 50 mg/ml. Dilute and give slowly.</div>` 
             },
             { 
                 name: "Inj Fentanyl", 
                 category: "Emergency", 
-                tags: "fentanyl", 
+                tags: "fentanyl analgesic", 
                 calc: (wt) => `
                     <div class="badge">ANALGESIC (1-5 mcg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*2).toFixed(1)} mcg | Vol: ${(wt*2/50).toFixed(2)} ml</div>
-                    <div class="note">Strength: 50 mcg/ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*2).toFixed(1)} mcg | Vol: ${(wt*2/50).toFixed(2)} ml</div>
+                    <div class="note">Strength: 50 mcg/ml.</div>` 
             },
             { 
                 name: "Inj Sildenafil", 
                 category: "Emergency", 
                 tags: "sildenafil pphn", 
                 calc: (wt) => `
-                    <div class="badge">VASODILATOR (PPHN)</div><br>
-                    <div class="highlight">LD: ${(wt*0.24).toFixed(1)} mg -> Vol: ${(wt * 0.3).toFixed(2)} ml (2hr)</div>
-                    <div class="highlight">MD: ${(wt*0.16).toFixed(1)} mg -> Vol: ${(wt * 0.2).toFixed(2)} ml</div>
-                    <div class="note">Strength: 10mg/12.5ml (0.8mg/ml).</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">VASODILATOR (PPHN)</div><br>
+                    <div class="highlight" style="display:block;">LD: ${(wt*0.24).toFixed(1)} mg -> Vol: ${(wt * 0.3).toFixed(2)} ml (2hr)</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">MD: ${(wt*0.16).toFixed(1)} mg -> Vol: ${(wt * 0.2).toFixed(2)} ml</div>
+                    <div class="note">Strength: 10mg/12.5ml (0.8mg/ml).</div>` 
             },
             { 
                 name: "Inj Octreotide Acetate", 
                 category: "Emergency", 
                 tags: "octreotide bleeding", 
                 calc: (wt) => `
-                    <div class="badge">INFUSION (1 mcg/kg/hr)</div><br>
-                    <div class="highlight">Rate: ${(wt*1).toFixed(1)} mcg/hr</div>
-                    <div class="note">1 amp = 100mcg/ml in D5.</div>
-                ` 
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">INFUSION (1 mcg/kg/hr)</div><br>
+                    <div class="highlight" style="display:block;">Rate: ${(wt*1).toFixed(1)} mcg/hr</div>
+                    <div class="note">1 amp = 100mcg/ml in D5.</div>` 
             },
             { 
                 name: "Inj Glycopyrrolate", 
                 category: "Emergency", 
                 tags: "glycopyrrolate", 
                 calc: (wt) => `
-                    <div class="badge">ANTICHOLINERGIC (4-10 mcg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.005).toFixed(3)} mg | Vol: ${(wt*0.005/0.2).toFixed(2)} ml</div>
-                    <div class="note">Strength: 0.2 mg/ml.</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">ANTICHOLINERGIC (4-10 mcg/kg)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt*0.005).toFixed(3)} mg | Vol: ${(wt*0.005/0.2).toFixed(2)} ml</div>
+                    <div class="note">Strength: 0.2 mg/ml.</div>` 
             },
             { 
                 name: "Inj Robivax (Methocarbamol)", 
                 category: "Emergency", 
                 tags: "robivax tetanus", 
                 calc: (wt) => `
-                    <div class="badge">RELAXANT (15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg | Vol: ${(wt*15/100).toFixed(2)} ml q8h</div>
-                    <div class="note">Strength: 100 mg/ml.</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">RELAXANT (15 mg/kg/dose)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt*15).toFixed(1)} mg | Vol: ${(wt*15/100).toFixed(2)} ml q8h</div>
+                    <div class="note">Strength: 100 mg/ml.</div>` 
             },
             { 
                 name: "Inj Aminoven 10%", 
                 category: "Emergency", 
                 tags: "aminoven nutrition tpn", 
                 calc: (wt) => `
-                    <div class="badge">NUTRITION (2.5-3.5 g/kg/day)</div><br>
-                    <div class="highlight">Give: ${(wt*3*10).toFixed(1)} ml/day</div>
-                    <div class="note">Strength: 10g/100ml.</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">NUTRITION (2.5-3.5 g/kg/day)</div><br>
+                    <div class="highlight" style="display:block;">Give: ${(wt*3*10).toFixed(1)} ml/day</div>
+                    <div class="note">Strength: 10g/100ml.</div>` 
             },
             { 
                 name: "Inj Vitamin K (Kenadion)", 
                 category: "Emergency", 
-                tags: "kenadion bleeding", 
+                tags: "kenadion bleeding vitamin k", 
                 calc: (wt) => `
-                    <div class="badge">COAGULANT</div><br>
-                    <div class="highlight">Dose: 1 mg IM (Neonate <5kg: 0.5 mg)</div>
-                    <div class="note">Strength: 10 mg/ml. Give ${(wt < 5 ? 0.05 : 0.1)} ml.</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">COAGULANT</div><br>
+                    <div class="highlight" style="display:block;">Dose: 1 mg IM (Neonate <5kg: 0.5 mg)</div>
+                    <div class="note">Strength: 10 mg/ml. Give ${(wt < 5 ? 0.05 : 0.1)} ml.</div>` 
             },
             { 
-                name: "Inj Febrinil / Paracetamol", 
+                name: "Inj Febrinil IV (Paracetamol)", 
                 category: "Emergency", 
                 tags: "febrinil pcm fever", 
                 calc: (wt) => `
-                    <div class="badge">ANTIPYRETIC (10-15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg QDS</div>
-                    <div class="highlight">Vol (150mg/ml): ${(wt*15/150).toFixed(2)} ml</div>
-                    <div class="note">Standard IV infusion (10mg/ml): ${(wt*1.5).toFixed(2)} ml over 20 min.</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">ANTIPYRETIC (10-15 mg/kg/dose)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt*15).toFixed(1)} mg QDS</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol (150mg/ml amp): ${(wt*15/150).toFixed(2)} ml</div>
+                    <div class="note">Standard IV infusion (10mg/ml): ${(wt*1.5).toFixed(2)} ml over 20 min.</div>` 
             },
             { 
                 name: "Inj Mucomix (Acetylcysteine)", 
                 category: "Emergency", 
                 tags: "mucomix antidote pcm toxicity", 
                 calc: (wt) => `
-                    <div class="badge">ANTIDOTE (LD: 150 mg/kg)</div><br>
-                    <div class="highlight">Load: ${(wt * 150).toFixed(1)} mg in ${(wt * 3).toFixed(1)} ml D5W</div>
-                    <div class="note">Strength: 200 mg/ml. Over 1 hour.</div>
-                ` 
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">ANTIDOTE (PCM Toxicity - LD: 150 mg/kg)</div><br>
+                    <div class="highlight" style="display:block;">Load: ${(wt * 150).toFixed(1)} mg in ${(wt * 3).toFixed(1)} ml D5W</div>
+                    <div class="note">Strength: 200 mg/ml. Infuse over 1 hour.</div>` 
             },
             { 
                 name: "Inj Anti Snake Venom (ASV)", 
                 category: "Emergency", 
                 tags: "asv snake bite", 
                 calc: (wt) => `
-                    <div class="badge">PROTOCOL</div><br>
-                    <div class="highlight">Infuse 5 to 10 Vials in D5/NS</div>
-                    <div class="note">Based on degree of envenomation. Not weight based.</div>
-                ` 
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">PROTOCOL</div><br>
+                    <div class="highlight" style="display:block;">Infuse 5 to 10 Vials in D5/NS</div>
+                    <div class="note">Based on degree of envenomation. Not weight based for initial dose.</div>` 
             },
             { 
                 name: "Inj Trenexa (Tranexamic Acid)", 
@@ -1018,29 +989,26 @@
                 tags: "trenexa bleeding", 
                 calc: (wt) => `
                     <div class="badge">HEMOSTATIC (10-20 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*20).toFixed(1)} mg TDS | Vol: ${(wt*20/100).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 100 mg/ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*20).toFixed(1)} mg TDS | Vol: ${(wt*20/100).toFixed(2)} ml TDS</div>
+                    <div class="note">Strength: 100 mg/ml.</div>` 
             },
             { 
                 name: "Inj Avil (Pheniramine)", 
                 category: "Emergency", 
                 tags: "avil allergy", 
                 calc: (wt) => `
-                    <div class="badge">ANTIHISTAMINE (0.5-1 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt * 0.5).toFixed(2)} mg/day</div>
-                    <div class="note">Strength: 22.75 mg/ml. Volume: 0.25 to 2 ml IV Stat.</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">ANTIHISTAMINE (0.5-1 mg/kg/day)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt * 0.5).toFixed(2)} mg/day</div>
+                    <div class="note">Strength: 22.75 mg/ml. Volume: 0.25 to 2 ml IV Stat.</div>` 
             },
             { 
                 name: "Hypoglycemia (RBS < 50)", 
                 category: "Emergency", 
-                tags: "hypoglycemia rbs d10", 
+                tags: "hypoglycemia rbs d10 glucose", 
                 calc: (wt) => `
-                    <div class="badge">GLUCOSE (2 ml/kg)</div><br>
-                    <div class="highlight">Give D10%: ${(wt * 2).toFixed(2)} ml IV Stat</div>
-                    <div class="note">Check RBS in 1/2 hour.</div>
-                ` 
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">GLUCOSE (2-5 ml/kg)</div><br>
+                    <div class="highlight" style="display:block;">Give D10%: ${(wt * 2).toFixed(2)} ml IV Stat</div>
+                    <div class="note">Check RBS in 1/2 hour. Give 5 ml/kg if patient is seizing.</div>` 
             },
 
             // --- NEBULIZERS ---
@@ -1049,12 +1017,8 @@
                 category: "Nebulizer", 
                 tags: "adrenaline neb croup stridor", 
                 calc: (wt) => { 
-                    let vol = Math.min((wt * 0.5), 5).toFixed(2);
-                    return `
-                        <div class="badge">CROUP / STRIDOR (0.5 ml/kg)</div><br>
-                        <div class="highlight">Give: ${vol} ml + 2ml NS</div>
-                        <div class="note">Use 1:1000 (1mg/ml) ampoule. Max dose 5ml.</div>
-                    `;
+                    let vol = Math.min((wt * 0.5), 5).toFixed(2); 
+                    return `<div class="badge">CROUP / STRIDOR (0.5 ml/kg)</div><br><div class="highlight" style="display:block;">Give: ${vol} ml + 2ml NS</div><div class="note">Use 1:1000 (1mg/ml) ampoule. Max dose 5ml.</div>`; 
                 } 
             },
             { 
@@ -1063,10 +1027,9 @@
                 tags: "asthalin salbutamol neb wheezing asthma", 
                 calc: (wt) => `
                     <div class="badge">BRONCHODILATOR (0.15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.15).toFixed(2)} mg</div>
-                    <div class="highlight">Vol: ${(wt*0.15/5).toFixed(2)} ml + 2ml NS (Q4H to Q6H)</div>
-                    <div class="note">Asthma / Wheezing. Strength: 5 mg/ml. Min 0.5 ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*0.15).toFixed(2)} mg</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Vol: ${(wt*0.15/5).toFixed(2)} ml + 2ml NS (Q4H to Q6H)</div>
+                    <div class="note">Asthma / Wheezing. Strength: 5 mg/ml. Min 0.5 ml.</div>` 
             },
             { 
                 name: "Neb Duolin (Levosalbutamol + Ipratropium)", 
@@ -1074,11 +1037,7 @@
                 tags: "duolin levosalbutamol ipratropium neb asthma bronchospasm", 
                 calc: (wt) => { 
                     let vol = wt < 15 ? 1.25 : 2.5; 
-                    return `
-                        <div class="badge">SEVERE BRONCHOSPASM</div><br>
-                        <div class="highlight">Give: ${vol} ml respule + 1ml NS (Q6H)</div>
-                        <div class="note">Acute severe asthma.</div>
-                    `;
+                    return `<div class="badge">SEVERE BRONCHOSPASM</div><br><div class="highlight" style="display:block;">Give: ${vol} ml respule + 1ml NS (Q6H)</div><div class="note">Acute severe asthma.</div>`; 
                 } 
             },
             { 
@@ -1087,9 +1046,8 @@
                 tags: "budecort budesonide neb croup asthma steroid", 
                 calc: (wt) => `
                     <div class="badge">STEROID / CROUP</div><br>
-                    <div class="highlight">Give: 0.5 mg to 1.0 mg BD</div>
-                    <div class="note">Use 1 or 2 respules (0.5mg/2ml) undiluted. Asthma prevention.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: 0.5 mg to 1.0 mg BD</div>
+                    <div class="note">Use 1 or 2 respules (0.5mg/2ml) undiluted. Asthma prevention.</div>` 
             },
             { 
                 name: "Neb 3% NS (Hypertonic Saline)", 
@@ -1097,9 +1055,8 @@
                 tags: "3% ns hypertonic saline neb bronchiolitis", 
                 calc: (wt) => `
                     <div class="badge">BRONCHIOLITIS</div><br>
-                    <div class="highlight">Give: 3 to 4 ml Q6H / Q8H</div>
-                    <div class="note">Helps clear thick mucus.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: 3 to 4 ml Q6H / Q8H</div>
+                    <div class="note">Helps clear thick mucus in acute viral bronchiolitis.</div>` 
             },
             { 
                 name: "Neb Mucomix (Acetylcysteine 20%)", 
@@ -1117,16 +1074,11 @@
                 category: "Antibiotic", 
                 tags: "piperacillin tazobactam pipzo piptaz", 
                 calc: (wt) => { 
-                    let mg = wt * 100;
-                    let vial = mg <= 1125 ? "1.125g" : (mg <= 2250 ? "2.25g" : "4.5g");
-                    let dil = mg <= 1125 ? 10 : (mg <= 2250 ? 20 : 40);
+                    let mg = wt * 100; 
+                    let vial = mg <= 1125 ? "1.125g" : (mg <= 2250 ? "2.25g" : "4.5g"); 
+                    let dil = mg <= 1125 ? 10 : (mg <= 2250 ? 20 : 40); 
                     let vol = (mg / 112.5).toFixed(2); 
-                    return `
-                        <div class="badge">ANTIBIOTIC (90-100 mg/kg/dose)</div><br>
-                        <div class="highlight">Dose: ${mg.toFixed(1)} mg TDS</div>
-                        <div class="highlight">Vol: ${vol} ml TDS</div>
-                        <div class="note">Auto-selected <b>${vial}</b> vial. Dilute in ${dil}ml SW (makes 112.5 mg/ml).</div>
-                    `;
+                    return `<div class="badge">ANTIBIOTIC (90-100 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${mg.toFixed(1)} mg TDS</div><div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol: ${vol} ml TDS</div><div class="note">Auto-selected <b>${vial}</b> vial. Dilute in ${dil}ml SW (makes 112.5 mg/ml).</div>`; 
                 } 
             },
             { 
@@ -1135,115 +1087,74 @@
                 tags: "septran cotrimoxazole tmp", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (TMP 4-5 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} to ${(wt*5).toFixed(1)} mg TMP BD/TDS</div>
-                    <div class="highlight">Vol: ${(wt*4/16).toFixed(2)} to ${(wt*5/16).toFixed(2)} ml BD/TDS</div>
-                    <div class="note">Strength: 16mg TMP/ml (5ml ampoule). Dilute 1ml in 15-25ml D5W. Infuse over 60-90 min.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*4).toFixed(1)} to ${(wt*5).toFixed(1)} mg TMP BD/TDS</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol: ${(wt*4/16).toFixed(2)} to ${(wt*5/16).toFixed(2)} ml BD/TDS</div>
+                    <div class="note">Strength: 16mg TMP/ml (5ml ampoule). Dilute 1ml in 15-25ml D5W. Infuse over 60-90 min.</div>` 
             },
             { 
                 name: "Inj Amikacin", 
                 category: "Antibiotic", 
                 tags: "amikacin mikacin", 
                 calc: (wt) => { 
-                    let mg = wt * 15;
-                    let strength = mg <= 100 ? 100 : (mg <= 250 ? 250 : 500);
+                    let mg = wt * 15; 
+                    let strength = mg <= 100 ? 100 : (mg <= 250 ? 250 : 500); 
                     let res = amikacinDose(wt, strength); 
-                    return `
-                        <div class="badge">ANTIBIOTIC (15 mg/kg/day)</div><br>
-                        <div class="highlight">Dose: ${res.mg} mg OD | Vol: ${res.ml} ml OD</div>
-                        <div class="note">Auto-selected <b>${strength}mg/2ml</b> vial.</div>
-                    `;
+                    return `<div class="badge">ANTIBIOTIC (15 mg/kg/day)</div><br><div class="highlight" style="display:block;">Dose: ${res.mg} mg OD | Vol: ${res.ml} ml OD</div><div class="note">Auto-selected <b>${strength}mg/2ml</b> vial.</div>`; 
                 } 
             },
             { 
                 name: "Inj Ceftriaxone (Monocef)", 
                 category: "Antibiotic", 
                 tags: "monocef", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50-75 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 100 mg/ml (1g/10ml).</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (50-75 mg/kg/day)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*0.5).toFixed(2)} ml BD</div><div class="note">Strength: 100 mg/ml (1g/10ml).</div>` 
             },
             { 
                 name: "Inj Cefotaxime (Taxim)", 
                 category: "Antibiotic", 
                 tags: "taxim", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg TDS | Vol: ${(wt*0.5).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 100 mg/ml. Safe in Neonates.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*50).toFixed(1)} mg TDS | Vol: ${(wt*0.5).toFixed(2)} ml TDS</div><div class="note">Strength: 100 mg/ml. Safe in Neonates.</div>` 
             },
             { 
                 name: "Inj Meropenem", 
                 category: "Antibiotic", 
                 tags: "meropenem", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (20-40 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*20).toFixed(1)} mg TDS | Vol: ${(wt*20/50).toFixed(2)} ml TDS</div>
-                    <div class="note">Dilute in ${(wt*20/10).toFixed(1)} ml NS (makes 10mg/ml), over 30 min.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (20-40 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*20).toFixed(1)} mg TDS | Vol: ${(wt*20/50).toFixed(2)} ml TDS</div><div class="note">Dilute in ${(wt*20/10).toFixed(1)} ml NS (makes 10mg/ml), over 30 min.</div>` 
             },
             { 
                 name: "Inj Vancomycin", 
                 category: "Antibiotic", 
                 tags: "vancomycin", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS | Vol: ${(wt*15/50).toFixed(2)} ml TDS</div>
-                    <div class="note" style="color:#c53030;">⚠️ Must give SLOW IV over 60 mins. Dilute to < 5mg/ml (Add ${(wt*15/5).toFixed(1)} ml NS).</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (15 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*15).toFixed(1)} mg TDS | Vol: ${(wt*15/50).toFixed(2)} ml TDS</div><div class="note" style="color:#c53030;">⚠️ Must give SLOW IV over 60 mins. Dilute to < 5mg/ml (Add ${(wt*15/5).toFixed(1)} ml NS).</div>` 
             },
             { 
                 name: "Inj Levofloxacin (Loxof)", 
                 category: "Antibiotic", 
                 tags: "loxof levoflox", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg BD | Vol: ${(wt*2).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 5 mg/ml (500mg/100ml pint).</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (10 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*10).toFixed(1)} mg BD | Vol: ${(wt*2).toFixed(2)} ml BD</div><div class="note">Strength: 5 mg/ml (500mg/100ml pint).</div>` 
             },
             { 
                 name: "Inj Clindamycin", 
                 category: "Antibiotic", 
                 tags: "clindamycin", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (10-15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*10/150).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 150 mg/ml. Give with 9ml NS over 1 hr.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (10-15 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*10/150).toFixed(2)} ml TDS</div><div class="note">Strength: 150 mg/ml. Give with 9ml NS over 1 hr.</div>` 
             },
             { 
                 name: "Inj Metronidazole (Metrogyl)", 
                 category: "Antibiotic", 
                 tags: "metrogyl", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (7.5-10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*2).toFixed(1)} ml TDS</div>
-                    <div class="note">Strength: 5 mg/ml. Shortcut: Wt * 2 ml.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (7.5-10 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*2).toFixed(1)} ml TDS</div><div class="note">Strength: 5 mg/ml. Shortcut: Wt * 2 ml.</div>` 
             },
             { 
                 name: "Inj Polymyxin-B", 
                 category: "Antibiotic", 
                 tags: "polymyxin b", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (15K-25K IU/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*20000).toLocaleString()} IU BD | Vol: ${(wt*20000/50000).toFixed(2)} ml BD</div>
-                    <div class="note">Dilute 500k IU in 10ml NS (50k IU/ml). Give in 5ml D5.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (15K-25K IU/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*20000).toLocaleString()} IU BD | Vol: ${(wt*20000/50000).toFixed(2)} ml BD</div><div class="note">Dilute 500k IU in 10ml NS (50k IU/ml). Give in 5ml D5.</div>` 
             },
             { 
                 name: "Inj Cefoperazone & Sulbactam (Zostum)", 
                 category: "Antibiotic", 
                 tags: "zostum cefoperazone", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD/TDS | Vol: ${(wt*0.5).toFixed(2)} ml BD/TDS</div>
-                    <div class="note">Strength: 100 mg/ml.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*50).toFixed(1)} mg BD/TDS | Vol: ${(wt*0.5).toFixed(2)} ml BD/TDS</div><div class="note">Strength: 100 mg/ml.</div>` 
             },
             { 
                 name: "Inj Fluconazole (Forcan)", 
@@ -1251,50 +1162,33 @@
                 tags: "forcan antifungal", 
                 calc: (wt) => `
                     <div class="badge">ANTIFUNGAL (LD 12mg/kg, MD 6mg/kg)</div><br>
-                    <div class="highlight">LD: ${(wt*12).toFixed(1)} mg -> Vol: ${(wt*6).toFixed(1)} ml Stat</div>
-                    <div class="highlight">MD: ${(wt*6).toFixed(1)} mg -> Vol: ${(wt*3).toFixed(1)} ml OD</div>
-                    <div class="note">Strength: 2 mg/ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">LD: ${(wt*12).toFixed(1)} mg -> Vol: ${(wt*6).toFixed(1)} ml Stat</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">MD: ${(wt*6).toFixed(1)} mg -> Vol: ${(wt*3).toFixed(1)} ml OD</div>
+                    <div class="note">Strength: 2 mg/ml.</div>` 
             },
             { 
                 name: "Inj Ampho B Conventional", 
                 category: "Antibiotic", 
                 tags: "ampho b antifungal", 
-                calc: (wt) => `
-                    <div class="badge">ANTIFUNGAL (1 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*1).toFixed(1)} mg OD | Vol: ${(wt*1/5).toFixed(2)} ml OD</div>
-                    <div class="note">Strength: 5 mg/ml (50mg in 10ml D5). Give in D10 slowly.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIFUNGAL (1 mg/kg/day)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*1).toFixed(1)} mg OD | Vol: ${(wt*1/5).toFixed(2)} ml OD</div><div class="note">Strength: 5 mg/ml (50mg in 10ml D5). Give in D10 slowly.</div>` 
             },
             { 
                 name: "Inj Acyclovir (Acivir)", 
                 category: "Antibiotic", 
                 tags: "acyclovir acivir antiviral", 
-                calc: (wt) => `
-                    <div class="badge">ANTIVIRAL (10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*10/25).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 25 mg/ml. Dilute in 20ml NS.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIVIRAL (10 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*10/25).toFixed(2)} ml TDS</div><div class="note">Strength: 25 mg/ml. Dilute in 20ml NS.</div>` 
             },
             { 
                 name: "Inj Artesunate (Falcigo)", 
                 category: "Antibiotic", 
                 tags: "falcigo artesunate malaria", 
-                calc: (wt) => `
-                    <div class="badge">ANTIMALARIAL (3 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*3).toFixed(1)} mg | Vol: ${(wt*3/10).toFixed(2)} ml</div>
-                    <div class="note">@ 0, 12, 24 hrs then OD. Strength: 10 mg/ml (60mg+1ml bicarb+5ml NS).</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIMALARIAL (3 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*3).toFixed(1)} mg | Vol: ${(wt*3/10).toFixed(2)} ml</div><div class="note">@ 0, 12, 24 hrs then OD. Strength: 10 mg/ml (60mg+1ml bicarb+5ml NS).</div>` 
             },
             { 
                 name: "Inj Colistin (Xylistin)", 
                 category: "Antibiotic", 
                 tags: "colistin xylistin", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (25K-50K IU/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*33333).toLocaleString()} IU TDS | Vol: ${(wt*33333/100000).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 100k IU/ml (1 MIU in 10ml).</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (25K-50K IU/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*33333).toLocaleString()} IU TDS | Vol: ${(wt*33333/100000).toFixed(2)} ml TDS</div><div class="note">Strength: 100k IU/ml (1 MIU in 10ml).</div>` 
             },
             { 
                 name: "Inj Tigecycline", 
@@ -1302,90 +1196,57 @@
                 tags: "tigecycline", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (LD 2mg/kg, MD 1mg/kg)</div><br>
-                    <div class="highlight">LD: ${(wt*2).toFixed(1)} mg -> Vol: ${(wt*2/10).toFixed(2)} ml</div>
-                    <div class="highlight">MD: ${(wt*1).toFixed(1)} mg -> Vol: ${(wt*1/10).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 10 mg/ml (50mg in 5ml D5).</div>
-                ` 
+                    <div class="highlight" style="display:block;">LD: ${(wt*2).toFixed(1)} mg -> Vol: ${(wt*2/10).toFixed(2)} ml</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">MD: ${(wt*1).toFixed(1)} mg -> Vol: ${(wt*1/10).toFixed(2)} ml BD</div>
+                    <div class="note">Strength: 10 mg/ml (50mg in 5ml D5).</div>` 
             },
             { 
                 name: "Inj Cefepime & Tazobactam (Magnex / Magnova)", 
                 category: "Antibiotic", 
                 tags: "magnex magnova cefepime", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 100 mg/ml (1g in 10ml).</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*0.5).toFixed(2)} ml BD</div><div class="note">Strength: 100 mg/ml (1g in 10ml).</div>` 
             },
             { 
                 name: "Inj Linezolid (Linospan)", 
                 category: "Antibiotic", 
                 tags: "linezolid linospan", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*5).toFixed(1)} ml TDS</div>
-                    <div class="note">Strength: 2 mg/ml.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (10 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*5).toFixed(1)} ml TDS</div><div class="note">Strength: 2 mg/ml.</div>` 
             },
             { 
                 name: "Inj Gentamycin", 
                 category: "Antibiotic", 
                 tags: "gentamicin", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (5-7.5 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg OD | Vol: ${(wt*5/40).toFixed(2)} ml OD</div>
-                    <div class="note">Strength: 40 mg/ml. Neonates <30 wks: Give q36-48h.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (5-7.5 mg/kg/day)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*5).toFixed(1)} mg OD | Vol: ${(wt*5/40).toFixed(2)} ml OD</div><div class="note">Strength: 40 mg/ml. Neonates <30 wks: Give q36-48h.</div>` 
             },
             { 
                 name: "Inj Ofloxacin", 
                 category: "Antibiotic", 
                 tags: "ofloxacin", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (10 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg BD | Vol: ${(wt*2.5).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 2 mg/ml (200mg/100ml pint).</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (10 mg/kg/day)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*5).toFixed(1)} mg BD | Vol: ${(wt*2.5).toFixed(2)} ml BD</div><div class="note">Strength: 2 mg/ml (200mg/100ml pint).</div>` 
             },
             { 
                 name: "Inj Ciprofloxacin", 
                 category: "Antibiotic", 
                 tags: "ciprofloxacin", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (10-15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg BD | Vol: ${(wt*5).toFixed(1)} ml BD</div>
-                    <div class="note">Strength: 2 mg/ml.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (10-15 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*10).toFixed(1)} mg BD | Vol: ${(wt*5).toFixed(1)} ml BD</div><div class="note">Strength: 2 mg/ml.</div>` 
             },
             { 
                 name: "Inj Ampiclox (Ampicillin+Cloxacillin)", 
                 category: "Antibiotic", 
                 tags: "ampiclox", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg QDS | Vol: ${(wt*0.5).toFixed(2)} ml QDS</div>
-                    <div class="note">Strength: 100 mg/ml.</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*50).toFixed(1)} mg QDS | Vol: ${(wt*0.5).toFixed(2)} ml QDS</div><div class="note">Strength: 100 mg/ml.</div>` 
             },
             { 
-                name: "Inj Amoxycillin - Clavulanic Acid (Augmentin)", 
+                name: "Inj Augmentin (Amoxy-Clav)", 
                 category: "Antibiotic", 
                 tags: "augmentin amoxycillin", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (30 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*30).toFixed(1)} mg TDS | Vol: ${(wt*0.5).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 60 mg/ml (1.2g in 20ml).</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (30 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*30).toFixed(1)} mg TDS | Vol: ${(wt*0.5).toFixed(2)} ml TDS</div><div class="note">Strength: 60 mg/ml (1.2g in 20ml).</div>` 
             },
             { 
                 name: "Inj Netilmicin Sulphate", 
                 category: "Antibiotic", 
                 tags: "netilmicin", 
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (5-7.5 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg OD | Vol: ${(wt*5/25).toFixed(2)} ml OD</div>
-                    <div class="note">Strength: 25 mg/ml or 50 mg/ml (Check vial).</div>
-                ` 
+                calc: (wt) => `<div class="badge">ANTIBIOTIC (5-7.5 mg/kg/day)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*5).toFixed(1)} mg OD | Vol: ${(wt*5/25).toFixed(2)} ml OD</div><div class="note">Strength: 25 mg/ml or 50 mg/ml (Check vial).</div>` 
             },
 
             // --- NEURO ---
@@ -1395,84 +1256,76 @@
                 tags: "midaz sedative seizure", 
                 calc: (wt) => `
                     <div class="badge">SEDATIVE (0.1-0.2 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.1).toFixed(2)} mg | Vol: ${(wt/10).toFixed(2)} ml IV Stat</div>
-                    <div class="note">Strength: 1 mg/ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*0.1).toFixed(2)} mg | Vol: ${(wt/10).toFixed(2)} ml IV Stat</div>
+                    <div class="note">Strength: 1 mg/ml.</div>` 
             },
             { 
                 name: "Inj Levipil / Levera (Levetiracetam)", 
                 category: "Neuro", 
                 tags: "levipil levera seizure", 
                 calc: (wt) => `
-                    <div class="badge">ANTICONVULSANT (LD: 20-30 mg/kg)</div><br>
-                    <div class="highlight">LD: ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*0.2).toFixed(2)} ml Stat (+20ml NS)</div>
-                    <div class="highlight">MD: ${(wt*10).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD (+5ml NS)</div>
-                    <div class="note">Strength: 100 mg/ml. MD is 10-20 mg/kg BD.</div>
-                ` 
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">ANTICONVULSANT (LD: 20-30 mg/kg)</div><br>
+                    <div class="highlight" style="display:block;">LD: ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*0.2).toFixed(2)} ml Stat (+20ml NS)</div>
+                    <div class="highlight" style="display:block; background:#bee3f8; color:#2a4365; border-color:#90cdf4;">MD: ${(wt*10).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD (+5ml NS)</div>
+                    <div class="note">Strength: 100 mg/ml. MD is 10-20 mg/kg BD.</div>` 
             },
             { 
                 name: "Inj Fosolin (Fosphenytoin)", 
                 category: "Neuro", 
                 tags: "fosolin seizure", 
                 calc: (wt) => `
-                    <div class="badge">ANTICONVULSANT (LD: 15-20 mg/kg)</div><br>
-                    <div class="highlight">LD: ${(wt*20).toFixed(1)} mg PE -> Vol: ${((wt*20)/50).toFixed(2)} ml + 20ml NS Stat</div>
-                    <div class="highlight">MD: ${(wt*5).toFixed(1)} mg PE -> Vol: ${((wt*5)/50).toFixed(2)} ml BD (+ 5ml NS)</div>
-                    <div class="note">Strength: 50 mg PE/ml. Max rate 1-3 mg/kg/min.</div>
-                ` 
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">ANTICONVULSANT (LD: 15-20 mg/kg)</div><br>
+                    <div class="highlight" style="display:block;">LD: ${(wt*20).toFixed(1)} mg PE -> Vol: ${((wt*20)/50).toFixed(2)} ml + 20ml NS Stat</div>
+                    <div class="highlight" style="display:block; background:#bee3f8; color:#2a4365; border-color:#90cdf4;">MD: ${(wt*5).toFixed(1)} mg PE -> Vol: ${((wt*5)/50).toFixed(2)} ml BD (+ 5ml NS)</div>
+                    <div class="note">Strength: 50 mg PE/ml. Max rate 1-3 mg/kg/min.</div>` 
             },
             { 
                 name: "Inj Valproate Sodium / Valparin", 
                 category: "Neuro", 
                 tags: "valproat valparin seizure", 
                 calc: (wt) => `
-                    <div class="badge">ANTICONVULSANT (LD: 20 mg/kg)</div><br>
-                    <div class="highlight">LD: ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*0.2).toFixed(2)} ml over 30 min</div>
-                    <div class="highlight">MD: ${(wt*10).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 100 mg/ml.</div>
-                ` 
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">ANTICONVULSANT (LD: 20 mg/kg)</div><br>
+                    <div class="highlight" style="display:block;">LD: ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*0.2).toFixed(2)} ml over 30 min</div>
+                    <div class="highlight" style="display:block; background:#bee3f8; color:#2a4365; border-color:#90cdf4;">MD: ${(wt*10).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD</div>
+                    <div class="note">Strength: 100 mg/ml.</div>` 
             },
             { 
                 name: "Inj Gardinal (Phenobarbital)", 
                 category: "Neuro", 
                 tags: "gardinal seizure", 
                 calc: (wt) => `
-                    <div class="badge">ANTICONVULSANT (LD: 20 mg/kg)</div><br>
-                    <div class="highlight">LD: ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*20/200).toFixed(2)} ml IV Stat</div>
-                    <div class="highlight">MD: ${(wt*5).toFixed(1)} mg -> Vol: ${(wt*5/200).toFixed(2)} ml BD</div>
-                    <div class="note" style="color:#c53030;">Dilute 1:10. Max rate 1mg/kg/min to avoid resp depression.</div>
-                ` 
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">ANTICONVULSANT (LD: 20 mg/kg)</div><br>
+                    <div class="highlight" style="display:block;">LD: ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*20/200).toFixed(2)} ml IV Stat</div>
+                    <div class="highlight" style="display:block; background:#bee3f8; color:#2a4365; border-color:#90cdf4;">MD: ${(wt*5).toFixed(1)} mg -> Vol: ${(wt*5/200).toFixed(2)} ml BD</div>
+                    <div class="note" style="color:#c53030;">Dilute 1:10. Max rate 1mg/kg/min to avoid resp depression.</div>` 
             },
             { 
                 name: "Inj Mannitol (20%)", 
                 category: "Neuro", 
                 tags: "mannitol edema icp", 
                 calc: (wt) => `
-                    <div class="badge">DIURETIC (0.5-1 g/kg = 2.5-5 ml/kg)</div><br>
-                    <div class="highlight">LD Vol: ${(wt * 5).toFixed(1)} ml rapidly</div>
-                    <div class="highlight">MD Vol: ${(wt * 2.5).toFixed(1)} ml Q6H for 48hr</div>
-                    <div class="note">Strength: 20% (200 mg/ml).</div>
-                ` 
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">DIURETIC (0.5-1 g/kg = 2.5-5 ml/kg)</div><br>
+                    <div class="highlight" style="display:block;">LD Vol: ${(wt * 5).toFixed(1)} ml rapidly</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">MD Vol: ${(wt * 2.5).toFixed(1)} ml Q6H for 48hr</div>
+                    <div class="note">Strength: 20% (200 mg/ml).</div>` 
             },
             { 
                 name: "Inj Lopex (Lorazepam)", 
                 category: "Neuro", 
                 tags: "lopex lorazepam seizure", 
                 calc: (wt) => `
-                    <div class="badge">ANTICONVULSANT (0.05-0.1 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.1).toFixed(2)} mg | Vol: ${(wt*0.1/2).toFixed(2)} ml Stat</div>
-                    <div class="note">Strength: 2 mg/ml. Slow IV.</div>
-                ` 
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">ANTICONVULSANT (0.05-0.1 mg/kg)</div><br>
+                    <div class="highlight" style="display:block;">Dose: ${(wt*0.1).toFixed(2)} mg | Vol: ${(wt*0.1/2).toFixed(2)} ml Stat</div>
+                    <div class="note">Strength: 2 mg/ml. Slow IV.</div>` 
             },
             { 
                 name: "Tab Haloperidol / Syp Beclof", 
                 category: "Neuro", 
                 tags: "haloperidol beclof trembling chorea", 
                 calc: (wt) => `
-                    <div class="badge">TREMBLING / CHOREA</div><br>
-                    <div class="highlight">Tab Haloperidol: 0.25mg BD</div>
-                    <div class="highlight">Syp Beclof: ${(wt*0.2).toFixed(2)} ml BD</div>
-                ` 
+                    <div class="badge" style="background:#fefcbf; color:#744210;">TREMBLING / CHOREA</div><br>
+                    <div class="highlight" style="display:block;">Tab Haloperidol: 0.25mg BD</div>
+                    <div class="highlight" style="display:block; background:#bee3f8; color:#2a4365; border-color:#90cdf4;">Syp Beclof: ${(wt*0.2).toFixed(2)} ml BD</div>` 
             },
 
             // --- SYRUPS ---
@@ -1482,10 +1335,9 @@
                 tags: "zifi cefixime antibiotic", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (8 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} mg BD</div>
-                    <div class="highlight">Vol (50mg/5ml): ${(wt*4*5/50).toFixed(2)} ml BD</div>
-                    <div class="highlight">Vol (100mg/5ml): ${(wt*4*5/100).toFixed(2)} ml BD</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*4).toFixed(1)} mg BD</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol (50mg/5ml): ${(wt*4*5/50).toFixed(2)} ml BD</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Vol (100mg/5ml): ${(wt*4*5/100).toFixed(2)} ml BD</div>` 
             },
             { 
                 name: "Syp Opox (Cefpodoxime)", 
@@ -1493,10 +1345,9 @@
                 tags: "opox cefpodoxime antibiotic", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (10 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg BD</div>
-                    <div class="highlight">Vol (50mg/5ml): ${(wt*5*5/50).toFixed(2)} ml BD</div>
-                    <div class="highlight">Vol (100mg/5ml): ${(wt*5*5/100).toFixed(2)} ml BD</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*5).toFixed(1)} mg BD</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol (50mg/5ml): ${(wt*5*5/50).toFixed(2)} ml BD</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Vol (100mg/5ml): ${(wt*5*5/100).toFixed(2)} ml BD</div>` 
             },
             { 
                 name: "Syp Respicure LS / Ascoril LS", 
@@ -1504,8 +1355,7 @@
                 tags: "respicure ls ascoril ls cough wet", 
                 calc: (wt) => `
                     <div class="badge">COUGH (Wet/Productive)</div><br>
-                    <div class="highlight">Vol: ${(wt*0.25).toFixed(2)} to ${(wt*0.3).toFixed(2)} ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.25).toFixed(2)} to ${(wt*0.3).toFixed(2)} ml TDS</div>` 
             },
             { 
                 name: "Syp Panthor", 
@@ -1513,8 +1363,7 @@
                 tags: "panthor cough soothing", 
                 calc: (wt) => `
                     <div class="badge">COUGH (Soothing)</div><br>
-                    <div class="highlight">Vol: ${(wt*0.25).toFixed(2)} ml BD/TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.25).toFixed(2)} ml BD/TDS</div>` 
             },
             { 
                 name: "Syp Coscopin Linctus", 
@@ -1522,8 +1371,7 @@
                 tags: "coscopin linctus cough dry", 
                 calc: (wt) => `
                     <div class="badge">COUGH (Dry/Noscapine)</div><br>
-                    <div class="highlight">Vol: ${(wt*0.25).toFixed(2)} ml BD/TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.25).toFixed(2)} ml BD/TDS</div>` 
             },
             { 
                 name: "Syp Dilo-Dx", 
@@ -1531,8 +1379,7 @@
                 tags: "dilo dx cough dextromethorphan dry", 
                 calc: (wt) => `
                     <div class="badge">COUGH (Dry)</div><br>
-                    <div class="highlight">Vol: ${(wt*0.25).toFixed(2)} ml BD/TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.25).toFixed(2)} ml BD/TDS</div>` 
             },
             { 
                 name: "Syp Wikoryl", 
@@ -1540,8 +1387,7 @@
                 tags: "wikoryl cold syrup", 
                 calc: (wt) => `
                     <div class="badge">COLD / ANTI-ALLERGIC</div><br>
-                    <div class="highlight">Vol: ${(wt*0.2).toFixed(2)} to ${(wt*0.3).toFixed(2)} ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.2).toFixed(2)} to ${(wt*0.3).toFixed(2)} ml TDS</div>` 
             },
             { 
                 name: "Syp Wikoryl AF", 
@@ -1549,8 +1395,7 @@
                 tags: "wikoryl af cold syrup", 
                 calc: (wt) => `
                     <div class="badge">COLD (No PCM)</div><br>
-                    <div class="highlight">Vol: ${(wt*0.2).toFixed(2)} to ${(wt*0.3).toFixed(2)} ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.2).toFixed(2)} to ${(wt*0.3).toFixed(2)} ml TDS</div>` 
             },
             { 
                 name: "Syp LCF Kid / Zyrcol", 
@@ -1558,8 +1403,7 @@
                 tags: "lcf kid zyrcol cold", 
                 calc: (wt) => `
                     <div class="badge">COUGH / COLD</div><br>
-                    <div class="highlight">Vol: ${(wt*0.25).toFixed(2)} ml BD</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.25).toFixed(2)} ml BD</div>` 
             },
             { 
                 name: "Syp Tonoferon", 
@@ -1567,10 +1411,9 @@
                 tags: "tonoferon iron haematinic anemia", 
                 calc: (wt) => `
                     <div class="badge">HAEMATINIC (3-6 mg/kg/day Elemental Fe)</div><br>
-                    <div class="highlight">Dose: ${(wt*4.5).toFixed(1)} mg/day</div>
-                    <div class="highlight">Vol: ${(wt*4.5/10).toFixed(2)} ml/day (Divide in BD)</div>
-                    <div class="note">Strength: Approx 50mg elemental iron / 5ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*4.5).toFixed(1)} mg/day</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol: ${(wt*4.5/10).toFixed(2)} ml/day (Divide in BD)</div>
+                    <div class="note">Strength: Approx 50mg elemental iron / 5ml.</div>` 
             },
             { 
                 name: "Syp Odimont LC", 
@@ -1579,11 +1422,7 @@
                 calc: (wt, age, unit) => { 
                     let vol = "2.5 ml OD"; 
                     if(unit === "Years" && age >= 5) vol = "5.0 ml OD"; 
-                    return `
-                        <div class="badge">ANTIHISTAMINE / ASTHMA</div><br>
-                        <div class="highlight">Give: ${vol} (Usually at Night)</div>
-                        <div class="note">Levo 2.5mg + Montelukast 4mg per 5ml.</div>
-                    `; 
+                    return `<div class="badge">ANTIHISTAMINE / ASTHMA</div><br><div class="highlight" style="display:block;">Give: ${vol} (Usually at Night)</div><div class="note">Levo 2.5mg + Montelukast 4mg per 5ml.</div>`; 
                 } 
             },
             { 
@@ -1592,10 +1431,9 @@
                 tags: "potclor kcl potassium hypokalemia", 
                 calc: (wt) => `
                     <div class="badge">SUPPLEMENT (1-2 mEq/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*1.5).toFixed(1)} mEq/day</div>
-                    <div class="highlight">Vol: ${(wt*1.5/1.33).toFixed(2)} ml/day (Divide in BD/TDS)</div>
-                    <div class="note">Strength: 20 mEq / 15 ml (1.33 mEq/ml).</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*1.5).toFixed(1)} mEq/day</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol: ${(wt*1.5/1.33).toFixed(2)} ml/day (Divide in BD/TDS)</div>
+                    <div class="note">Strength: 20 mEq / 15 ml (1.33 mEq/ml).</div>` 
             },
             { 
                 name: "Syp Calpol / Sumol (Paracetamol)", 
@@ -1603,10 +1441,9 @@
                 tags: "calpol sumol pcm fever", 
                 calc: (wt) => `
                     <div class="badge">ANALGESIC (10-15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS/QDS</div>
-                    <div class="highlight">Vol (120mg/5ml): ${(wt*15*5/120).toFixed(2)} ml</div>
-                    <div class="highlight">Vol (250mg/5ml): ${(wt*15*5/250).toFixed(2)} ml</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*15).toFixed(1)} mg TDS/QDS</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol (120mg/5ml): ${(wt*15*5/120).toFixed(2)} ml</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Vol (250mg/5ml): ${(wt*15*5/250).toFixed(2)} ml</div>` 
             },
             { 
                 name: "Syp Ibuprofen (Ibugesic)", 
@@ -1614,9 +1451,8 @@
                 tags: "ibuprofen fever pain", 
                 calc: (wt) => `
                     <div class="badge">NSAID (5-10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS</div>
-                    <div class="highlight">Vol (100mg/5ml): ${(wt*10*5/100).toFixed(2)} ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*10).toFixed(1)} mg TDS</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol (100mg/5ml): ${(wt*10*5/100).toFixed(2)} ml TDS</div>` 
             },
             { 
                 name: "Syp Ibugesic PLUS", 
@@ -1624,8 +1460,7 @@
                 tags: "ibugesic plus pcm combo fever pain", 
                 calc: (wt) => `
                     <div class="badge">NSAID + PCM (Ibu 5-10 mg/kg)</div><br>
-                    <div class="highlight">Volume: ${(wt*0.4).toFixed(2)} to ${(wt*0.5).toFixed(2)} ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Volume: ${(wt*0.4).toFixed(2)} to ${(wt*0.5).toFixed(2)} ml TDS</div>` 
             },
             { 
                 name: "Syp Meftal-P (Mefenamic Acid)", 
@@ -1633,9 +1468,8 @@
                 tags: "meftal p pain fever", 
                 calc: (wt) => `
                     <div class="badge">NSAID (8 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*8).toFixed(1)} mg TDS | Vol: ${(wt*8*5/100).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 100 mg/5 ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*8).toFixed(1)} mg TDS | Vol: ${(wt*8*5/100).toFixed(2)} ml TDS</div>
+                    <div class="note">Strength: 100 mg/5 ml.</div>` 
             },
             { 
                 name: "Syp Furoped (Lasix/Furosemide)", 
@@ -1643,9 +1477,8 @@
                 tags: "furoped lasix diuretic", 
                 calc: (wt) => `
                     <div class="badge">DIURETIC (1-2 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*1.5).toFixed(1)} mg | Vol: ${(wt*1.5/10).toFixed(2)} ml</div>
-                    <div class="note">Strength: 10 mg/ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*1.5).toFixed(1)} mg | Vol: ${(wt*1.5/10).toFixed(2)} ml</div>
+                    <div class="note">Strength: 10 mg/ml.</div>` 
             },
             { 
                 name: "Syp Fluvir (Oseltamivir)", 
@@ -1653,9 +1486,8 @@
                 tags: "fluvir oseltamivir h1n1", 
                 calc: (wt) => `
                     <div class="badge">ANTIVIRAL (2-3 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*3).toFixed(1)} mg BD | Vol: ${(wt*3/12).toFixed(2)} ml PO BD</div>
-                    <div class="note">Strength: 12 mg/ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*3).toFixed(1)} mg BD | Vol: ${(wt*3/12).toFixed(2)} ml PO BD</div>
+                    <div class="note">Strength: 12 mg/ml.</div>` 
             },
             { 
                 name: "Syp Septran (Cotrimoxazole)", 
@@ -1663,9 +1495,8 @@
                 tags: "septran cotrimoxazole", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (TMP 4-6 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg BD (TMP)</div>
-                    <div class="note">Give approx ${(wt*5*5/40).toFixed(1)} ml BD (using 40mg TMP/5ml strength).</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*5).toFixed(1)} mg BD (TMP)</div>
+                    <div class="note">Give approx ${(wt*5*5/40).toFixed(1)} ml BD (using 40mg TMP/5ml strength).</div>` 
             },
             { 
                 name: "Syp Evict (Lactulose)", 
@@ -1673,8 +1504,7 @@
                 tags: "evict lactulose constipation", 
                 calc: (wt) => `
                     <div class="badge">LAXATIVE</div><br>
-                    <div class="highlight">Vol: 1-2 ml/kg/day (Usually 5-10 ml H/S)</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: 1-2 ml/kg/day (Usually 5-10 ml H/S)</div>` 
             },
             { 
                 name: "Syp B Folidol / B Folcin", 
@@ -1682,8 +1512,7 @@
                 tags: "folidol folcin vitamin", 
                 calc: (wt) => `
                     <div class="badge">SUPPLEMENT</div><br>
-                    <div class="highlight">B-Complex / Folic Acid: 2.5 to 5 ml OD</div>
-                ` 
+                    <div class="highlight" style="display:block;">B-Complex / Folic Acid: 2.5 to 5 ml OD</div>` 
             },
             { 
                 name: "Syp Pedicrest", 
@@ -1691,8 +1520,7 @@
                 tags: "pedicrest", 
                 calc: (wt) => `
                     <div class="badge">ANALGESIC</div><br>
-                    <div class="highlight">Vol: ${(wt*0.5).toFixed(2)} ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.5).toFixed(2)} ml TDS</div>` 
             },
             { 
                 name: "Syp Claribid (Clarithromycin)", 
@@ -1700,9 +1528,8 @@
                 tags: "claribid clarithromycin", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (7.5 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*7.5).toFixed(1)} mg BD | Vol: ${(wt*7.5*5/125).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 125 mg/5 ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*7.5).toFixed(1)} mg BD | Vol: ${(wt*7.5*5/125).toFixed(2)} ml BD</div>
+                    <div class="note">Strength: 125 mg/5 ml.</div>` 
             },
             { 
                 name: "Syp Calcimax-P", 
@@ -1710,8 +1537,7 @@
                 tags: "calcimax calcium", 
                 calc: (wt) => `
                     <div class="badge">SUPPLEMENT (Calcium)</div><br>
-                    <div class="highlight">Vol: 2.5 to 5 ml BD</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: 2.5 to 5 ml BD</div>` 
             },
             { 
                 name: "Syp Allegra (Fexofenadine)", 
@@ -1719,9 +1545,8 @@
                 tags: "allegra allergy fexofenadine", 
                 calc: (wt) => `
                     <div class="badge">ANTIHISTAMINE</div><br>
-                    <div class="highlight">Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 30 mg/5 ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
+                    <div class="note">Strength: 30 mg/5 ml.</div>` 
             },
             { 
                 name: "Syp Cyclopam (Dicyclomine)", 
@@ -1729,9 +1554,8 @@
                 tags: "cyclopam spasm dicyclomine", 
                 calc: (wt) => `
                     <div class="badge">ANTISPASMODIC (0.5 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.5).toFixed(2)} mg | Vol: ${(wt*0.5*5/10).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 10 mg/5 ml. Roughly Wt * 0.25 ml TDS.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*0.5).toFixed(2)} mg | Vol: ${(wt*0.5*5/10).toFixed(2)} ml TDS</div>
+                    <div class="note">Strength: 10 mg/5 ml. Roughly Wt * 0.25 ml TDS.</div>` 
             },
             { 
                 name: "Syp Triclofos (Pedicloryl)", 
@@ -1739,9 +1563,8 @@
                 tags: "triclofos pedicloryl sedation", 
                 calc: (wt) => `
                     <div class="badge">SEDATIVE (50 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg Stat | Vol: ${(wt*50*5/500).toFixed(2)} ml</div>
-                    <div class="note">Strength: 500 mg/5 ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*50).toFixed(1)} mg Stat | Vol: ${(wt*50*5/500).toFixed(2)} ml</div>
+                    <div class="note">Strength: 500 mg/5 ml.</div>` 
             },
 
             // --- DROPS ---
@@ -1751,10 +1574,9 @@
                 tags: "zifi cefixime drop antibiotic", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (8 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} mg BD</div>
-                    <div class="highlight">Vol (25mg/ml): ${(wt*4/25).toFixed(2)} ml BD</div>
-                    <div class="highlight">Vol (50mg/ml): ${(wt*4/50).toFixed(2)} ml BD</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*4).toFixed(1)} mg BD</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol (25mg/ml): ${(wt*4/25).toFixed(2)} ml BD</div>
+                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Vol (50mg/ml): ${(wt*4/50).toFixed(2)} ml BD</div>` 
             },
             { 
                 name: "Drop Respicure LS", 
@@ -1762,9 +1584,8 @@
                 tags: "respicure ls cough drop wet", 
                 calc: (wt) => `
                     <div class="badge">COUGH (Wet/Productive)</div><br>
-                    <div class="highlight">Give: ${(wt*0.5).toFixed(1)} to ${(wt*1).toFixed(1)} drops TDS</div>
-                    <div class="note">OR approx ${(wt*0.05).toFixed(2)} ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: ${(wt*0.5).toFixed(1)} to ${(wt*1).toFixed(1)} drops TDS</div>
+                    <div class="note">OR approx ${(wt*0.05).toFixed(2)} ml TDS</div>` 
             },
             { 
                 name: "Drop Tonoferon", 
@@ -1772,10 +1593,9 @@
                 tags: "tonoferon iron drop anemia", 
                 calc: (wt) => `
                     <div class="badge">HAEMATINIC (3-6 mg/kg/day Elemental Fe)</div><br>
-                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} mg/day</div>
-                    <div class="highlight">Vol: ${(wt*4.5/25).toFixed(2)} ml/day (Divide in BD)</div>
-                    <div class="note">Strength: 25 mg elemental iron / ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*4).toFixed(1)} mg/day</div>
+                    <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Vol: ${(wt*4.5/25).toFixed(2)} ml/day (Divide in BD)</div>
+                    <div class="note">Strength: 25 mg elemental iron / ml.</div>` 
             },
             { 
                 name: "Drop Wikoryl", 
@@ -1783,8 +1603,7 @@
                 tags: "wikoryl cold drop", 
                 calc: (wt) => `
                     <div class="badge">COLD / ANTI-ALLERGIC</div><br>
-                    <div class="highlight">Vol: ${(wt*0.05).toFixed(2)} to ${(wt*0.1).toFixed(2)} ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.05).toFixed(2)} to ${(wt*0.1).toFixed(2)} ml TDS</div>` 
             },
             { 
                 name: "Drop Wikoryl AF", 
@@ -1792,8 +1611,7 @@
                 tags: "wikoryl af cold drop", 
                 calc: (wt) => `
                     <div class="badge">COLD (No PCM)</div><br>
-                    <div class="highlight">Vol: ${(wt*0.05).toFixed(2)} to ${(wt*0.1).toFixed(2)} ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">Vol: ${(wt*0.05).toFixed(2)} to ${(wt*0.1).toFixed(2)} ml TDS</div>` 
             },
             { 
                 name: "Drop Pru / Atarax (Hydroxyzine)", 
@@ -1801,9 +1619,8 @@
                 tags: "atarax pru allergy hydroxyzine", 
                 calc: (wt) => `
                     <div class="badge">ANTIHISTAMINE (0.5-1 mg/kg)</div><br>
-                    <div class="highlight">Give: ${(wt*1).toFixed(1)} drop/dose TDS</div>
-                    <div class="note">Strength: Approx 0.5 mg per drop.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: ${(wt*1).toFixed(1)} drop/dose TDS</div>
+                    <div class="note">Strength: Approx 0.5 mg per drop.</div>` 
             },
             { 
                 name: "Domstal Drops (Domperidone)", 
@@ -1811,9 +1628,8 @@
                 tags: "domstal vomiting domperidone", 
                 calc: (wt) => `
                     <div class="badge">ANTIEMETIC (0.2-0.4 mg/kg)</div><br>
-                    <div class="highlight">Give: ${(wt*1).toFixed(1)} drop TDS</div>
-                    <div class="note">Strength: 10 mg/ml (1 drop = 0.5 mg).</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: ${(wt*1).toFixed(1)} drop TDS</div>
+                    <div class="note">Strength: 10 mg/ml (1 drop = 0.5 mg).</div>` 
             },
             { 
                 name: "Sumol / Calpol Drops", 
@@ -1821,9 +1637,8 @@
                 tags: "sumol calpol pcm drops fever", 
                 calc: (wt) => `
                     <div class="badge">ANALGESIC (15 mg/kg)</div><br>
-                    <div class="highlight">Give: ${(wt*3).toFixed(1)} drops TDS</div>
-                    <div class="note">Strength: 150 mg/ml (Approx 15 mg per 3 drops). Or give ${(wt*0.1).toFixed(2)} ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: ${(wt*3).toFixed(1)} drops TDS</div>
+                    <div class="note">Strength: 150 mg/ml (Approx 15 mg per 3 drops). Or give ${(wt*0.1).toFixed(2)} ml.</div>` 
             },
             { 
                 name: "Z & D / Vitanova drops", 
@@ -1831,10 +1646,7 @@
                 tags: "zinc vitanova d3 drops", 
                 calc: (wt, age, unit) => { 
                     let text = (!isNaN(age) && ((unit === 'Months' && age >= 6) || unit === 'Years')) ? '10 drops BD' : '5 drops BD'; 
-                    return `
-                        <div class="badge">SUPPLEMENT (Zinc/D3)</div><br>
-                        <div class="highlight">Give: ${text}</div>
-                    `;
+                    return `<div class="badge">SUPPLEMENT (Zinc/D3)</div><br><div class="highlight" style="display:block;">Give: ${text}</div>`; 
                 } 
             },
 
@@ -1845,10 +1657,9 @@
                 tags: "aspirin antiplatelet kawasaki", 
                 calc: (wt) => `
                     <div class="badge">ANTIPLATELET / KAWASAKI</div><br>
-                    <div class="highlight">Antiplatelet Dose (3-5 mg/kg): ${(wt*4).toFixed(1)} mg OD</div>
+                    <div class="highlight" style="display:block;">Antiplatelet Dose (3-5 mg/kg): ${(wt*4).toFixed(1)} mg OD</div>
                     <div class="highlight" style="display:block; background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">Kawasaki Acute (80-100 mg/kg): ${(wt*90).toFixed(1)} mg/day (divide in QDS)</div>
-                    <div class="note">Kawasaki high dose is given during febrile phase, then switched to low dose antiplatelet therapy.</div>
-                ` 
+                    <div class="note">Kawasaki high dose is given during febrile phase, then switched to low dose antiplatelet therapy.</div>` 
             },
             { 
                 name: "Tab / Cap Nicardia (Nifedipine)", 
@@ -1856,40 +1667,26 @@
                 tags: "nicardia depin nifedipine bp hypertension", 
                 calc: (wt) => { 
                     let doseMin = wt * 0.25; let doseMax = wt * 0.5; 
-                    return `
-                        <div class="badge">ANTIHYPERTENSIVE (0.25 - 0.5 mg/kg)</div><br>
-                        <div class="highlight">Dose: ${doseMin.toFixed(2)} to ${doseMax.toFixed(2)} mg (Q6H - Q8H)</div>
-                        <div class="note">Available as 5mg / 10mg. Can puncture capsule for sublingual drops in severe emergency.</div>
-                    `;
+                    return `<div class="badge">ANTIHYPERTENSIVE (0.25 - 0.5 mg/kg)</div><br><div class="highlight" style="display:block;">Dose: ${doseMin.toFixed(2)} to ${doseMax.toFixed(2)} mg (Q6H - Q8H)</div><div class="note">Available as 5mg / 10mg. Can puncture capsule for sublingual drops in severe emergency.</div>`; 
                 } 
             },
             { 
                 name: "Tab Lasix (Furosemide)", 
                 category: "GI", 
                 tags: "lasix furosemide tab diuretic", 
-                calc: (wt) => `
-                    <div class="badge">DIURETIC (1-2 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*1.5).toFixed(1)} mg OD/BD</div>
-                    <div class="note">Available as 40mg tab.</div>
-                ` 
+                calc: (wt) => `<div class="badge">DIURETIC (1-2 mg/kg/dose)</div><br><div class="highlight" style="display:block;">Dose: ${(wt*1.5).toFixed(1)} mg OD/BD</div><div class="note">Available as 40mg tab.</div>` 
             },
             { 
                 name: "Tab Dytor Plus", 
                 category: "GI", 
                 tags: "dytor plus torsemide spironolactone tab", 
-                calc: (wt) => `
-                    <div class="badge">DIURETIC (Torsemide + Spironolactone)</div><br>
-                    <div class="highlight">Give as per Cardiologist / Nephrologist advice.</div>
-                ` 
+                calc: (wt) => `<div class="badge">DIURETIC (Torsemide + Spironolactone)</div><br><div class="highlight" style="display:block;">Give as per Cardiologist / Nephrologist advice.</div>` 
             },
             { 
                 name: "Tab Shelcal", 
                 category: "GI", 
                 tags: "shelcal calcium d3 tab", 
-                calc: (wt) => `
-                    <div class="badge">CALCIUM SUPPLEMENT</div><br>
-                    <div class="highlight">Give: 250mg or 500mg OD/BD based on age.</div>
-                ` 
+                calc: (wt) => `<div class="badge">CALCIUM SUPPLEMENT</div><br><div class="highlight" style="display:block;">Give: 250mg or 500mg OD/BD based on age.</div>` 
             },
             { 
                 name: "Tab Calpol / Sumol (Paracetamol)", 
@@ -1897,9 +1694,8 @@
                 tags: "calpol sumol paracetamol pcm tab fever", 
                 calc: (wt) => `
                     <div class="badge">ANALGESIC (10-15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS/SOS</div>
-                    <div class="note">Available as 250mg / 500mg tab.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*15).toFixed(1)} mg TDS/SOS</div>
+                    <div class="note">Available as 250mg / 500mg tab.</div>` 
             },
             { 
                 name: "Tab Ibugesic (Ibuprofen)", 
@@ -1907,9 +1703,8 @@
                 tags: "ibugesic ibuprofen tab fever pain", 
                 calc: (wt) => `
                     <div class="badge">NSAID (5-10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS/SOS</div>
-                    <div class="note">Available as 200mg / 400mg tab.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*10).toFixed(1)} mg TDS/SOS</div>
+                    <div class="note">Available as 200mg / 400mg tab.</div>` 
             },
             { 
                 name: "Tab Meftal-P (Mefenamic Acid)", 
@@ -1917,9 +1712,8 @@
                 tags: "meftal p mefenamic tab fever pain", 
                 calc: (wt) => `
                     <div class="badge">NSAID (8 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*8).toFixed(1)} mg TDS</div>
-                    <div class="note">Available as 100mg (kid) / 250mg tab.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*8).toFixed(1)} mg TDS</div>
+                    <div class="note">Available as 100mg (kid) / 250mg tab.</div>` 
             },
             { 
                 name: "Tab Zifi (Cefixime)", 
@@ -1927,9 +1721,8 @@
                 tags: "zifi cefixime tab antibiotic", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (8 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} mg BD</div>
-                    <div class="note">Available as 100mg / 200mg tab.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*4).toFixed(1)} mg BD</div>
+                    <div class="note">Available as 100mg / 200mg tab.</div>` 
             },
             { 
                 name: "Tab Opox (Cefpodoxime)", 
@@ -1937,9 +1730,8 @@
                 tags: "opox cefpodoxime tab antibiotic", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (10 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg BD</div>
-                    <div class="note">Available as 100mg / 200mg tab.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*5).toFixed(1)} mg BD</div>
+                    <div class="note">Available as 100mg / 200mg tab.</div>` 
             },
             { 
                 name: "Tab Claribid (Clarithromycin)", 
@@ -1947,9 +1739,8 @@
                 tags: "claribid clarithromycin tab antibiotic", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (7.5 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*7.5).toFixed(1)} mg BD</div>
-                    <div class="note">Available as 250mg / 500mg tab.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*7.5).toFixed(1)} mg BD</div>
+                    <div class="note">Available as 250mg / 500mg tab.</div>` 
             },
             { 
                 name: "Tab Septran (Cotrimoxazole)", 
@@ -1957,9 +1748,8 @@
                 tags: "septran cotrimoxazole tab antibiotic", 
                 calc: (wt) => `
                     <div class="badge">ANTIBIOTIC (TMP 4-6 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg TMP BD</div>
-                    <div class="note">Single strength tab has 80mg TMP.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*5).toFixed(1)} mg TMP BD</div>
+                    <div class="note">Single strength tab has 80mg TMP.</div>` 
             },
             { 
                 name: "Tab Odimont LC", 
@@ -1967,9 +1757,8 @@
                 tags: "odimont lc levocetirizine montelukast tab allergy asthma", 
                 calc: (wt) => `
                     <div class="badge">ANTIHISTAMINE / ASTHMA</div><br>
-                    <div class="highlight">Give: 1 Tab OD at Night (For older children >5yrs/Adults)</div>
-                    <div class="note">Levo 5mg + Montelukast 10mg.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: 1 Tab OD at Night (For older children >5yrs/Adults)</div>
+                    <div class="note">Levo 5mg + Montelukast 10mg.</div>` 
             },
             { 
                 name: "Tab Allegra (Fexofenadine)", 
@@ -1977,8 +1766,7 @@
                 tags: "allegra fexofenadine tab allergy", 
                 calc: (wt) => `
                     <div class="badge">ANTIHISTAMINE</div><br>
-                    <div class="highlight">Give: 30mg BD or 120mg OD (based on age/weight)</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: 30mg BD or 120mg OD (based on age/weight)</div>` 
             },
             { 
                 name: "Tab Cyclopam", 
@@ -1986,8 +1774,7 @@
                 tags: "cyclopam dicyclomine tab spasm", 
                 calc: (wt) => `
                     <div class="badge">ANTISPASMODIC</div><br>
-                    <div class="highlight">Give: 1/2 or 1 Tab SOS for abdominal pain (>12 yrs)</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: 1/2 or 1 Tab SOS for abdominal pain (>12 yrs)</div>` 
             },
             { 
                 name: "Cap Fluvir (Oseltamivir)", 
@@ -1997,9 +1784,9 @@
                     let dose = wt < 15 ? 30 : (wt <= 23 ? 45 : (wt <= 40 ? 60 : 75)); 
                     return `
                         <div class="badge">ANTIVIRAL (H1N1)</div><br>
-                        <div class="highlight">Dose: ${dose} mg BD for 5 days</div>
+                        <div class="highlight" style="display:block;">Dose: ${dose} mg BD for 5 days</div>
                         <div class="note">Capsules: 30mg, 45mg, 75mg.</div>
-                    `;
+                    `; 
                 } 
             },
             { 
@@ -2008,8 +1795,7 @@
                 tags: "wikoryl cold tab", 
                 calc: (wt) => `
                     <div class="badge">COLD / ANTI-ALLERGIC</div><br>
-                    <div class="highlight">Give: 1/2 or 1 Tab BD/TDS (Older children)</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: 1/2 or 1 Tab BD/TDS (Older children)</div>` 
             },
             { 
                 name: "Tab Haloperidol", 
@@ -2017,8 +1803,7 @@
                 tags: "haloperidol trembling", 
                 calc: (wt) => `
                     <div class="badge">TREMBLING / CHOREA</div><br>
-                    <div class="highlight">Tab Haloperidol: 0.25mg BD</div>
-                ` 
+                    <div class="highlight" style="display:block;">Tab Haloperidol: 0.25mg BD</div>` 
             },
             { 
                 name: "Inj Drotrin (Drotaverine)", 
@@ -2028,8 +1813,8 @@
                     let doseStr = (!isNaN(age) && unit === 'Years' && age > 6) ? "40mg/2ml TDS (>6 yrs)" : "20mg/1ml TDS (1-6 yrs)"; 
                     return `
                         <div class="badge">ANTISPASMODIC</div><br>
-                        <div class="highlight">Give: ${doseStr}</div>
-                    `;
+                        <div class="highlight" style="display:block;">Give: ${doseStr}</div>
+                    `; 
                 } 
             },
             { 
@@ -2038,9 +1823,8 @@
                 tags: "pantocid pantoprazole acidity", 
                 calc: (wt) => `
                     <div class="badge">ANTACID (1 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*1).toFixed(1)} mg IV BD | Vol: ${(wt*1/10).toFixed(2)} ml</div>
-                    <div class="note">Strength: 4 mg/ml (Dilute 40mg with 10ml NS/DW).</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*1).toFixed(1)} mg IV BD | Vol: ${(wt*1/10).toFixed(2)} ml</div>
+                    <div class="note">Strength: 4 mg/ml (Dilute 40mg with 10ml NS/DW).</div>` 
             },
             { 
                 name: "Inj Rantac (Ranitidine)", 
@@ -2048,9 +1832,8 @@
                 tags: "rantac ranitidine acidity", 
                 calc: (wt) => `
                     <div class="badge">ANTACID (1 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*1).toFixed(1)} mg IV BD | Vol: ${(wt*0.1).toFixed(2)} ml IV BD</div>
-                    <div class="note">NICU Shortcut: 1 amp in 10ml NS give wt jetlu ml BD.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*1).toFixed(1)} mg IV BD | Vol: ${(wt*0.1).toFixed(2)} ml IV BD</div>
+                    <div class="note">NICU Shortcut: 1 amp in 10ml NS give wt jetlu ml BD.</div>` 
             },
             { 
                 name: "Inj Ondansetron (Periset/Ondem)", 
@@ -2058,9 +1841,8 @@
                 tags: "ondansetron ondem vomiting periset", 
                 calc: (wt) => `
                     <div class="badge">ANTIEMETIC (0.15 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.15).toFixed(2)} mg | Vol: ${(wt*0.075).toFixed(2)} ml BD/TDS</div>
-                    <div class="note">Strength: 2 mg/ml.</div>
-                ` 
+                    <div class="highlight" style="display:block;">Dose: ${(wt*0.15).toFixed(2)} mg | Vol: ${(wt*0.075).toFixed(2)} ml BD/TDS</div>
+                    <div class="note">Strength: 2 mg/ml.</div>` 
             },
             { 
                 name: "Tab Vasosure", 
@@ -2068,8 +1850,7 @@
                 tags: "vasosure", 
                 calc: (wt) => `
                     <div class="badge">TABLET</div><br>
-                    <div class="highlight">1 tab in 20ml DW -> give wt jetlu ml TDS</div>
-                ` 
+                    <div class="highlight" style="display:block;">1 tab in 20ml DW -> give wt jetlu ml TDS</div>` 
             },
             { 
                 name: "Tab Cabergolin 0.5mg", 
@@ -2077,8 +1858,7 @@
                 tags: "cabergolin", 
                 calc: (wt) => `
                     <div class="badge">TABLET</div><br>
-                    <div class="highlight">Give: 2 tab only for 2 days</div>
-                ` 
+                    <div class="highlight" style="display:block;">Give: 2 tab only for 2 days</div>` 
             },
 
             // --- FORMULAS ---
@@ -2087,403 +1867,32 @@
                 category: "Formula", 
                 tags: "pre nan similac lbw neosure", 
                 calc: (wt) => `
-                    <div class="badge">FORMULA</div><br>
-                    <div class="highlight">Weight: Below 2.5 kg (Premature / Low Birth Weight)</div>
-                ` 
+                    <div class="badge" style="background:#fefcbf; color:#744210;">FORMULA</div><br>
+                    <div class="highlight" style="display:block;">Weight: Below 2.5 kg (Premature / Low Birth Weight)</div>` 
             },
             { 
                 name: "NAN-1, Dexolac-1, Lactogen-1", 
                 category: "Formula", 
                 tags: "nan 1 dexolac 1 lactogen 1", 
                 calc: (wt) => `
-                    <div class="badge">FORMULA</div><br>
-                    <div class="highlight">Age: 2.5kg to 6 months</div>
-                ` 
+                    <div class="badge" style="background:#fefcbf; color:#744210;">FORMULA</div><br>
+                    <div class="highlight" style="display:block;">Age: 2.5kg to 6 months</div>` 
             },
             { 
                 name: "NAN-2, Similac-2, Dexolac-2", 
                 category: "Formula", 
                 tags: "nan 2 similac 2 dexolac 2", 
                 calc: (wt) => `
-                    <div class="badge">FORMULA</div><br>
-                    <div class="highlight">Age: 6 months to 1 year</div>
-                ` 
+                    <div class="badge" style="background:#fefcbf; color:#744210;">FORMULA</div><br>
+                    <div class="highlight" style="display:block;">Age: 6 months to 1 year</div>` 
             },
             { 
                 name: "PediaSure, NAN Grow, Groviva", 
                 category: "Formula", 
                 tags: "pediasure nan grow groviva", 
                 calc: (wt) => `
-                    <div class="badge">FORMULA</div><br>
-                    <div class="highlight">Age: 2 to 5 Years</div>
-                ` 
-            },
-
-            // --- FLUIDS & DKA ---
-            { 
-                name: "Dehydration Fluid Therapy", 
-                category: "Fluids", 
-                tags: "dehydration therapy fluid bolus deficit mild moderate severe", 
-                calc: (wt, age, unit) => { 
-                    let mode = getPatientMode(age, unit);
-                    let res = `<div class="badge">FLUID REPLACEMENT</div><br>`; 
-                    if(mode === "NICU" || (unit==="Days" || (unit==="Months" && age<=12) || wt<=10)) { 
-                        res += `<div class="highlight" style="display:block;">Infant (&lt;10kg / &lt;1yr):</div><div class="note" style="color:var(--text-main);"><b>Mild (5%):</b> ${wt*50} ml<br><b>Moderate (10%):</b> ${wt*100} ml<br><b>Severe (15%):</b> ${wt*150} ml</div>`;
-                    } else { 
-                        res += `<div class="highlight" style="display:block;">Child (&gt;10kg / &gt;1yr):</div><div class="note" style="color:var(--text-main);"><b>Mild (3%):</b> ${wt*30} ml<br><b>Moderate (6%):</b> ${wt*60} ml<br><b>Severe (9%):</b> ${wt*90} ml</div>`;
-                    } 
-                    res += `<div class="highlight" style="display:block; margin-top:5px; background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;">Severe Bolus: ${(wt*20).toFixed(0)} ml NS/RL Stat</div>`;
-                    return res; 
-                } 
-            },
-            { 
-                name: "🩸 DKA MASTER PROTOCOL", 
-                category: "Fluids", 
-                tags: "dka insulin actrapid protocol diabetic ketoacidosis fluids monocef", 
-                calc: (wt) => { 
-                    let b = wt * 20;
-                    return `
-                        <div class="badge" style="background:#fed7d7; color:#9b2c2c;">DKA MANAGEMENT</div><br>
-                        <div class="highlight">Stat Bolus (20 ml/kg): ${b.toFixed(1)} ml NS</div>
-                        <div class="calc-inputs">
-                            <input type="number" id="dkaRbs" placeholder="Enter RBS" oninput="window.runDKA()">
-                        </div>
-                        <div class="highlight" id="dkaFluidRes" style="display:block; width:100%; font-size:14px;">Enter RBS for Fluid Suggestion</div>
-                        <div class="highlight" id="dkaInsulinRes" style="display:block; width:100%; font-size:14px;">Enter RBS for Insulin Suggestion</div>
-                        <hr style="margin:10px 0; border-top:1px solid var(--border);">
-                        
-                        <div class="badge" style="background:#bee3f8; color:#2a4365;">DKA MEDS</div>
-                        <div class="highlight" style="display:block; font-size:13px;">1. Monocef (50mg/kg): ${(wt*50).toFixed(1)} mg -> Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
-                        <div class="highlight" style="display:block; font-size:13px;">2. Emeset (0.15mg/kg): ${(wt*0.15).toFixed(2)} mg -> Vol: ${(wt*0.075).toFixed(2)} ml TDS</div>
-                        <div class="highlight" style="display:block; font-size:13px;">3. Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD</div>
-                        <div class="highlight" style="display:block; font-size:13px;">4. Febrinil (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/150).toFixed(2)} ml SOS</div>
-                    `; 
-                } 
-            },
-            { 
-                name: "SC Insulin (Sliding Scale & Basal)", 
-                category: "Fluids", 
-                tags: "insulin sliding scale sc rbs lantus actrapid", 
-                calc: (wt) => `
-                    <div class="badge">SUBCUTANEOUS INSULIN</div><br>
-                    <div class="calc-inputs" style="grid-template-columns: 1fr;">
-                        <input type="number" id="scRbsInp" placeholder="Enter Patient RBS" oninput="window.runSCInsulin()">
-                    </div>
-                    <div id="scInsulinRes">Enter RBS to calculate Actrapid dose.</div>
-                `
-            },
-            { 
-                name: "🟨 JAUNDICE PROTOCOL", 
-                category: "Fluids", 
-                tags: "jaundice hepatitis protocol", 
-                calc: (wt) => `
-                    <div class="badge" style="background:#fefcbf; color:#744210;">HEPATITIS MANAGEMENT</div><br>
-                    <div class="highlight" style="display:block;">1. IVF: 0.45 DNS + 5ml KCl + 10ml Ca-Gluconate + MVI</div>
-                    <div class="highlight" style="display:block;">2. Inj Taxim (50mg/kg): ${(wt*50).toFixed(1)} mg -> Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
-                    <div class="highlight" style="display:block;">3. Inj Emeset (0.15mg/kg): ${(wt*0.15).toFixed(2)} mg -> Vol: ${(wt*0.075).toFixed(2)} ml TDS / SOS</div>
-                    <div class="highlight" style="display:block;">4. Inj Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD</div>
-                    <div class="highlight" style="display:block;">5. Inj Febrinil (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/150).toFixed(2)} ml SOS</div>
-                ` 
-            },
-            { 
-                name: "Inj Albumin", 
-                category: "Fluids", 
-                tags: "albumin fluid expansion edema nephrotic", 
-                calc: (wt) => { 
-                    let doseG = wt * 1;
-                    return `
-                        <div class="badge">VOLUME EXPANDER (0.5 - 1 g/kg)</div><br>
-                        <div class="highlight">Dose (1 g/kg): ${doseG.toFixed(1)} g</div>
-                        <div class="highlight" style="display:block;">Vol (20% Albumin): ${(doseG * 5).toFixed(1)} ml</div>
-                        <div class="highlight" style="display:block;">Vol (5% Albumin): ${(doseG * 20).toFixed(1)} ml</div>
-                        <div class="note">20% contains 20g/100ml. Give slowly over 2-4 hours.</div>
-                    `;
-                } 
-            },
-            { 
-                name: "Inj IVIG (Intravenous Immunoglobulin)", 
-                category: "Fluids", 
-                tags: "ivig immunoglobulin kawasaki itp sepsis", 
-                calc: (wt) => { 
-                    let d1 = wt * 1;
-                    let d2 = wt * 2; 
-                    return `
-                        <div class="badge">IMMUNOMODULATOR (1 - 2 g/kg)</div><br>
-                        <div class="highlight" style="display:block;">If Dose 1 g/kg: ${d1.toFixed(1)} g -> Vol (5%): ${(d1*20).toFixed(1)} ml | Vol (10%): ${(d1*10).toFixed(1)} ml</div>
-                        <div class="highlight" style="display:block;">If Dose 2 g/kg: ${d2.toFixed(1)} g -> Vol (5%): ${(d2*20).toFixed(1)} ml | Vol (10%): ${(d2*10).toFixed(1)} ml</div>
-                        <div class="note">5% = 50mg/ml, 10% = 100mg/ml. Start at 0.01 ml/kg/min, gradually increase.</div>
-                    `;
-                } 
-            },
-
-            // --- NICU PROTOCOLS ---
-            { 
-                name: "👶 COMPLETE NICU PROTOCOL", 
-                category: "NICU", 
-                tags: "nicu protocol intensive care xylistin", 
-                calc: (wt) => { 
-                    let fluidMatrix = wt < 1 ? "D1: 100 | D2: 120 | D3: 130 | D4: 140 | D5+: 150 ml/kg" : (wt <= 1.5 ? "D1: 80 | D2: 100 | D3: 120 | D4: 130 | D5: 140 | D6+: 150 ml/kg" : "D1: 60 | D2: 80 | D3: 100 | D4: 120 | D5: 130 | D6: 140 | D7+: 150 ml/kg"); 
-                    let pipMg = wt * 100; 
-                    let pipVial = pipMg <= 1125 ? "1.125g in 10ml" : (pipMg <= 2250 ? "2.25g in 20ml" : "4.5g in 40ml"); 
-                    let pipVol = (pipMg / 112.5).toFixed(2); 
-                    return `
-                        <div class="badge" style="background:#c6f6d5; color:#22543d;">IV FLUIDS</div>
-                        <div class="highlight" style="font-size:13px; display:block;">${fluidMatrix}</div>
-                        <div class="note">Day 1-3: D10% | Day >3: 0.45 DNS</div>
-                        
-                        <div class="badge" style="background:#bee3f8; color:#2a4365; margin-top:10px;">FIXED MEDS</div>
-                        <div class="highlight" style="display:block;">1. Piptaz (100mg/kg): ${pipMg.toFixed(1)} mg -> Vol: ${pipVol} ml IV TDS<br><span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(Dilution: ${pipVial} SW)</span></div>
-                        <div class="highlight" style="display:block;">2. Zostum (50mg/kg): ${(wt*50).toFixed(1)} mg -> Vol: ${(wt*0.5).toFixed(2)} ml BD/TDS (from 1g/10ml)</div>
-                        
-                        <div class="badge" style="background:#e9d8fd; color:#553c9a; margin-top:10px;">UPGRADE ANTIBIOTICS</div>
-                        <div class="highlight" style="display:block;">1. Meropenem (20mg/kg): ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*20/50).toFixed(2)} ml TDS</div>
-                        <div class="highlight" style="display:block;">2. Vancomycin (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/50).toFixed(2)} ml TDS</div>
-                        <div class="highlight" style="display:block;">3. Colistin (33k IU/kg): ${(wt*33333).toLocaleString()} IU -> Vol: ${(wt*33333/100000).toFixed(2)} ml TDS (1 MIU/10ml)</div>
-                        
-                        <div class="badge" style="background:#feebc8; color:#7b341e; margin-top:10px;">CONDITIONAL</div>
-                        <div class="highlight" style="display:block;">Capnea: LD ${wt.toFixed(2)} ml Stat | <b>MD:</b> ${(wt/4).toFixed(2)} ml OD</div>
-                        <div class="highlight" style="display:block;">Delayed Cry (HIE): Inj Gardinal LD ${(wt*20).toFixed(1)} mg -> Vol: ${(wt*20/200).toFixed(2)} ml Stat | <b>MD:</b> ${(wt*5).toFixed(1)} mg/day (Divide in BD)</div>
-                    `; 
-                } 
-            },
-            { 
-                name: "NICU Insulin Infusion (Hyperglycemia)", 
-                category: "NICU", 
-                tags: "insulin hyperglycemia actrapid nicu rbs", 
-                calc: (wt) => `
-                    <div class="badge">INSULIN INFUSION (0.05 U/kg/hr)</div><br>
-                    <div class="highlight">Rate: ${(wt*0.5).toFixed(1)} ml/hr</div>
-                    <div class="note"><b>Preparation:</b> Mix 1 Unit Actrapid (Regular Insulin) in 10 ml NS. (Concentration = 0.1 Unit/ml).<br>Monitor RBS every 1-2 hours.</div>
-                `
-            },
-
-            // --- PICU PROTOCOLS ---
-            { 
-                name: "🛏️ COMPLETE PICU PROTOCOL", 
-                category: "PICU", 
-                tags: "picu protocol intensive care zostum", 
-                calc: (wt) => { 
-                    let f = wt <= 10 ? (wt * 100) : (wt <= 20 ? (1000 + (wt-10)*50) : (1500 + (wt-20)*20));
-                    let pipMg = wt * 100; 
-                    let pipVial = pipMg <= 1125 ? "1.125g in 10ml" : (pipMg <= 2250 ? "2.25g in 20ml" : "4.5g in 40ml");
-                    let pipVol = (pipMg / 112.5).toFixed(2); 
-                    return `
-                        <div class="badge" style="background:#c6f6d5; color:#22543d;">IV FLUIDS (Holliday-Segar)</div>
-                        <div class="highlight" style="display:block;">24 hr Total: ${f.toFixed(0)} ml | Rate: ${(f/24).toFixed(1)} ml/hr</div>
-                        
-                        <div class="badge" style="background:#bee3f8; color:#2a4365; margin-top:10px;">PICU MEDS</div>
-                        <div class="highlight" style="display:block;">1. Monocef (50mg/kg): ${(wt*50).toFixed(1)} mg -> Vol: ${((wt * 50)/100).toFixed(2)} ml BD</div>
-                        <div class="highlight" style="display:block;">2. Zostum (50mg/kg): ${(wt*50).toFixed(1)} mg -> Vol: ${((wt * 50)/100).toFixed(2)} ml BD/TDS</div>
-                        <div class="highlight" style="display:block;">3. Piptaz (100mg/kg): ${pipMg.toFixed(1)} mg -> Vol: ${pipVol} ml TDS<br><span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(Dilution: ${pipVial} SW)</span></div>
-                        <div class="highlight" style="display:block;">4. Vancomycin (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${((wt * 15)/50).toFixed(2)} ml TDS (Slow IV)</div>
-                        <div class="highlight" style="display:block;">5. Inj Emeset (0.15mg/kg): ${(wt*0.15).toFixed(2)} mg -> Vol: ${(wt*0.075).toFixed(2)} ml TDS</div>
-                        <div class="highlight" style="display:block;">6. Inj Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD</div>
-                        <div class="highlight" style="display:block;">7. Inj Febrinil (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/150).toFixed(2)} ml SOS</div>
-                        <div class="highlight" style="display:block;">8. Amikacin (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/50).toFixed(2)} ml OD</div>
-                    `;
-                } 
-            },
-
-            // --- VACCINES ---
-            { 
-                name: "Rabies Vaccine & RIG (Dog Bite)", 
-                category: "Vaccine", 
-                tags: "rabies vaccine dog bite dogbite antirabies arvs rig immunoglobulin hrig erig", 
-                calc: (wt) => `
-                    <div class="badge">VACCINE DOSE (Standard)</div><br>
-                    <div class="highlight" style="display:block;">Dose: 0.5 ml IM (or 0.1 ml ID per site)</div>
-                    
-                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
-                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">IMMUNOGLOBULIN (RIG) DOSE</div><br>
-                    <div class="highlight" style="display:block;">Equine RIG (40 IU/kg): ${(wt * 40).toLocaleString()} IU ➔ Vol (300 IU/ml): <b>${(wt * 40 / 300).toFixed(2)} ml</b></div>
-                    <div class="highlight" style="display:block;">Human RIG (20 IU/kg): ${(wt * 20).toLocaleString()} IU ➔ Vol (150 IU/ml): <b>${(wt * 20 / 150).toFixed(2)} ml</b></div>
-                    <div class="note">Infiltrate RIG maximum around the wound. Give remainder IM at a site distant from vaccine.</div>
-                    
-                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
-                    <div class="note"><b>PEP Schedule (Select Day 0):</b></div>
-                    <input type="date" id="rabiesDate" value="${window.savedRabiesDate || ''}" onchange="window.calcRabies()" style="margin-top:5px; padding:5px; width:100%; border:1px solid var(--border); border-radius:5px; background:var(--bg-card); color:var(--text-main);">
-                    <div id="rabiesRes" style="margin-top:8px; display:block;">
-                        ${window.savedRabiesDate ? "" : "<div class='highlight'>Select date to see schedule</div>"}
-                    </div>
-                `
-            },
-            { 
-                name: "Inj Tetanus Toxoid (TT / Td) & TIG", 
-                category: "Vaccine", 
-                tags: "tetanus tt td toxoid tig immunoglobulin ats wound injury", 
-                calc: (wt) => `
-                    <div class="badge">VACCINE (Prophylaxis)</div><br>
-                    <div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Dose: 0.5 ml IM Stat</div>
-                    <div class="note">Standard dose regardless of age/weight. Give for injury if >5 yrs since last dose.</div>
-                    
-                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
-                    <div class="badge" style="background:#bee3f8; color:#2a4365;">TETANUS IMMUNOGLOBULIN (TIG)</div><br>
-                    <div class="highlight" style="display:block;">Prophylaxis (High Risk Wound): 250 IU IM Stat</div>
-                    <div class="highlight" style="display:block;">Treatment (Clinical Tetanus): 3000 to 6000 IU IM</div>
-                    <div class="note">TIG is given if immunization status is unknown or incomplete (<3 primary doses). TIG dose is also generally standard, not weight-dependent.</div>
-                `
-            },
-            { 
-                name: "IAP Immunization Schedule", 
-                category: "Vaccine", 
-                tags: "vaccine immunization schedule iap new routine", 
-                calc: () => `
-                    <div class="badge">IAP GUIDELINES</div><br>
-                    <div class="note" style="color:var(--text-main);">
-                        <b>Birth:</b> BCG, OPV-0, Hep B-1<br>
-                        <b>6, 10, 14 Wks:</b> DTwP/DTaP (1,2,3), IPV (1,2,3), Hep B (2,3,4), Hib (1,2,3), Rotavirus (1,2,3), PCV (1,2,3)<br>
-                        <b>6 Mos:</b> Typhoid (TCV), Flu-1<br>
-                        <b>7 Mos:</b> Flu-2<br>
-                        <b>9-12 Mos:</b> MR-1, JE-1<br>
-                        <b>12 Mos:</b> Hep A-1<br>
-                        <b>15 Mos:</b> MMR-2, Varicella-1, PCV Booster<br>
-                        <b>16-18 Mos:</b> DTwP Booster-1, IPV Booster-1, Hib Booster-1<br>
-                        <b>18-19 Mos:</b> Hep A-2, Varicella-2<br>
-                        <b>4-6 Yrs:</b> DTwP Booster-2, IPV Booster-2, MMR-3
-                    </div>
-                `
-            },
-
-            // --- TRAINING & VIDEOS ---
-            { 
-                name: "Ventilator, CPAP & HFNC Settings", 
-                category: "Training", 
-                tags: "ventilator settings mode pip peep rds cpap hfnc", 
-                calc: () => `
-                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">VENTILATOR (IAP)</div><br>
-                    <div class="note" style="color:var(--text-main);">
-                        <b>Normal Lungs:</b> PIP 14-16 | PEEP 4-5 | Rate 30-40 | Ti 0.35s<br>
-                        <b>RDS:</b> PIP 16-20 | PEEP 5-6 | Rate 40-50 | Ti 0.3-0.35s<br>
-                        <b>MAS:</b> PIP 20-25 | PEEP 4-5 | Rate 40-60 | Ti 0.35s
-                    </div>
-                    <hr>
-                    <div class="badge" style="background:#bee3f8; color:#2a4365;">CPAP & HFNC</div><br>
-                    <div class="note" style="color:var(--text-main);">
-                        <b>CPAP:</b> PEEP 5 to 6 cmH2O | Flow 5 to 8 L/min.<br>
-                        <b>HFNC:</b> Flow 2 L/kg/min (Max 8 L/min in neonates). Titrate FiO2.
-                    </div>`
-            },
-            { 
-                name: "Status Epilepticus Protocol", 
-                category: "Training", 
-                tags: "status epilepticus seizure algorithm", 
-                calc: () => `
-                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">ALGORITHM (0 - 20 Mins)</div><br>
-                    <div class="note" style="color:var(--text-main);">
-                        <b>0-5 min:</b> ABC, O2, Check RBS. Give IV Midaz (0.1mg/kg) or Lorazepam (0.1mg/kg).<br>
-                        <b>5-10 min:</b> Repeat Midaz/Lorazepam if seizing.<br>
-                        <b>10-20 min:</b> Load Levetiracetam (30-40mg/kg) OR Fosphenytoin/Phenytoin (20mg/kg).<br>
-                        <b>>20 min:</b> Refractory. Load Valproate or Phenobarbital. Intubate.
-                    </div>`
-            },
-            { 
-                name: "NRP (NICU Resuscitation) Steps & Video", 
-                category: "Training", 
-                tags: "nrp resuscitation cpr nicu algorithm training", 
-                calc: () => `
-                    <div class="badge">NRP ALGORITHM</div><br>
-                    <div class="note">
-                        1. Warm, Dry, Stimulate.<br>
-                        2. HR < 100 or Apnea ➡️ Start PPV. (MR. SOPA for ventilation correction).<br>
-                        3. HR < 60 after 30s PPV ➡️ Intubate + Chest Compressions (3:1) + 100% O2.<br>
-                        4. HR < 60 after 60s Compressions ➡️ Inj Adrenaline (0.1-0.3 ml/kg of 1:10k IV) + NS Bolus 10 ml/kg.
-                    </div>
-                    ${yt('ch41qyxCcH4', 'NRP Training')}
-                `
-            },
-            { 
-                name: "PALS (PICU Resuscitation) Steps & Video", 
-                category: "Training", 
-                tags: "pals resuscitation cpr picu algorithm training", 
-                calc: () => `
-                    <div class="badge">PALS ALGORITHM</div><br>
-                    <div class="note">
-                        1. C-A-B (Compressions 100-120/min, 15:2 ratio).<br>
-                        2. Shockable (VF/pVT): Defib 2 J/kg -> 4 J/kg. If refractory give Amiodarone/Lidocaine.<br>
-                        3. Non-Shockable (Asystole/PEA): Inj Adrenaline 0.1 ml/kg of 1:10k IV ASAP.<br>
-                        4. Treat Reversible Causes (H's and T's).
-                    </div>
-                    ${yt('8vtSQ24b4sQ', 'PALS Training')}
-                `
-            },
-            { 
-                name: "Pneumonia Management Steps (IAP)", 
-                category: "Training", 
-                tags: "pneumonia steps procedure iap", 
-                calc: () => `
-                    <div class="badge">GUIDELINE</div><br>
-                    <div class="note">
-                        <b>1. Assess:</b> Tachypnea (WHO criteria), Retractions, SpO2 < 90%, Danger signs.<br>
-                        <b>2. Supportive:</b> O2 Therapy, IV Fluids (Avoid oral if severe tachypnea to prevent aspiration), PCM for fever.<br>
-                        <b>3. Antibiotics (Severe):</b> Inj Ampicillin + Gentamicin OR Inj Ceftriaxone (Monocef).<br>
-                        <b>4. If Staph suspected:</b> Add Vancomycin or Clindamycin.
-                    </div>
-                `
-            },
-            { 
-                name: "Lumbar Puncture (CSF Collection)", 
-                category: "Training", 
-                tags: "lp lumbar puncture csf procedure steps", 
-                calc: () => `
-                    <div class="badge">PROCEDURE</div><br>
-                    <div class="note">
-                        <b>Site:</b> L3-L4 or L4-L5 intervertebral space.<br>
-                        <b>Position:</b> Lateral decubitus (knees to chest).<br>
-                        <b>Steps:</b> Aseptic precaution -> Insert 22G/24G spinal needle -> Feel the 'Pop' as dura is pierced -> Remove stylet -> Collect 3-4 drops in 3 separate sterile vials.<br>
-                        <b>Contraindications:</b> High ICP, severe coagulopathy.<br>
-                        ⚠️ Never aspirate with syringe!
-                    </div>
-                `
-            },
-            { 
-                name: "IV Cannula (Vigo) Insertion", 
-                category: "Training", 
-                tags: "iv cannula vigo procedure steps insertion", 
-                calc: () => `
-                    <div class="badge">PROCEDURE</div><br>
-                    <div class="note">
-                        <b>Steps:</b> Select vein (Dorsum of hand/foot) -> Tie Tourniquet -> Clean with alcohol swab -> Insert cannula at 15-20° angle -> Look for Primary Flashback -> Advance catheter gently & remove needle (Secondary flashback) -> Flush with NS -> Apply fixator.
-                    </div>
-                `
-            },
-            { 
-                name: "Neonatal Cooling (Therapeutic Hypothermia)", 
-                category: "Training", 
-                tags: "cooling hypothermia hie asphyxia training", 
-                calc: () => `
-                    <div class="badge">PROTOCOL</div><br>
-                    <div class="note">
-                        <b>Criteria:</b> Gestation ≥ 36 wks, Wt ≥ 1800g, within 6 hrs of birth with Mod/Severe HIE.<br>
-                        <b>Target Temp:</b> 33.5°C (Rectal/Esophageal).<br>
-                        <b>Duration:</b> Maintain 33.5°C for 72 hours.<br>
-                        <b>Rewarming:</b> Slowly at 0.5°C per hour after 72 hrs.
-                    </div>
-                `
-            },
-            { 
-                name: "ICD Insertion (Pneumothorax) - Neonate", 
-                category: "Training", 
-                tags: "icd chest tube pneumothorax neonate procedure training video", 
-                calc: () => `
-                    <div class="badge">NEONATE ICD</div><br>
-                    <div class="note">
-                        <b>Site:</b> 4th/5th Intercostal space (Triangle of safety - Mid/Anterior axillary line).<br>
-                        Give LA -> Incision just ABOVE the rib -> Puncture pleura with artery forceps (air rush) -> Insert tube -> Connect to underwater seal.
-                    </div>
-                    ${yt('_6sFa79u6FQ', 'Neonate ICD')}
-                `
-            },
-            { 
-                name: "ICD Insertion (Pneumothorax) - Pediatric", 
-                category: "Training", 
-                tags: "icd chest tube pneumothorax pediatric procedure training video", 
-                calc: () => `
-                    <div class="badge">PEDIATRIC ICD</div><br>
-                    <div class="note">
-                        Follow standard ATLS/PALS trauma guidelines for chest tube insertion in older children.
-                    </div>
-                    ${yt('IdmMR8JxmFo', 'Pediatric ICD')}
-                `
+                    <div class="badge" style="background:#fefcbf; color:#744210;">FORMULA</div><br>
+                    <div class="highlight" style="display:block;">Age: 2 to 5 Years</div>` 
             }
         ];
 
@@ -2521,7 +1930,6 @@
                 if(!grouped[x.category]) grouped[x.category] = [];
                 let cls = "card";
                 
-                // Add specific class for side-border color
                 if(x.category === "Emergency") cls += " emergency"; 
                 else if(x.category === "Fluids") cls += " fluids"; 
                 else if(x.category === "Neuro") cls += " neuro"; 
@@ -2575,7 +1983,6 @@
             d.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); margin-top:30px;">No results found.</p>';
         }
 
-        // Copy functionality
         function cp(b){ 
             let txt = b.closest('.card').innerText.replace("📋 Copy Content","").trim(); 
             navigator.clipboard.writeText(txt); 
