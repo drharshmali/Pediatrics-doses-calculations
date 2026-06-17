@@ -334,6 +334,8 @@
         }
         .about-section { background: var(--note-bg); border: 1px dashed var(--note-border); border-radius: 12px; padding: 15px; margin-top: 25px; margin-bottom: 20px; box-shadow: none; }
         .footer-credits { text-align: center; font-size: 11px; color: #a0aec0; margin-top: 30px; margin-bottom: 10px; letter-spacing: 0.5px; font-weight: bold; }
+        #printArea { display:none; }
+        @media print { body > *:not(#printArea) { display:none !important; } #printArea { display:block !important; } }
     </style>
 </head>
 <body>
@@ -393,6 +395,7 @@
         <div class="menu-item" onclick="openCat('GI')"><div class="menu-icon">🩺</div>GI & Tablets</div>
         <div class="menu-item" onclick="openCat('Vaccine')"><div class="menu-icon">💉</div>Vaccines</div>
         <div class="menu-item" onclick="openCat('Formula')"><div class="menu-icon">🍼</div>Infant Formulas</div>
+        <div class="menu-item" onclick="openCat('TreatmentSheet')"><div class="menu-icon">📋</div>Tx Sheet</div>
         <div class="menu-item" onclick="openSuggestions()"><div class="menu-icon">💬</div>Suggestions</div>
     </div>
 
@@ -455,6 +458,8 @@
         </div>
     </div>
 
+    <div id="printArea"></div>
+
     <!-- Firebase SDK (for the public Suggestions Chat) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -463,6 +468,8 @@
     <script>
         let currentCategory = 'All';
         window.savedRabiesDate = "";
+        let txSheet = JSON.parse(localStorage.getItem('nhTx') || '[]');
+        window._txPatient = localStorage.getItem('nhTxPatient') || '';
 
         // YouTube iframe helper function using Direct Video IDs
         const yt = (videoId, title) => {
@@ -3265,6 +3272,8 @@
                 mb.style.display="none";
             }
 
+            if(currentCategory === 'TreatmentSheet'){ renderTxSheet(); return; }
+
             // --- FIX FOR EMPTY SECTIONS: ALLOW VACCINE, TRAINING & CALCS WITHOUT WEIGHT ---
             if(w <= 0 && s === "" && currentCategory !== 'Training' && currentCategory !== 'Vaccine' && currentCategory !== 'Calculators'){
                 d.innerHTML='<p style="text-align:center; color:var(--text-muted); margin-top:30px;">Please enter weight to see data.</p>';
@@ -3296,11 +3305,15 @@
                 else if(x.category === "Vaccine") cls += " vaccine";
                 else if(x.category === "Training") cls += " training";
 
+                let dn = x.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
                 grouped[x.category].push(`
-                    <div class="${cls}">
+                    <div class="${cls}" data-drug="${dn}">
                         <div class="drug-name">${x.name}</div>
                         ${x.calc(w, a, u)}
-                        <button class="copy-all-btn" style="margin-top:8px; padding:6px; font-size:14px;" onclick="cp(this)">📋 Copy Content</button>
+                        <div style="display:flex; gap:6px; margin-top:8px;">
+                            <button class="copy-all-btn" style="padding:6px; font-size:13px; flex:1; margin:0;" onclick="cp(this)">📋 Copy</button>
+                            <button class="action-btn" style="background:#38a169; padding:6px 12px;" onclick="txBtn(this)" title="Add to Tx Sheet">➕ Tx</button>
+                        </div>
                     </div>
                 `);
             });
@@ -3342,10 +3355,10 @@
 
         // Copy functionality
         function cp(b){
-            let txt = b.closest('.card').innerText.replace("📋 Copy Content","").trim();
+            let txt = b.closest('.card').innerText.replace(/📋 Copy/,"").replace(/➕ Tx/,"").replace(/✅/,"").trim();
             navigator.clipboard.writeText(txt);
-            b.innerText="✅ Copied";
-            setTimeout(() => b.innerText="📋 Copy Content", 1500);
+            b.innerText="✅";
+            setTimeout(() => b.innerHTML="📋 Copy", 1500);
         }
 
         function copyAll(){
@@ -3361,11 +3374,54 @@
                     t += `\n📍 ${x.innerText}\n========================\n\n`;
                 }
                 else if (x.classList.contains('card')) {
-                    t += x.innerText.replace("📋 Copy Content","").trim() + "\n\n---\n\n";
+                    t += x.innerText.replace(/📋 Copy/,"").replace(/➕ Tx/,"").replace(/✅/,"").trim() + "\n\n---\n\n";
                 }
             });
 
             navigator.clipboard.writeText(t).then(()=> alert("✅ All results copied successfully!")).catch(()=> alert("Failed to copy"));
+        }
+
+        // ---- TREATMENT SHEET ----
+        function addToTx(name){ if(txSheet.indexOf(name)<0){ txSheet.push(name); localStorage.setItem('nhTx', JSON.stringify(txSheet)); } }
+        function txBtn(b){ var c=b.closest('.card'); if(!c) return; addToTx(c.getAttribute('data-drug')); b.innerText='✅'; setTimeout(function(){ b.innerHTML='➕ Tx'; },1200); }
+        function removeFromTx(name){ var i=txSheet.indexOf(name); if(i>=0){ txSheet.splice(i,1); localStorage.setItem('nhTx', JSON.stringify(txSheet)); } if(currentCategory==='TreatmentSheet') renderTxSheet(); }
+        function clearTx(){ if(!confirm('Remove all drugs from the treatment sheet?')) return; txSheet=[]; localStorage.setItem('nhTx','[]'); renderTxSheet(); }
+        function nhSetTxPatient(v){ window._txPatient=v; localStorage.setItem('nhTxPatient', v); }
+        function renderTxSheet(){
+            var d=document.getElementById('results');
+            var w=val('weight'), a=val('age'), u=document.getElementById('ageUnit').value;
+            var pname=(window._txPatient||'').replace(/"/g,'&quot;');
+            var html='<div class="card tools"><div class="drug-name">📋 Treatment Sheet</div>'
+                + '<input type="text" id="txPatientName" placeholder="Patient Name / Bed No" value="'+pname+'" oninput="nhSetTxPatient(this.value)" style="margin-bottom:10px;">';
+            if(txSheet.length===0){
+                html += '<div class="note">No drugs added yet. Press the "➕ Tx" button on any drug card to add it here.</div>';
+            } else {
+                txSheet.forEach(function(nm){
+                    var drug=drugs.find(function(x){return x.name===nm;});
+                    if(!drug) return;
+                    var safe=nm.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+                    html += '<div class="card" style="margin-top:10px;"><div class="drug-name" style="font-size:15px;">'+nm+' <button class="action-btn" style="background:#e53e3e; float:right; padding:3px 8px; font-size:11px;" onclick="removeFromTx(\''+safe+'\')">✕</button></div>'+drug.calc(w,a,u)+'</div>';
+                });
+                html += '<div style="display:flex; gap:8px; margin-top:14px;"><button class="copy-all-btn" style="background:#3182ce;" onclick="printTx()">🖨️ Print / PDF</button><button class="action-btn" style="background:#e53e3e;" onclick="clearTx()">🗑️ Clear</button></div>';
+            }
+            html += '</div>';
+            d.innerHTML=html;
+        }
+        function printTx(){
+            var w=document.getElementById('weight').value, a=document.getElementById('age').value, u=document.getElementById('ageUnit').value;
+            var wt=val('weight'), av=val('age');
+            var pname=window._txPatient||'';
+            var h='<div style="font-family:sans-serif; padding:12px; color:#000;">';
+            h+='<h2 style="text-align:center; margin:0 0 4px;">Treatment Sheet</h2>';
+            h+='<div style="font-size:13px; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:10px;"><b>Patient:</b> '+(pname||'________________')+' &nbsp;&nbsp; <b>Weight:</b> '+(w||'____')+' kg &nbsp;&nbsp; <b>Age:</b> '+(a?(a+' '+u):'____')+' &nbsp;&nbsp; <b>Date:</b> '+new Date().toLocaleDateString('en-GB')+'</div>';
+            if(txSheet.length===0){ h+='<p>No drugs added.</p>'; }
+            txSheet.forEach(function(nm,i){
+                var drug=drugs.find(function(x){return x.name===nm;}); if(!drug) return;
+                var tmp=document.createElement('div'); tmp.innerHTML=drug.calc(wt,av,u);
+                h+='<div style="border:1px solid #888; border-radius:6px; padding:8px; margin-bottom:8px;"><b>'+(i+1)+'. '+nm+'</b><div style="font-size:13px; margin-top:4px; white-space:pre-wrap;">'+tmp.innerText.trim()+'</div></div>';
+            });
+            h+='<div style="font-size:11px; margin-top:12px; color:#555;">⚠️ Educational support only. Verify clinically. Developed by Dr. Harsh Mali.</div></div>';
+            var pa=document.getElementById('printArea'); if(pa){ pa.innerHTML=h; window.print(); }
         }
     </script>
 </body>
