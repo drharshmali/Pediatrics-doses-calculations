@@ -1274,6 +1274,158 @@
                     <div id="uniRes" class="highlight" style="display:block; margin-top:6px;">Enter values to convert...</div>`
             },
             {
+                name: "💧 Drug Dilution / Reconstitution Guide",
+                category: "Hidden",
+                tags: "dilution reconstitution guide diluent monocef vial powder wfi sterile water how much dilute iap meharban singh dw",
+                calc: () => `
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">DILUTION / RECONSTITUTION — all injectables</div>
+                    <div class="note" style="color:var(--text-muted); margin-bottom:8px;">Powder vial → reconstitute with WFI / Sterile Water (SW/DW). "Ready" = liquid amp (no reconstitution; dilute before infusion if noted). Per IAP / Dr. Meharban Singh & standard practice — always check the vial label.</div>
+
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">ANTIBIOTICS · ANTIFUNGAL · ANTIVIRAL</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Ceftriaxone (Monocef):</b> 1 g → 10 ml · 500 mg → 5 ml · 250 mg → 2.5 ml (100 mg/ml)<br>
+                        <b>Cefotaxime (Taxim):</b> 1 g → 10 ml · 500 mg → 5 ml (100 mg/ml)<br>
+                        <b>Cefoperazone-Sulbactam (Zostum):</b> 1 g → 10 ml (100 mg/ml)<br>
+                        <b>Cefepime-Tazo (Magnex/Magnova):</b> 1 g → 10 ml (100 mg/ml)<br>
+                        <b>Piperacillin-Tazo (Piptaz):</b> 1.125 g → 10 ml · 2.25 g → 20 ml · 4.5 g → 40 ml (112.5 mg/ml)<br>
+                        <b>Amox-Clav (Augmentin):</b> 1.2 g → 20 ml · 600 mg → 10 ml (60 mg/ml)<br>
+                        <b>Ampicillin / Ampiclox:</b> 500 mg → 5 ml (100 mg/ml)<br>
+                        <b>Cloxacillin:</b> 500 mg → 5 ml (100 mg/ml)<br>
+                        <b>Meropenem:</b> 1 g → 20 ml · 500 mg → 10 ml (50 mg/ml); then dilute in NS, infuse 15-30 min<br>
+                        <b>Vancomycin:</b> 500 mg → 10 ml (50 mg/ml); then dilute to ≤5 mg/ml, infuse ≥60 min<br>
+                        <b>Clindamycin:</b> ready 150 mg/ml; dilute to ≤18 mg/ml (e.g. +9 ml NS), over 10-60 min<br>
+                        <b>Colistin (Xylistin):</b> 1 MIU → 10 ml NS (100k IU/ml); give in 5 ml D5<br>
+                        <b>Polymyxin B:</b> 500k IU → 10 ml WFI (50k IU/ml); give in 5 ml D5<br>
+                        <b>Tigecycline:</b> 50 mg → 5 ml NS/D5 (10 mg/ml)<br>
+                        <b>Acyclovir (Acivir):</b> 250 mg → 10 ml · 500 mg → 20 ml (25 mg/ml); then dilute in NS, over 1 hr<br>
+                        <b>Amphotericin B:</b> 50 mg → 10 ml WFI (5 mg/ml); then in D5W, slow<br>
+                        <b>Artesunate (Falcigo):</b> 60 mg + 1 ml 5% bicarb, then + 5 ml NS (10 mg/ml)<br>
+                        <b>Septran (Cotrimoxazole):</b> ready 16 mg TMP/ml; dilute 1 ml in 15-25 ml D5W, over 60-90 min<br>
+                        <span style="color:var(--text-muted);">Ready (no reconstitution): Amikacin (125/250 mg/ml) · Gentamicin (40 mg/ml) · Netilmicin (25-50 mg/ml) · Metronidazole (5 mg/ml) · Levofloxacin (5 mg/ml) · Ofloxacin / Ciprofloxacin (2 mg/ml) · Linezolid (2 mg/ml) · Fluconazole (2 mg/ml).</span>
+                    </div>
+
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">EMERGENCY · CARDIAC · INOTROPES</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Hydrocortisone (Primacort):</b> 100 mg → 2 ml WFI (50 mg/ml)<br>
+                        <b>Atracurium:</b> amp 10 mg/ml; infusion 50 mg (5 ml) + 45 ml NS = 1 mg/ml<br>
+                        <b>Sodium Bicarbonate:</b> 7.5% = 0.89 mEq/ml · 8.4% = 1 mEq/ml; dilute 1:1 with D5W / SW<br>
+                        <b>Calcium Gluconate 10%:</b> 100 mg/ml; dilute 1:1, slow IV (cardiac monitor)<br>
+                        <b>MgSO4 50%:</b> 500 mg/ml; dilute before use<br>
+                        <b>Amiodarone:</b> 50 mg/ml; dilute in D5W only, over 20-60 min<br>
+                        <b>Adrenaline:</b> 1 mg/ml (1:1000) · arrest 0.1 mg/ml (1:10000); infusion (wt×0.3 mg) in 50 ml<br>
+                        <b>Noradrenaline:</b> 1 mg/ml (2 mg/2 ml); infusion (wt×0.3 mg) in 50 ml NS/D5<br>
+                        <b>Dopamine / Dobutamine:</b> 50 mg/ml; (wt×30 mg) in 50 ml = 1 ml/hr → 10 mcg/kg/min<br>
+                        <b>Milrinone:</b> 1 mg/ml (10 mg/10 ml); (wt×1.5 mg) in 50 ml D5W<br>
+                        <b>Mucomix (NAC):</b> 200 mg/ml; dilute in D5W, over 1 hr<br>
+                        <span style="color:var(--text-muted);">Ready: Atropine (0.6 mg/ml) · Adenosine (3 mg/ml) · Lidocaine (20 mg/ml) · Lasix (10 mg/ml) · Dexona (4 mg/ml) · Vitamin K (10 mg/ml) · Trenexa (100 mg/ml) · Avil (22.75 mg/ml) · Clexane (100 mg/ml) · Sildenafil (0.8 mg/ml) · Octreotide (100 mcg/ml) · Glycopyrrolate (0.2 mg/ml) · Robivax (100 mg/ml) · Febrinil (150 mg/ml).</span>
+                    </div>
+
+                    <div class="badge" style="background:#38a169; color:#fff;">SEDATION · ANALGESIA</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Midazolam (Midaz):</b> ready 1 mg/ml<br>
+                        <b>Fentanyl:</b> ready 50 mcg/ml<br>
+                        <b>Tramadol:</b> 50 mg/ml; dilute, slow IV<br>
+                        <b>Lorazepam (Lopex):</b> 2 mg/ml; dilute 1:1 before IV<br>
+                        Ketamine 50 mg/ml · Propofol 10 mg/ml — ready (see Sedation card)
+                    </div>
+
+                    <div class="badge" style="background:#6b46c1; color:#fff;">NEURO · ANTICONVULSANTS (dilute in NS)</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Levetiracetam (Levipil):</b> 100 mg/ml; LD + 20 ml NS · MD + 5 ml NS<br>
+                        <b>Fosphenytoin (Fosolin):</b> 50 mg PE/ml; + 20 ml NS, max 1-3 mg/kg/min<br>
+                        <b>Valproate (Valparin):</b> 100 mg/ml; dilute in NS, over 30 min<br>
+                        <b>Phenobarbital (Gardinal):</b> 200 mg/ml; dilute 1:10, max 1 mg/kg/min<br>
+                        <b>Mannitol 20%:</b> 200 mg/ml; ready (warm if crystallised)
+                    </div>
+
+                    <div class="badge" style="background:#dd6b20; color:#fff;">GI · NUTRITION · OTHER</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Pantoprazole (Pantocid):</b> 40 mg → 10 ml NS (4 mg/ml)<br>
+                        <b>Ranitidine (Rantac):</b> 25 mg/ml (50 mg/2 ml); dilute in 10 ml NS<br>
+                        <b>Ondansetron:</b> ready 2 mg/ml · <b>Drotaverine (Drotrin):</b> ready 20 mg/ml<br>
+                        <b>Albumin:</b> 20% = 200 mg/ml · 5% — ready<br>
+                        <b>IVIG:</b> 5% = 50 mg/ml · 10% = 100 mg/ml — ready, slow start<br>
+                        <b>ASV:</b> 10 ml/vial; dilute 5-10 vials in NS/D5, over 1 hr<br>
+                        <b>Aminoven 10%:</b> ready (TPN) · <b>Tetanus TIG:</b> 250 IU/ml — ready<br>
+                        <b>Surfactant:</b> Curosurf 80 · Survanta 25 · Neosurf 27 mg/ml — intratracheal, NOT diluted
+                    </div>
+
+                    <div class="note" style="background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;"><b>Tip:</b> reconstitute the powder first, then use the "mg → ml Converter" above to draw the exact dose. Strengths vary by brand — confirm on the vial.</div>
+                `
+            },
+            {
+                name: "📦 Market Strengths & Pack Sizes (Inj / Tab / Syp / Drop)",
+                category: "Hidden",
+                tags: "market strength pack size available mg vial tablet syrup drop linezolid monocef brand how many mg forms available",
+                calc: () => `
+                    <div class="note" style="color:var(--text-muted); margin-bottom:8px;">Common Indian market pack sizes / strengths for the drugs in this app. Brands vary — confirm on the label. (IAP / standard formulary)</div>
+
+                    <div class="badge" style="background:#e9d8fd; color:#553c9a;">INJECTABLE ANTIBIOTICS (vials)</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Linezolid (Linospan):</b> IV 600 mg/300 ml bag · Tab 600 mg · Susp 100 mg/5 ml<br>
+                        <b>Ceftriaxone (Monocef):</b> 250 mg · 500 mg · 1 g · 2 g vial<br>
+                        <b>Cefotaxime (Taxim):</b> 250 mg · 500 mg · 1 g<br>
+                        <b>Cefoperazone-Sulbactam (Zostum/Magnex):</b> 1 g · 1.5 g · 2 g<br>
+                        <b>Cefepime-Tazo (Magnova):</b> 1 g · 1.125 g · 2.25 g<br>
+                        <b>Piperacillin-Tazo (Piptaz):</b> 1.125 g · 2.25 g · 4.5 g<br>
+                        <b>Meropenem:</b> 500 mg · 1 g · <b>Vancomycin:</b> 250 mg · 500 mg · 1 g<br>
+                        <b>Amikacin:</b> 100 mg/2 ml · 250 mg/2 ml · 500 mg/2 ml<br>
+                        <b>Gentamicin:</b> 20 mg/2 ml · 80 mg/2 ml · <b>Netilmicin:</b> 50 · 100 · 200 mg<br>
+                        <b>Amox-Clav (Augmentin):</b> 600 mg · 1.2 g · <b>Ampicillin/Ampiclox:</b> 250 · 500 mg · <b>Cloxacillin:</b> 250 · 500 mg<br>
+                        <b>Metronidazole:</b> 500 mg/100 ml · <b>Levofloxacin:</b> 500 mg/100 ml · 750 mg/150 ml<br>
+                        <b>Ciprofloxacin / Ofloxacin:</b> 200 mg/100 ml · <b>Clindamycin:</b> 300 mg/2 ml · 600 mg/4 ml<br>
+                        <b>Colistin (Xylistin):</b> 1 · 2 · 4.5 MIU · <b>Polymyxin B:</b> 5 lakh IU<br>
+                        <b>Fluconazole:</b> 100 mg/50 ml · 200 mg/100 ml · <b>Amphotericin B:</b> 50 mg<br>
+                        <b>Acyclovir:</b> 250 · 500 mg · <b>Tigecycline:</b> 50 mg · <b>Artesunate:</b> 60 · 120 mg<br>
+                        <b>Azithromycin:</b> IV 500 mg · Susp 100/200 mg per 5 ml · Tab 250/500 mg
+                    </div>
+
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">EMERGENCY / CARDIAC (amps)</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Adrenaline:</b> 1 mg/ml (1 ml) · <b>Noradrenaline:</b> 2 mg/2 ml · <b>Atropine:</b> 0.6 mg/ml · <b>Adenosine:</b> 6 mg/2 ml<br>
+                        <b>Ca Gluconate 10%:</b> 1 g/10 ml · <b>NaHCO3:</b> 7.5% 25 ml · 8.4% 10 ml<br>
+                        <b>Dopamine:</b> 200 mg/5 ml · <b>Dobutamine:</b> 250 mg/5 ml · <b>Milrinone:</b> 10 mg/10 ml<br>
+                        <b>MgSO4:</b> 50% 2 ml (1 g) · <b>Amiodarone:</b> 150 mg/3 ml · <b>Lignocaine 2%:</b> 30 ml vial<br>
+                        <b>Furosemide (Lasix):</b> 20 mg/2 ml · <b>Hydrocortisone:</b> 100 mg · <b>Dexamethasone:</b> 4 mg/ml<br>
+                        <b>Enoxaparin (Clexane):</b> 40 mg/0.4 ml · 60 mg/0.6 ml · <b>Tramadol:</b> 50 mg/ml<br>
+                        <b>Fentanyl:</b> 50 mcg/ml (2 ml) · <b>Mucomix:</b> 200 mg/ml (5 ml) · <b>Trenexa:</b> 500 mg/5 ml<br>
+                        <b>Avil:</b> 22.75 mg/ml (2 ml) · <b>Vitamin K:</b> 1 mg/0.5 ml & 10 mg/ml · <b>Glycopyrrolate:</b> 0.2 mg/ml<br>
+                        <b>Pantoprazole:</b> 40 mg vial · <b>Ranitidine (Rantac):</b> 50 mg/2 ml · <b>Ondansetron:</b> 4 mg/2 ml
+                    </div>
+
+                    <div class="badge" style="background:#6b46c1; color:#fff;">NEURO / ANTICONVULSANTS</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Midazolam:</b> 1 mg/ml (5 ml) · 5 mg/ml · <b>Lorazepam (Lopex):</b> 2 mg/ml<br>
+                        <b>Levetiracetam (Levipil):</b> Inj 500 mg/5 ml · Tab 250/500/1000 mg · Syp 100 mg/ml<br>
+                        <b>Fosphenytoin (Fosolin):</b> 150 mg/2 ml (= 100 mg PE)<br>
+                        <b>Valproate (Valparin):</b> Inj 400 mg/4 ml · Syp 200 mg/5 ml · Tab 200/300/500 mg<br>
+                        <b>Phenobarbital (Gardinal):</b> Inj 200 mg/ml · Tab 30/60 mg · <b>Mannitol 20%:</b> 100 ml
+                    </div>
+
+                    <div class="badge" style="background:#38a169; color:#fff;">ANTIPYRETIC / ANALGESIC</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Paracetamol:</b> IV 1 g/100 ml · 500 mg/50 ml · Drops 100 mg/ml · Syp 125/250 mg per 5 ml · Tab 500/650 mg · Febrinil inj 150 mg/ml<br>
+                        <b>Ibuprofen:</b> Syp 100 mg/5 ml · Tab 200/400 mg · <b>Mefenamic (Meftal-P):</b> Syp 50/100 mg per 5 ml · Tab 250/500 mg
+                    </div>
+
+                    <div class="badge" style="background:#dd6b20; color:#fff;">ORAL — SYRUP / TAB / DROP</div>
+                    <div class="note" style="color:var(--text-main); line-height:1.7;">
+                        <b>Cefixime (Zifi):</b> Syp 50/100 mg per 5 ml · Drops 25 mg/ml · Tab 100/200 mg<br>
+                        <b>Cefpodoxime (Opox):</b> Syp 50/100 mg per 5 ml · Tab 100/200 mg<br>
+                        <b>Amoxicillin:</b> Syp 125/250 mg per 5 ml · <b>Cefuroxime:</b> Syp 125 mg/5 ml · Tab 250/500 mg<br>
+                        <b>Clarithromycin (Claribid):</b> Syp 125 mg/5 ml · Tab 250/500 mg<br>
+                        <b>Cetirizine:</b> Syp 5 mg/5 ml · Drops 2.5 mg/ml · Tab 10 mg<br>
+                        <b>Salbutamol (Asthalin):</b> Syp 2 mg/5 ml · Respule 5 mg/ml<br>
+                        <b>Domperidone:</b> 1 mg/ml · <b>Zinc:</b> 20 mg/5 ml · <b>Albendazole:</b> Syp 200 mg/5 ml · Tab 400 mg<br>
+                        <b>Oseltamivir (Fluvir):</b> Syp 12 mg/ml · Cap 30/45/75 mg<br>
+                        <b>Lactulose (Evict):</b> 10 g/15 ml · <b>Iron (Tonoferon):</b> Drops 25 mg/ml · Syp ~50 mg/5 ml<br>
+                        <b>Vitamin D3:</b> Drops 400 IU/ml or 800 IU/ml (brand varies) · <b>Ondansetron syp:</b> 2 mg/5 ml
+                    </div>
+
+                    <div class="note" style="background:#fff5f5; border-color:#feb2b2; color:#c53030;">⚠️ Pack sizes / strengths vary by brand & batch — always confirm on the actual label before use.</div>
+                `
+            },
+            {
                 name: "Inotrope Infusion Calculator (Rule of 6)",
                 category: "Calculators",
                 tags: "inotrope infusion pump adrenaline noradrenaline dopamine dobutamine milrinone pge1 alprostadil",
@@ -2128,6 +2280,16 @@
                     <div class="note">Helps clear thick mucus.</div>
                 `
             },
+            {
+                name: "Neb Mucomix (Acetylcysteine)",
+                category: "Nebulizer",
+                tags: "mucomix acetylcysteine nac mucolytic neb thick secretions",
+                calc: (wt) => `
+                    <div class="badge">MUCOLYTIC (thick secretions)</div><br>
+                    <div class="highlight">Give: 1-2 ml (200 mg/ml = 20%) + 2 ml NS, BD-TDS via nebulizer</div>
+                    <div class="note">Strength: 200 mg/ml (20%). ⚠️ May trigger bronchospasm — give with / after salbutamol.</div>
+                `
+            },
 
             // ANTIBIOTICS
             {
@@ -2492,6 +2654,28 @@
                     <div class="highlight">Syp Beclof: ${(wt*0.2).toFixed(2)} ml BD</div>
                 `
             },
+            {
+                name: "Syp Gardinal (Phenobarbital)",
+                category: "Neuro",
+                tags: "gardinal phenobarbital syrup seizure maintenance anticonvulsant",
+                calc: (wt) => `
+                    <div class="badge">ANTICONVULSANT (Maintenance 3-5 mg/kg/day)</div><br>
+                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} mg/day (OD or BD)</div>
+                    <div class="highlight">Vol (20mg/5ml): ${(wt*4*5/20).toFixed(2)} ml/day</div>
+                    <div class="note">Strength: 20 mg/5 ml. Oral maintenance after IV loading.</div>
+                `
+            },
+            {
+                name: "Syp Valparin (Valproate)",
+                category: "Neuro",
+                tags: "valparin valproate sodium syrup seizure anticonvulsant",
+                calc: (wt) => `
+                    <div class="badge">ANTICONVULSANT (10-15 mg/kg/dose BD)</div><br>
+                    <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg BD</div>
+                    <div class="highlight">Vol (200mg/5ml): ${(wt*15*5/200).toFixed(2)} ml BD</div>
+                    <div class="note">Strength: 200 mg/5 ml. Total 20-30 mg/kg/day. Give with food.</div>
+                `
+            },
 
             // SYRUPS
             {
@@ -2840,6 +3024,20 @@
                     <div class="highlight">Vol (2mg/5ml): ${(wt*0.15*5/2).toFixed(2)} ml</div>
                     <div class="note">Strength: 2 mg/5 ml (=0.4 mg/ml).</div>
                 `
+            },
+            {
+                name: "Syp Grenirex (Granisetron)",
+                category: "Syrup",
+                tags: "grenirex granirex granisetron antiemetic vomiting nausea chemo radiation 5ht3 syrup",
+                calc: (wt) => {
+                    let dMax = Math.min(wt*0.04, 1);
+                    return `
+                        <div class="badge">ANTIEMETIC — Granisetron 5-HT3 (20-40 mcg/kg)</div><br>
+                        <div class="highlight">Dose: ${(wt*0.02).toFixed(2)} to ${(wt*0.04).toFixed(2)} mg (max 1 mg)</div>
+                        <div class="highlight">Vol (1mg/5ml): ${(dMax*5).toFixed(2)} ml (= ${dMax.toFixed(2)} mg) OD-BD</div>
+                        <div class="note">Strength: 1 mg/5 ml (0.2 mg/ml). For nausea / vomiting (esp. chemo / radiation). Check label for strength.</div>
+                    `;
+                }
             },
             {
                 name: "Syp Zinc (Zinconia)",
@@ -3203,6 +3401,20 @@
                 `
             },
             {
+                name: "Tab Lazoprex (Lansoprazole)",
+                category: "GI",
+                tags: "lazoprex lansoprazole ppi acidity gerd reflux tab antacid",
+                calc: (wt) => {
+                    let rec = wt < 30 ? "15 mg OD" : "30 mg OD";
+                    return `
+                        <div class="badge">PPI / ANTACID (1-2 mg/kg/day OD)</div><br>
+                        <div class="highlight">Dose: ${(wt*1).toFixed(1)} to ${(wt*2).toFixed(1)} mg OD (before food)</div>
+                        <div class="highlight">By weight: ${rec} (&lt;30kg: 15mg · ≥30kg: 30mg)</div>
+                        <div class="note">Available: 15 mg / 30 mg tab / cap / DT (dispersible). Give 30 min before breakfast.</div>
+                    `;
+                }
+            },
+            {
                 name: "Inj Rantac (Ranitidine)",
                 category: "GI",
                 tags: "rantac ranitidine acidity",
@@ -3280,6 +3492,81 @@
             }
         ];
 
+        // --- MARKET STRENGTH / DILUTION (auto-shown inside each drug card) ---
+        const MARKET_INFO = {
+            "Inj Ceftriaxone (Monocef)": "Vials 250/500mg, 1g, 2g · reconstitute 1g→10ml, 500mg→5ml WFI (100 mg/ml)",
+            "Inj Cefotaxime (Taxim)": "Vials 250/500mg, 1g · 1g→10ml WFI (100 mg/ml)",
+            "Inj Cefoperazone & Sulbactam (Zostum)": "Vials 1g/1.5g/2g · 1g→10ml WFI (100 mg/ml)",
+            "Inj Cefepime & Tazobactam (Magnex / Magnova)": "Vials 1g/1.125g/2.25g · 1g→10ml WFI (100 mg/ml)",
+            "Inj Piperacillin & Tazobactam (Piptaz)": "Vials 1.125g, 2.25g, 4.5g · reconstitute to 112.5 mg/ml",
+            "Inj Meropenem": "Vials 500mg, 1g · 1g→20ml WFI (50 mg/ml), then dilute in NS",
+            "Inj Vancomycin": "Vials 250/500mg, 1g · 500mg→10ml (50 mg/ml), then dilute ≤5 mg/ml",
+            "Inj Amikacin": "100mg/2ml · 250mg/2ml · 500mg/2ml (ready solution)",
+            "Inj Gentamycin": "20mg/2ml · 80mg/2ml (ready, 40 mg/ml)",
+            "Inj Netilmicin Sulphate": "50 / 100 / 200 mg (25-50 mg/ml)",
+            "Inj Amoxycillin - Clavulanic Acid (Augmentin)": "Vials 600mg, 1.2g · 1.2g→20ml WFI (60 mg/ml)",
+            "Inj Ampiclox (Ampicillin+Cloxacillin)": "Vials 250/500mg · 500mg→5ml WFI (100 mg/ml)",
+            "Inj Metronidazole (Metrogyl)": "500mg/100ml bottle (ready, 5 mg/ml)",
+            "Inj Levofloxacin (Loxof)": "500mg/100ml · 750mg/150ml (ready, 5 mg/ml)",
+            "Inj Ciprofloxacin": "200mg/100ml (ready, 2 mg/ml)",
+            "Inj Ofloxacin": "200mg/100ml (ready, 2 mg/ml)",
+            "Inj Clindamycin": "300mg/2ml · 600mg/4ml (150 mg/ml); dilute to ≤18 mg/ml",
+            "Inj Colistin (Xylistin)": "Vials 1 / 2 / 4.5 MIU · 1 MIU→10ml NS (100k IU/ml)",
+            "Inj Polymyxin-B": "5 lakh IU vial · →10ml WFI (50k IU/ml)",
+            "Inj Fluconazole (Forcan)": "100mg/50ml · 200mg/100ml (ready, 2 mg/ml)",
+            "Inj Ampho B Conventional": "50mg vial · →10ml WFI (5 mg/ml), then in D5W",
+            "Inj Acyclovir (Acivir)": "Vials 250/500mg · 250mg→10ml (25 mg/ml), then dilute in NS",
+            "Inj Tigecycline": "50mg vial · →5ml NS/D5 (10 mg/ml)",
+            "Inj Artesunate (Falcigo)": "60/120mg · 60mg + 1ml 5% bicarb + 5ml NS (10 mg/ml)",
+            "Inj Septran (Cotrimoxazole)": "Amp 480mg/5ml (16 mg TMP/ml) · dilute 1ml in 15-25ml D5W",
+            "Inj Linezolid (Linospan)": "IV 600mg/300ml bag (ready, 2 mg/ml) · Tab 600mg · Susp 100mg/5ml",
+            "Inj Adrenaline (Epinephrine)": "1 mg/ml (1:1000) · arrest 1:10000 (0.1 mg/ml)",
+            "Inj Noradrenaline (Norad)": "2mg/2ml (1 mg/ml)",
+            "Inj Atropine": "0.6 mg/ml amp",
+            "Inj Adenosine": "6mg/2ml (3 mg/ml)",
+            "Inj Calcium Gluconate (10%)": "10% 10ml (1g/10ml, 100 mg/ml); dilute 1:1",
+            "Inj Sodium Bicarbonate": "7.5% 25ml · 8.4% 10ml; dilute 1:1 with D5W / SW",
+            "Inj Dopamine Infusion": "200mg/5ml (40 mg/ml)",
+            "Inj Dobutamine Infusion": "250mg/5ml (50 mg/ml)",
+            "Inj Milrinone Infusion": "10mg/10ml (1 mg/ml)",
+            "Inj Magnesium Sulphate (MgSO4)": "50% 2ml (500 mg/ml)",
+            "Inj Amiodarone": "150mg/3ml (50 mg/ml); dilute in D5W only",
+            "Inj Lidocaine / Xylocard": "2% (20 mg/ml) 30ml vial",
+            "Inj Lasix (Furosemide)": "20mg/2ml (10 mg/ml)",
+            "Inj Hydrocortisone (Primacort)": "100mg vial · →2ml WFI (50 mg/ml)",
+            "Inj Dexona (Dexamethasone)": "4 mg/ml (2ml amp)",
+            "Inj Clexane (Enoxaparin)": "40mg/0.4ml · 60mg/0.6ml prefilled",
+            "Inj Tramadol": "50 mg/ml (1-2ml); dilute, slow IV",
+            "Inj Fentanyl": "50 mcg/ml (2ml = 100 mcg)",
+            "Inj Sildenafil": "10mg/12.5ml (0.8 mg/ml)",
+            "Inj Octreotide Acetate": "100 mcg/ml amp",
+            "Inj Glycopyrrolate": "0.2 mg/ml",
+            "Inj Robivax (Methocarbamol)": "100 mg/ml",
+            "Inj Aminoven 10%": "10g/100ml (TPN amino acids)",
+            "Inj Vitamin K (Kenadion)": "1mg/0.5ml (neonatal) · 10 mg/ml",
+            "Inj Febrinil / Paracetamol": "150 mg/ml · IV 10 mg/ml (1g/100ml)",
+            "Inj Mucomix (Acetylcysteine)": "200 mg/ml (5ml = 1g); dilute in D5W",
+            "Inj Trenexa (Tranexamic Acid)": "500mg/5ml (100 mg/ml)",
+            "Inj Avil (Pheniramine)": "22.75 mg/ml (2ml = 45.5 mg)",
+            "Inj Atracurium (Muscle Relaxant)": "10 mg/ml amp · infusion 50mg (5ml) + 45ml NS (1 mg/ml)",
+            "Inj Midaz (Midazolam)": "1 mg/ml (5ml) · 5 mg/ml",
+            "Inj Levipil / Levera (Levetiracetam)": "Inj 500mg/5ml · Tab 250/500/1000mg · Syp 100 mg/ml",
+            "Inj Fosolin (Fosphenytoin)": "150mg/2ml (= 100 mg PE)",
+            "Inj Valproate Sodium / Valparin": "Inj 400mg/4ml · Syp 200mg/5ml · Tab 200/300/500mg",
+            "Inj Gardinal (Phenobarbital)": "Inj 200 mg/ml · Tab 30/60 mg",
+            "Inj Mannitol (20%)": "20% 100ml bottle (200 mg/ml)",
+            "Inj Lopex (Lorazepam)": "2 mg/ml (1ml amp)",
+            "Inj Pantocid (Pantoprazole)": "40mg vial · →10ml NS (4 mg/ml)",
+            "Inj Rantac (Ranitidine)": "50mg/2ml (25 mg/ml)",
+            "Inj Ondansetron (Periset/Ondem)": "4mg/2ml (2 mg/ml)",
+            "Inj Drotrin (Drotaverine)": "20mg/ml (1ml) · 40mg/2ml",
+            "Inj Albumin": "20% (200 mg/ml) · 5% (50 mg/ml)",
+            "Inj IVIG (Intravenous Immunoglobulin)": "5% (50 mg/ml) · 10% (100 mg/ml)",
+            "Inj Surfactant — Curosurf (Poractant alfa)": "Vials 120mg/1.5ml · 240mg/3ml (80 mg/ml) — intratracheal",
+            "Inj Surfactant — Survanta (Beractant)": "Vials 100mg/4ml · 200mg/8ml (25 mg/ml) — intratracheal",
+            "Inj Surfactant — Neosurf (BLES · Cipla)": "Vials 3ml · 5ml (27 mg/ml phospholipid) — intratracheal"
+        };
+
         // --- RENDER LOGIC ---
         function renderCards() {
             let w = val('weight'), a = val('age'), u = document.getElementById('ageUnit').value;
@@ -3332,6 +3619,7 @@
                     <div class="${cls}" data-drug="${dn}">
                         <div class="drug-name">${x.name}</div>
                         ${x.calc(w, a, u)}
+                        ${MARKET_INFO[x.name] ? `<div class="note" style="background:#faf5ff; border-color:#d6bcfa; color:#553c9a;">📦 <b>Market / Dilution:</b> ${MARKET_INFO[x.name]}</div>` : ''}
                         <div style="display:flex; gap:6px; margin-top:8px;">
                             <button class="copy-all-btn" style="padding:6px; font-size:13px; flex:1; margin:0;" onclick="cp(this)">📋 Copy</button>
                             <button class="action-btn" style="background:#38a169; padding:6px 12px;" onclick="txBtn(this)" title="Add to Tx Sheet">➕ Tx</button>
