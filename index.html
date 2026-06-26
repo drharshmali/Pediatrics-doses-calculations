@@ -575,6 +575,7 @@
                 if(window.runNaHigh) window.runNaHigh();
                 if(window.runKHigh) window.runKHigh();
                 if(window.runVent) window.runVent();
+                if(window.runUrine) window.runUrine();
             }, 50);
         }
 
@@ -834,6 +835,15 @@
             let r = val('uniReq'), m = val('uniVMg'), l = val('uniVMl'), res = document.getElementById('uniRes');
             if(res && m > 0) { res.innerHTML = `<div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Draw up: <b>${(r/m*l).toFixed(2)} ml</b></div>`; }
             else if(res) { res.innerHTML = "Enter values to convert..."; }
+        };
+
+        window.runUrine = function() {
+            let wt = val('weight'), uv = val('urineVol'), uh = val('urineHr'), res = document.getElementById('urineRes');
+            if(res && wt > 0 && uv > 0 && uh > 0) {
+                let uop = uv/wt/uh;
+                let tag = uop<0.5 ? '🔴 Severe oliguria / anuria' : (uop<1 ? '🟠 Oliguria' : (uop>4 ? '🔵 Polyuria' : '🟢 Normal'));
+                res.innerHTML = `Urine Output: <b>${uop.toFixed(2)} ml/kg/hr</b> — ${tag}`;
+            } else if(res) { res.innerHTML = 'Enter weight, urine & hours…'; }
         };
 
         window.runIno = function() {
@@ -1477,6 +1487,20 @@
                         </select>
                     </div>
                     <div class="highlight" id="gcsRes" style="display:block; margin-top:5px;">Select all three to see score</div>
+                `
+            },
+            {
+                name: "Urine Output (ml/kg/hr)",
+                category: "Calculators",
+                tags: "urine output ml kg hr oliguria anuria polyuria renal aki kidney upo",
+                calc: (wt) => `
+                    <div class="badge">URINE OUTPUT</div><br>
+                    <div class="calc-inputs">
+                        <input type="number" id="urineVol" placeholder="Total Urine (ml)" oninput="window.runUrine()">
+                        <input type="number" id="urineHr" placeholder="Over hours" oninput="window.runUrine()">
+                    </div>
+                    <div class="highlight" id="urineRes" style="display:block;">Enter weight, urine & hours…</div>
+                    <div class="note">Normal 1-3 · Oliguria &lt;1 · Severe / Anuria &lt;0.5 · Polyuria &gt;4 ml/kg/hr</div>
                 `
             },
             {
