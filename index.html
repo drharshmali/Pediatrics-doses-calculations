@@ -2070,7 +2070,7 @@
                 calc: (wt) => `
                     <div class="badge">DIURETIC — BOLUS (1-2 mg/kg/dose)</div><br>
                     <div class="highlight">Dose: ${(wt*1.5).toFixed(1)} mg | Vol: ${(wt*1.5/10).toFixed(2)} ml</div>
-                    <div class="note">Strength: 10 mg/ml.</div>
+                    <div class="note">Strength: 10 mg/ml — vial <b>40 mg / 4 ml</b> (also 20 mg/2 ml).</div>
                     <hr style="margin:8px 0; border-top:1px solid var(--border);">
                     <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (0.1-1 mg/kg/hr)</div><br>
                     <div class="highlight">At 1 mg/kg/hr: ${(wt*1).toFixed(1)} mg/hr → ${(wt/10).toFixed(2)} ml/hr (neat 10 mg/ml)</div>
@@ -2607,7 +2607,7 @@
                     <div class="note">Strength: 1 mg/ml.</div>
                     <hr style="margin:8px 0; border-top:1px solid var(--border);">
                     <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (1-6 mcg/kg/min)</div><br>
-                    <div class="highlight">= ${(wt*0.06).toFixed(2)} to ${(wt*0.36).toFixed(2)} mg/hr (0.06-0.36 mg/kg/hr)</div>
+                    <div class="highlight">${(wt*0.06).toFixed(2)} to ${(wt*0.36).toFixed(2)} mg/hr → <b>${(wt*0.06).toFixed(2)} to ${(wt*0.36).toFixed(2)} ml/hr</b> (neat 1 mg/ml) <span style="font-size:11px; font-weight:normal;">(0.06-0.36 mg/kg/hr)</span></div>
                     <div class="note">Start 1 mcg/kg/min, titrate for sedation. Dilute in NS, run via pump.</div>
                 `
             },
@@ -3564,7 +3564,7 @@
             "Inj Magnesium Sulphate (MgSO4)": "50% 2ml (500 mg/ml)",
             "Inj Amiodarone": "150mg/3ml (50 mg/ml); dilute in D5W only",
             "Inj Lidocaine / Xylocard": "2% (20 mg/ml) 30ml vial",
-            "Inj Lasix (Furosemide)": "20mg/2ml (10 mg/ml)",
+            "Inj Lasix (Furosemide)": "20mg/2ml · 40mg/4ml (10 mg/ml)",
             "Inj Hydrocortisone (Primacort)": "100mg vial · →2ml WFI (50 mg/ml)",
             "Inj Dexona (Dexamethasone)": "4 mg/ml (2ml amp)",
             "Inj Clexane (Enoxaparin)": "40mg/0.4ml · 60mg/0.6ml prefilled",
