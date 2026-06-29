@@ -2066,11 +2066,15 @@
             {
                 name: "Inj Lasix (Furosemide)",
                 category: "Emergency",
-                tags: "lasix diuretic",
+                tags: "lasix diuretic infusion furosemide",
                 calc: (wt) => `
-                    <div class="badge">DIURETIC (1-2 mg/kg/dose)</div><br>
+                    <div class="badge">DIURETIC — BOLUS (1-2 mg/kg/dose)</div><br>
                     <div class="highlight">Dose: ${(wt*1.5).toFixed(1)} mg | Vol: ${(wt*1.5/10).toFixed(2)} ml</div>
                     <div class="note">Strength: 10 mg/ml.</div>
+                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (0.1-1 mg/kg/hr)</div><br>
+                    <div class="highlight">At 1 mg/kg/hr: ${(wt*1).toFixed(1)} mg/hr → ${(wt/10).toFixed(2)} ml/hr (neat 10 mg/ml)</div>
+                    <div class="note">Start 0.1 mg/kg/hr, titrate to urine output. For diuretic resistance / CHF.</div>
                 `
             },
             {
@@ -2596,11 +2600,15 @@
             {
                 name: "Inj Midaz (Midazolam)",
                 category: "Neuro",
-                tags: "midaz sedative seizure",
+                tags: "midaz sedative seizure infusion midazolam",
                 calc: (wt) => `
-                    <div class="badge">SEDATIVE (0.1-0.2 mg/kg)</div><br>
+                    <div class="badge">SEDATIVE — BOLUS (0.1-0.2 mg/kg)</div><br>
                     <div class="highlight">Dose: ${(wt*0.1).toFixed(2)} mg | Vol: ${(wt/10).toFixed(2)} ml IV Stat</div>
                     <div class="note">Strength: 1 mg/ml.</div>
+                    <hr style="margin:8px 0; border-top:1px solid var(--border);">
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (1-6 mcg/kg/min)</div><br>
+                    <div class="highlight">= ${(wt*0.06).toFixed(2)} to ${(wt*0.36).toFixed(2)} mg/hr (0.06-0.36 mg/kg/hr)</div>
+                    <div class="note">Start 1 mcg/kg/min, titrate for sedation. Dilute in NS, run via pump.</div>
                 `
             },
             {
