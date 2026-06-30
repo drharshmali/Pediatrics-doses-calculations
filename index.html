@@ -2073,8 +2073,10 @@
                     <div class="note">Strength: 10 mg/ml — vial <b>40 mg / 4 ml</b> (also 20 mg/2 ml).</div>
                     <hr style="margin:8px 0; border-top:1px solid var(--border);">
                     <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (0.1-1 mg/kg/hr)</div><br>
-                    <div class="highlight">At 1 mg/kg/hr: ${(wt*1).toFixed(1)} mg/hr → ${(wt/10).toFixed(2)} ml/hr (neat 10 mg/ml)</div>
-                    <div class="note">Start 0.1 mg/kg/hr, titrate to urine output. For diuretic resistance / CHF.</div>
+                    <div class="highlight" style="background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;"><b>50 ml:</b> ${(wt*5).toFixed(0)} mg = ${(wt*5/10).toFixed(1)} ml (40mg/4ml) + ${(50-wt*5/10).toFixed(1)} ml NS = 50 ml</div>
+                    <div class="highlight" style="background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;"><b>25 ml:</b> ${(wt*2.5).toFixed(0)} mg = ${(wt*2.5/10).toFixed(1)} ml (40mg/4ml) + ${(25-wt*2.5/10).toFixed(1)} ml NS = 25 ml</div>
+                    <div class="highlight" style="background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Both → run at <b>1 to 10 ml/hr</b> (1 ml/hr = 0.1 mg/kg/hr)</div>
+                    <div class="note">(5×wt mg/50 ml = 2.5×wt mg/25 ml). Titrate to urine output.</div>
                 `
             },
             {
@@ -2607,8 +2609,10 @@
                     <div class="note">Strength: 1 mg/ml.</div>
                     <hr style="margin:8px 0; border-top:1px solid var(--border);">
                     <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (1-6 mcg/kg/min)</div><br>
-                    <div class="highlight">${(wt*0.06).toFixed(2)} to ${(wt*0.36).toFixed(2)} mg/hr → <b>${(wt*0.06).toFixed(2)} to ${(wt*0.36).toFixed(2)} ml/hr</b> (neat 1 mg/ml) <span style="font-size:11px; font-weight:normal;">(0.06-0.36 mg/kg/hr)</span></div>
-                    <div class="note">Start 1 mcg/kg/min, titrate for sedation. Dilute in NS, run via pump.</div>
+                    <div class="highlight" style="background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;"><b>50 ml:</b> ${(wt*3).toFixed(1)} mg = ${(wt*3).toFixed(1)} ml (1mg/ml) or ${(wt*3/5).toFixed(1)} ml (5mg/ml) + NS to 50 ml</div>
+                    <div class="highlight" style="background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;"><b>25 ml:</b> ${(wt*1.5).toFixed(1)} mg = ${(wt*1.5).toFixed(1)} ml (1mg/ml) or ${(wt*1.5/5).toFixed(1)} ml (5mg/ml) + NS to 25 ml</div>
+                    <div class="highlight" style="background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Both → run at <b>1 to 6 ml/hr</b> (1 ml/hr = 1 mcg/kg/min)</div>
+                    <div class="note">Rule of 6. Use 5 mg/ml for bigger kids. Titrate for sedation.</div>
                 `
             },
             {
