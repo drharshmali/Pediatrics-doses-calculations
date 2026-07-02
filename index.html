@@ -576,6 +576,7 @@
                 if(window.runKHigh) window.runKHigh();
                 if(window.runVent) window.runVent();
                 if(window.runUrine) window.runUrine();
+                if(window.runInteraction) window.runInteraction();
             }, 50);
         }
 
@@ -844,6 +845,29 @@
                 let tag = uop<0.5 ? '🔴 Severe oliguria / anuria' : (uop<1 ? '🟠 Oliguria' : (uop>4 ? '🔵 Polyuria' : '🟢 Normal'));
                 res.innerHTML = `Urine Output: <b>${uop.toFixed(2)} ml/kg/hr</b> — ${tag}`;
             } else if(res) { res.innerHTML = 'Enter weight, urine & hours…'; }
+        };
+
+        window.runInteraction = function(){
+            var res=document.getElementById('ixRes'); if(!res) return;
+            var ea=document.getElementById('ixA'), eb=document.getElementById('ixB');
+            var a=ea?ea.value:'', b=eb?eb.value:'';
+            if(!a||!b){ res.innerHTML='Select two drugs...'; return; }
+            if(a===b){ res.innerHTML='<div class="note">Same drug — pick two different drugs.</div>'; return; }
+            function norm(x){ if(x==='amikacin'||x==='gentamicin'||x==='netilmicin') return 'amino'; if(x==='adrenaline'||x==='noradrenaline'||x==='dopamine'||x==='dobutamine') return 'catechol'; return x; }
+            var key=[norm(a),norm(b)].sort().join('|');
+            var IX={
+                'calcium|ceftriaxone':'🚫 <b>CONTRAINDICATED (neonate):</b> Ceftriaxone + IV Calcium → fatal Ca-ceftriaxone precipitate. NEVER co-administer in neonates; older infants: separate by time + line + flush.',
+                'amino|vancomycin':'⚠️ <b>Additive nephro &amp; ototoxicity</b> — monitor renal function &amp; drug levels.',
+                'amino|furosemide':'⚠️ <b>Additive ototoxicity</b> — avoid combo or monitor hearing &amp; renal.',
+                'furosemide|vancomycin':'⚠️ <b>Additive nephro / ototoxicity</b> — monitor renal &amp; levels.',
+                'amino|amino':'⚠️ Two aminoglycosides — additive toxicity, generally avoid.',
+                'bicarb|calcium':'🚫 <b>Precipitate</b> — Sodium bicarbonate + Calcium form insoluble CaCO3. Never mix in one line; flush between.',
+                'bicarb|catechol':'🚫 <b>Inactivated</b> — Alkaline bicarbonate destroys catecholamines (adrenaline / dopamine...). Never mix in one line.',
+                'digoxin|furosemide':'⚠️ Furosemide → hypokalemia → <b>↑ digoxin toxicity</b>. Monitor K+ &amp; ECG.',
+                'digoxin|macrolide':'⚠️ Macrolides <b>↑ digoxin level</b> — monitor for toxicity.'
+            };
+            if(IX[key]){ res.innerHTML='<div style="font-size:14px; color:var(--hl-text); background:var(--hl-bg); border:1px solid var(--hl-border); padding:10px; border-radius:8px; font-weight:bold; line-height:1.5;">'+IX[key]+'</div>'; }
+            else { res.innerHTML='<div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">✅ No major interaction found in this curated list (not exhaustive — always confirm).</div>'; }
         };
 
         window.runIno = function() {
@@ -1501,6 +1525,67 @@
                     </div>
                     <div class="highlight" id="urineRes" style="display:block;">Enter weight, urine & hours…</div>
                     <div class="note">Normal 1-3 · Oliguria &lt;1 · Severe / Anuria &lt;0.5 · Polyuria &gt;4 ml/kg/hr</div>
+                `
+            },
+            {
+                name: "Combined Drip — Midaz + Fentanyl + Atracurium (50 ml)",
+                category: "Calculators",
+                tags: "combined drip infusion midazolam fentanyl atracurium sedation paralysis ventilated 50 ml cocktail triple",
+                calc: (wt) => {
+                    var drugMl = wt*5;
+                    var ns = 50 - drugMl;
+                    var body = drugMl <= 48
+                        ? `<div class="highlight" style="display:block;">Midazolam: <b>${(wt*3).toFixed(1)} mg</b> = ${(wt*3).toFixed(1)} ml (1 mg/ml)</div>
+                           <div class="highlight" style="display:block;">Fentanyl: <b>${(wt*50).toFixed(0)} mcg</b> = ${wt.toFixed(1)} ml (50 mcg/ml)</div>
+                           <div class="highlight" style="display:block;">Atracurium: <b>${(wt*10).toFixed(0)} mg</b> = ${wt.toFixed(1)} ml (10 mg/ml)</div>
+                           <div class="highlight" style="display:block;">+ <b>${ns.toFixed(1)} ml NS</b> = 50 ml total</div>
+                           <div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Run at <b>1 to 4 ml/hr</b> → Midaz 1-4 mcg/kg/min · Fentanyl 1-4 mcg/kg/hr · Atracurium 0.2-0.8 mg/kg/hr</div>`
+                        : `<div class="highlight" style="display:block; background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">⚠️ Drug volume ${drugMl.toFixed(0)} ml &gt; 50 ml for this weight — use a 100 ml bag (double the NS) or run the drugs on separate lines.</div>`;
+                    return `
+                        <div class="badge" style="background:#e9d8fd; color:#553c9a;">50 ml NS DRIP — ventilated patient</div><br>
+                        ${body}
+                        <div class="note" style="color:#c53030;">⚠️ Paralytic + sedative in one syringe: you CANNOT titrate them independently — ensure deep sedation first. Many units run atracurium on a separate line. Basis: 1 ml/hr = Midaz 1 mcg/kg/min + Fentanyl 1 mcg/kg/hr + Atracurium 0.2 mg/kg/hr.</div>
+                    `;
+                }
+            },
+            {
+                name: "Drug Interaction / Contraindication Checker",
+                category: "Calculators",
+                tags: "interaction compatibility contraindicated checker drug clash incompatible ceftriaxone calcium bicarbonate",
+                calc: () => `
+                    <div class="badge" style="background:#fed7d7; color:#9b2c2c;">KEY INTERACTIONS (curated · not exhaustive)</div><br>
+                    <div class="calc-inputs">
+                        <select id="ixA" onchange="window.runInteraction()">
+                            <option value="" selected disabled>Drug A</option>
+                            <option value="ceftriaxone">Ceftriaxone</option>
+                            <option value="calcium">Calcium (IV)</option>
+                            <option value="bicarb">Sodium Bicarbonate</option>
+                            <option value="adrenaline">Adrenaline / Catecholamine</option>
+                            <option value="amikacin">Amikacin</option>
+                            <option value="gentamicin">Gentamicin</option>
+                            <option value="netilmicin">Netilmicin</option>
+                            <option value="vancomycin">Vancomycin</option>
+                            <option value="furosemide">Furosemide (Lasix)</option>
+                            <option value="digoxin">Digoxin</option>
+                            <option value="macrolide">Macrolide (Azithro/Clarithro)</option>
+                        </select>
+                        <select id="ixB" onchange="window.runInteraction()">
+                            <option value="" selected disabled>Drug B</option>
+                            <option value="ceftriaxone">Ceftriaxone</option>
+                            <option value="calcium">Calcium (IV)</option>
+                            <option value="bicarb">Sodium Bicarbonate</option>
+                            <option value="adrenaline">Adrenaline / Catecholamine</option>
+                            <option value="amikacin">Amikacin</option>
+                            <option value="gentamicin">Gentamicin</option>
+                            <option value="netilmicin">Netilmicin</option>
+                            <option value="vancomycin">Vancomycin</option>
+                            <option value="furosemide">Furosemide (Lasix)</option>
+                            <option value="digoxin">Digoxin</option>
+                            <option value="macrolide">Macrolide (Azithro/Clarithro)</option>
+                        </select>
+                    </div>
+                    <div id="ixRes" style="margin-top:8px;">Select two drugs...</div>
+                    <div class="note">⚠️ Curated / limited list — always confirm with a reference or pharmacist. Ceftriaxone + Calcium is the classic fatal neonatal one.</div>
                 `
             },
             {
@@ -2296,7 +2381,7 @@
                 tags: "budecort budesonide neb croup asthma steroid",
                 calc: (wt) => `
                     <div class="badge">STEROID / CROUP</div><br>
-                    <div class="highlight">Give: 0.5 mg to 1.0 mg BD</div>
+                    <div class="highlight">Give: 0.5 mg to 1.0 mg BD = 1 to 2 respules (2 to 4 ml)</div>
                     <div class="note">Use 1 or 2 respules (0.5mg/2ml) undiluted. Asthma prevention.</div>
                 `
             },
@@ -2603,17 +2688,25 @@
                 name: "Inj Midaz (Midazolam)",
                 category: "Neuro",
                 tags: "midaz sedative seizure infusion midazolam",
-                calc: (wt) => `
+                calc: (wt) => {
+                    function prep(vol){
+                        var idealMg = 0.06*wt*vol;                 // gives 1 ml/hr = 1 mcg/kg/min (rule of 6)
+                        var mg = Math.min(idealMg, vol-5);          // cap so >=5 ml NS remains (1 mg/ml → mg = ml)
+                        var perMl = (mg/vol)*1000/60/wt;            // mcg/kg/min per 1 ml/hr
+                        return { ml: mg, ns: vol-mg, rLo: 1/perMl, rHi: 6/perMl };
+                    }
+                    var p50 = prep(50), p25 = prep(25);
+                    return `
                     <div class="badge">SEDATIVE — BOLUS (0.1-0.2 mg/kg)</div><br>
                     <div class="highlight">Dose: ${(wt*0.1).toFixed(2)} mg | Vol: ${(wt/10).toFixed(2)} ml IV Stat</div>
                     <div class="note">Strength: 1 mg/ml.</div>
                     <hr style="margin:8px 0; border-top:1px solid var(--border);">
-                    <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (1-6 mcg/kg/min)</div><br>
-                    <div class="highlight" style="background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;"><b>50 ml:</b> ${(wt*3).toFixed(1)} mg = ${(wt*3).toFixed(1)} ml (1mg/ml) or ${(wt*3/5).toFixed(1)} ml (5mg/ml) + NS to 50 ml</div>
-                    <div class="highlight" style="background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;"><b>25 ml:</b> ${(wt*1.5).toFixed(1)} mg = ${(wt*1.5).toFixed(1)} ml (1mg/ml) or ${(wt*1.5/5).toFixed(1)} ml (5mg/ml) + NS to 25 ml</div>
-                    <div class="highlight" style="background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Both → run at <b>1 to 6 ml/hr</b> (1 ml/hr = 1 mcg/kg/min)</div>
-                    <div class="note">Rule of 6. Use 5 mg/ml for bigger kids. Titrate for sedation.</div>
-                `
+                    <div class="badge" style="background:#bee3f8; color:#2a4365;">INFUSION (1-6 mcg/kg/min · IAP / Meharban Singh)</div><br>
+                    <div class="highlight" style="background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;"><b>50 ml:</b> ${p50.ml.toFixed(1)} ml midaz (1 mg/ml) + ${p50.ns.toFixed(1)} ml NS = 50 ml → run <b>${p50.rLo.toFixed(1)} to ${p50.rHi.toFixed(1)} ml/hr</b></div>
+                    <div class="highlight" style="background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;"><b>25 ml:</b> ${p25.ml.toFixed(1)} ml midaz (1 mg/ml) + ${p25.ns.toFixed(1)} ml NS = 25 ml → run <b>${p25.rLo.toFixed(1)} to ${p25.rHi.toFixed(1)} ml/hr</b></div>
+                    <div class="note">0.06-0.36 mg/kg/hr (IAP / Dr. Meharban Singh). Small kids: 1 ml/hr = 1 mcg/kg/min (rule of 6). Bigger kids: drug capped to fit 1 mg/ml, rate auto-adjusted. Refractory SE: up to 24 mcg/kg/min.</div>
+                `;
+                }
             },
             {
                 name: "Inj Levipil / Levera (Levetiracetam)",
