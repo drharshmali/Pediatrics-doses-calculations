@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Pediatric & NICU/PICU Dose Calculator</title>
+    <!-- PWA -->
+    <meta name="theme-color" content="#2b6cb0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="DoseCalc">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         /* Base Styles & Variables */
         :root {
@@ -341,35 +349,51 @@
 <body>
 
     <!-- PASSWORD GATE (one-time per browser) -->
-    <div id="nhGate" style="position:fixed; inset:0; background:var(--bg-main); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px;">
-        <div style="background:var(--bg-card); padding:24px; border-radius:14px; max-width:340px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.25); text-align:center;">
-            <div style="font-size:42px; margin-bottom:6px;">🔒</div>
-            <div style="font-weight:800; font-size:18px; color:var(--primary-hover); margin-bottom:6px;">Master Dose Calculator</div>
-            <div style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">Enter password to access<br>(only once on this device)</div>
-            <input type="password" id="nhGatePwd" placeholder="Password" onkeydown="if(event.key==='Enter')nhCheckPwd()" style="width:100%; padding:12px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; text-align:center; margin-bottom:10px; background:var(--bg-card); color:var(--text-main); font-size:15px;">
-            <button class="copy-all-btn" style="margin:0;" onclick="nhCheckPwd()">🔓 Unlock</button>
-            <div id="nhGateErr" style="font-size:12px; color:#e53e3e; margin-top:8px; min-height:16px;"></div>
+    <div id="nhGate" style="position:fixed; inset:0; background:var(--bg-main); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px; overflow:auto;">
+        <div style="background:var(--bg-card); padding:24px; border-radius:14px; max-width:360px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.25); text-align:center;">
+            <img src="logo.png" alt="logo" style="width:64px; height:64px; border-radius:14px; margin-bottom:6px;" onerror="this.style.display='none'">
+            <div style="font-weight:800; font-size:18px; color:var(--primary-hover); margin-bottom:2px;">Master Dose Calculator</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">Register once to continue</div>
+            <div id="nhRegForm">
+                <input type="text" id="nhRegName" placeholder="Full Name" style="width:100%; padding:11px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin-bottom:8px; background:var(--bg-card); color:var(--text-main); font-size:15px;">
+                <input type="tel" id="nhRegMobile" placeholder="Mobile Number" style="width:100%; padding:11px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin-bottom:8px; background:var(--bg-card); color:var(--text-main); font-size:15px;">
+                <input type="email" id="nhRegEmail" placeholder="Email (optional)" style="width:100%; padding:11px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin-bottom:8px; background:var(--bg-card); color:var(--text-main); font-size:15px;">
+                <select id="nhRegDesig" style="width:100%; padding:11px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin-bottom:10px; background:var(--bg-card); color:var(--text-main); font-size:15px;">
+                    <option value="">— Select Designation —</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="Medical Officer">Medical Officer</option>
+                    <option value="Nursing Staff">Nursing Staff</option>
+                    <option value="Other">Other</option>
+                </select>
+                <button class="copy-all-btn" style="margin:0;" onclick="nhRegister()">✅ Register &amp; Enter</button>
+                <div id="nhRegErr" style="font-size:12px; color:#e53e3e; margin-top:8px; min-height:16px;"></div>
+                <div style="margin-top:8px; font-size:13px;"><a onclick="nhGuest()" style="cursor:pointer; color:var(--primary); text-decoration:underline;">👤 Continue as Guest (one-time only)</a></div>
+                <div style="font-size:10px; color:var(--text-muted); margin-top:12px; line-height:1.5;">Your name, mobile &amp; designation are saved to the admin for access management.</div>
+            </div>
         </div>
     </div>
     <script>
-        function nhHash(str){var h1=0xdeadbeef,h2=0x41c6ce57;for(var i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909);return(4294967296*(2097151&h2)+(h1>>>0)).toString(16);}
-        var NH_PWD_HASH = "1c6453470b525c";
-        function nhCheckPwd(){
-            var inp = document.getElementById('nhGatePwd').value;
-            if(nhHash(inp) === NH_PWD_HASH){ try{ localStorage.setItem('nhAuthed','1'); }catch(e){} document.getElementById('nhGate').style.display='none'; }
-            else { document.getElementById('nhGateErr').textContent='❌ Wrong password'; document.getElementById('nhGatePwd').value=''; }
+        // PWA: register service worker for offline + installability
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function(){
+                navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('SW registration failed:', e); });
+            });
         }
-        (function(){ try{ if(localStorage.getItem('nhAuthed')==='1'){ var g=document.getElementById('nhGate'); if(g) g.style.display='none'; } }catch(e){} })();
     </script>
 
     <!-- Header Section -->
     <div class="sticky-header">
         <div class="header-card">
             <div class="header-top">
-                <h2>Master Dose Calculator</h2>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <img src="logo.png" alt="logo" style="width:36px; height:36px; border-radius:9px; flex-shrink:0;" onerror="this.style.display='none'">
+                    <h2 style="margin:0;">Master Dose Calculator</h2>
+                </div>
                 <div>
+                    <button id="nhAdminBtn" class="action-btn" onclick="nhOpenAdmin()" style="background:#805ad5; padding:8px 10px; display:none;" title="Admin Panel">🛡️ Admin</button>
                     <button class="action-btn" onclick="window.nhKeyModal(true)" style="background:#38a169; padding:8px 10px;" title="AI Vial-Reader Key">🔑</button>
                     <button class="action-btn" onclick="document.body.classList.toggle('dark-mode')" style="background:#4a5568;">🌙 Dark Mode</button>
+                    <button class="action-btn" onclick="nhLogout()" style="background:#e53e3e; padding:8px 10px;" title="Log Out">🚪</button>
                 </div>
             </div>
 
@@ -406,6 +430,7 @@
         <div class="menu-item" onclick="openCat('Emergency')"><div class="menu-icon">🚨</div>Emergency / Airway</div>
         <div class="menu-item" onclick="openCat('NICU')"><div class="menu-icon">👶</div>NICU Protocol</div>
         <div class="menu-item" onclick="openCat('PICU')"><div class="menu-icon">🛏️</div>PICU Protocol</div>
+        <div class="menu-item" onclick="openCat('Library')"><div class="menu-icon">📚</div>Disease Library</div>
         <div class="menu-item" onclick="openCat('Training')"><div class="menu-icon">📺</div>Training & Procedures</div>
         <div class="menu-item" onclick="openCat('Calculators')"><div class="menu-icon">🧮</div>Calculators & Tools</div>
         <div class="menu-item" onclick="openCat('Fluids')"><div class="menu-icon">💧</div>Fluids & DKA</div>
@@ -425,7 +450,7 @@
     <div id="aboutSection" class="about-section">
         <div style="font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 10px;">ℹ️ About</div>
         <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
-            <b style="color:var(--text-main);">📚 Scientific References:</b> IAP Guidelines & Dr. Meharban Singh<br>
+            <b style="color:var(--text-main);">📚 Scientific References:</b> IAP &amp; NNF Guidelines · Dr. Meharban Singh (Care of the Newborn) · Ghai Essential Pediatrics · Nelson Textbook of Pediatrics · WHO Pocketbook of Hospital Care for Children<br>
             <b style="color:var(--text-main);">👨‍⚕️ Under the Expert Guidance of:</b> Dr. Nikul Thakkar<br>
             <b style="color:var(--text-main);">💻 Developed by:</b> Dr. Harsh Mali
         </div>
@@ -511,7 +536,77 @@
         }
 
         // Navigation Functions
+        // Navigation Functions
+        function initRouter() {
+            // Handle Native Android Hardware Back Button via Capacitor Bridge
+            document.addEventListener('deviceready', function() {
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                    window.Capacitor.Plugins.App.addListener('backButton', function() {
+                        if (window.location.hash === '#view') {
+                            _showHome();
+                            window.location.hash = 'home';
+                        } else {
+                            window.Capacitor.Plugins.App.exitApp();
+                        }
+                    });
+                }
+            }, false);
+            
+            // Also listen to Capacitor directly in case deviceready is missed
+            setTimeout(function() {
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                    window.Capacitor.Plugins.App.addListener('backButton', function() {
+                        if (window.location.hash === '#view') {
+                            _showHome();
+                            window.location.hash = 'home';
+                        } else {
+                            window.Capacitor.Plugins.App.exitApp();
+                        }
+                    });
+                }
+            }, 1000);
+
+            if (!window.location.hash || window.location.hash === '') {
+                window.location.replace('#base');
+                setTimeout(() => {
+                    let a = document.createElement('a');
+                    a.href = '#home';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }, 50);
+            }
+        }
+        window.addEventListener('load', initRouter);
+
+        function pushHashIfNeed() {
+            if (window.location.hash !== '#view') {
+                let a = document.createElement('a');
+                a.href = '#view';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+
+        function _showHome() {
+            document.getElementById('search').value = "";
+            currentCategory = 'All';
+            document.getElementById('mainMenu').style.display = 'grid';
+            if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'block';
+            document.getElementById('categoryView').style.display = 'none';
+            var sp = document.getElementById('suggestionsPage'); if(sp) sp.style.display = 'none';
+        }
+
+        window.addEventListener('hashchange', function(e) {
+            if (window.location.hash !== '#view') {
+                _showHome();
+            }
+        });
+
         function openCat(cat) {
+            if(cat === 'Library' && !window._nhCanLibrary){ alert('📚 Disease Library is available for Doctors & Medical Officers only.'); return; }
+            pushHashIfNeed();
             currentCategory = cat;
             document.getElementById('mainMenu').style.display = 'none';
             if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'none';
@@ -522,15 +617,15 @@
         }
 
         function goHome() {
-            document.getElementById('search').value = "";
-            currentCategory = 'All';
-            document.getElementById('mainMenu').style.display = 'grid';
-            if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'block';
-            document.getElementById('categoryView').style.display = 'none';
-            var sp = document.getElementById('suggestionsPage'); if(sp) sp.style.display = 'none';
+            if (window.location.hash === '#view') {
+                history.back();
+            } else {
+                _showHome();
+            }
         }
 
         function openSuggestions() {
+            pushHashIfNeed();
             document.getElementById('search').value = "";
             currentCategory = 'All';
             document.getElementById('mainMenu').style.display = 'none';
@@ -542,6 +637,7 @@
         function searchMeds() {
             let s = document.getElementById('search').value;
             if(s.length > 0) {
+                pushHashIfNeed();
                 document.getElementById('mainMenu').style.display = 'none';
                 if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'none';
                 var sp = document.getElementById('suggestionsPage'); if(sp) sp.style.display = 'none';
@@ -576,6 +672,8 @@
                 if(window.runKHigh) window.runKHigh();
                 if(window.runVent) window.runVent();
                 if(window.runUrine) window.runUrine();
+                if(window.runDehydration) window.runDehydration();
+                if(window.runNeoFluid) window.runNeoFluid();
                 if(window.runInteraction) window.runInteraction();
             }, 50);
         }
@@ -847,6 +945,89 @@
             } else if(res) { res.innerHTML = 'Enter weight, urine & hours…'; }
         };
 
+        window.runDehydration = function() {
+            var wt = val('weight');
+            var a = val('age'), u = document.getElementById('ageUnit').value;
+            var ageMo = (u==='Days') ? a/30 : (u==='Months') ? a : a*12;
+            var sevEl = document.getElementById('dhSeverity'), shEl = document.getElementById('dhShock');
+            var res = document.getElementById('dhRes');
+            if(!res || !sevEl) return;
+            var sev = sevEl.value, shock = shEl ? shEl.value : 'no';
+            if(wt <= 0 || !sev) { res.innerHTML = 'Enter weight + age above, then select severity…'; return; }
+            var maint = wt<=10 ? wt*100 : (wt<=20 ? 1000+(wt-10)*50 : 1500+(wt-20)*20);
+            var pct = sev==='mild' ? 5 : sev==='moderate' ? 8 : 10;
+            var deficit = wt*pct*10;
+            var zinc = ageMo < 6 ? '10 mg OD × 14 d' : '20 mg OD × 14 d';
+            var o = '';
+            o += '<div class="highlight" style="display:block;">Severity: <b>'+sev.toUpperCase()+' ('+pct+'%)</b> · Deficit: <b>'+deficit.toFixed(0)+' ml</b> <span style="font-size:11px; font-weight:normal;">(Wt×%×10)</span></div>';
+            o += '<div class="highlight" style="display:block;">Maintenance: <b>'+maint.toFixed(0)+' ml/day</b> @ <b>'+(maint/24).toFixed(1)+' ml/hr</b> <span style="font-size:11px; font-weight:normal;">(Holliday-Segar)</span></div>';
+            if(sev==='mild'){
+                o += '<div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">PLAN A (home): ORS + continue feeding, <b>NO IV</b></div>';
+                o += '<div class="highlight" style="display:block;">ORS <b>'+(wt*10).toFixed(0)+' ml</b> (10 ml/kg) after each loose stool</div>';
+            } else if(sev==='moderate'){
+                o += '<div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">PLAN B: ORS <b>'+(wt*75).toFixed(0)+' ml</b> (75 ml/kg) over <b>4 hrs</b> → reassess</div>';
+                o += '<div class="note">IV (RL/NS) only if vomiting persists or unable to drink.</div>';
+            } else {
+                o += '<div class="highlight" style="display:block; background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">PLAN C — Total <b>'+(wt*100).toFixed(0)+' ml</b> (100 ml/kg) IV</div>';
+                if(shock==='yes'){
+                    o += '<div class="highlight" style="display:block; background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">🚨 SHOCK: Bolus <b>'+(wt*20).toFixed(0)+' ml</b> (20 ml/kg) RL/NS over 10-20 min, repeat if needed → then Plan C</div>';
+                }
+                if(ageMo < 12){
+                    o += '<div class="highlight" style="display:block;">Phase 1: <b>'+(wt*30).toFixed(0)+' ml</b> (30 ml/kg) over <b>1 hr</b> → '+(wt*30).toFixed(0)+' ml/hr</div>';
+                    o += '<div class="highlight" style="display:block;">Phase 2: <b>'+(wt*70).toFixed(0)+' ml</b> (70 ml/kg) over <b>5 hr</b> → '+(wt*70/5).toFixed(0)+' ml/hr</div>';
+                } else {
+                    o += '<div class="highlight" style="display:block;">Phase 1: <b>'+(wt*30).toFixed(0)+' ml</b> (30 ml/kg) over <b>30 min</b> → '+(wt*60).toFixed(0)+' ml/hr</div>';
+                    o += '<div class="highlight" style="display:block;">Phase 2: <b>'+(wt*70).toFixed(0)+' ml</b> (70 ml/kg) over <b>2.5 hr</b> → '+(wt*70/2.5).toFixed(0)+' ml/hr</div>';
+                }
+                o += '<div class="note">IV: RL preferred (NS acceptable). No hypotonic fluids in resuscitation.</div>';
+            }
+            o += '<div class="highlight" style="display:block; background:#ebf8ff; color:#2b6cb0; border-color:#90cdf4;">Ongoing losses: ORS '+(wt*10).toFixed(0)+' ml/stool · '+(wt*2).toFixed(0)+'-'+(wt*5).toFixed(0)+' ml/vomit (sips)</div>';
+            o += '<div class="highlight" style="display:block; background:#e9d8fd; color:#553c9a; border-color:#d6bcfa;">Zinc: <b>'+zinc+'</b></div>';
+            o += '<div class="note">📋 Monitor: HR, BP, RR, CRT, mental status, urine &gt;1 ml/kg/hr (&gt;'+(wt*1).toFixed(0)+' ml/hr), I/O chart, daily weight, Na/K/glucose.</div>';
+            res.innerHTML = o;
+        };
+
+        window.runNeoFluid = function() {
+            var wt = val('weight');
+            var a = val('age'), u = document.getElementById('ageUnit').value;
+            var dol = (u==='Days') ? a : (u==='Months') ? a*30 : a*365;   // day of life
+            var res = document.getElementById('neoRes'); if(!res) return;
+            var sev = (document.getElementById('neoSev')||{}).value || 'none';
+            var shock = (document.getElementById('neoShock')||{}).value || 'no';
+            if(wt <= 0) { res.innerHTML = 'Enter weight + age (Days)…'; return; }
+            var d = Math.max(1, Math.round(dol));
+            // Birth-weight-stratified day-of-life requirement (IAP-NNF / Meharban Singh): start + 15 ml/kg/day, capped
+            var start, cap, cat;
+            if(wt < 1.0){ start = 90; cap = 180; cat = 'ELBW &lt;1 kg'; }
+            else if(wt < 1.5){ start = 80; cap = 160; cat = 'VLBW 1-1.5 kg'; }
+            else { start = 60; cap = 150; cat = 'Term / &gt;1.5 kg'; }
+            var perKg = Math.min(start + 15*(d-1), cap);
+            var maint = perKg*wt;
+            var pct = sev==='mild'?5 : sev==='moderate'?10 : sev==='severe'?15 : 0;
+            var deficit = wt*pct*10;
+            var total = maint + deficit;
+            var na = (2*wt).toFixed(1)+'-'+(3*wt).toFixed(1);   // Na 2-3 mEq/kg/day
+            var k  = (1*wt).toFixed(1)+'-'+(2*wt).toFixed(1);   // K 1-2 mEq/kg/day
+            var o = '';
+            o += '<div class="highlight" style="display:block;">'+cat+' · Day of life <b>'+d+'</b> · Maintenance: <b>'+perKg+' ml/kg/day = '+maint.toFixed(0)+' ml/day</b> @ <b>'+(maint/24).toFixed(1)+' ml/hr</b></div>';
+            if(pct>0){
+                o += '<div class="highlight" style="display:block;">Dehydration <b>'+sev.toUpperCase()+' ('+pct+'%)</b> · Deficit = Wt×%×10 = <b>'+deficit.toFixed(0)+' ml</b> (or % weight loss vs birth wt)</div>';
+                o += '<div class="highlight" style="display:block; background:#c6f6d5; color:#22543d; border-color:#9ae6b4;">Total (maint + deficit) over 24 hr: <b>'+total.toFixed(0)+' ml/day</b> @ <b>'+(total/24).toFixed(1)+' ml/hr</b></div>';
+            }
+            if(shock==='yes'){
+                o += '<div class="highlight" style="display:block; background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">🚨 SHOCK: NS <b>'+(wt*10).toFixed(0)+' ml</b> (<b>10 ml/kg</b>) fast, may repeat ×2. <span style="font-size:11px;">Neonate bolus = 10, NOT 20 ml/kg.</span></div>';
+            }
+            if(d <= 2){
+                o += '<div class="highlight" style="display:block; background:#ebf8ff; color:#2b6cb0; border-color:#90cdf4;">Fluid (Day 1-2): <b>D10% plain — NO electrolytes</b> · keep GIR 4-6 mg/kg/min.</div>';
+            } else {
+                o += '<div class="highlight" style="display:block; background:#ebf8ff; color:#2b6cb0; border-color:#90cdf4;">Fluid (Day ≥3, after 48 hr &amp; voiding): D10 base + <b>Na 2-3 mEq/kg = '+na+' mEq/day</b> + <b>K 1-2 mEq/kg = '+k+' mEq/day</b> (e.g. N/5 in D10 + KCl).</div>';
+            }
+            o += '<div class="note" style="color:#c53030;">⚠️ Hypernatremia (Na &gt;150): correct deficit slowly over <b>48 hr</b>, drop Na ≤0.5 mEq/L/hr (max 10-12/day). Add ~20-30 ml/kg/day under phototherapy / radiant warmer. Watch GIR / hypoglycemia. <b>No oral ORS / Zinc</b> in neonate.</div>';
+            o += '<div class="note">📋 Monitor: daily weight, urine &gt;1 ml/kg/hr (&gt;'+(wt*1).toFixed(0)+' ml/hr), RBS, Na/K, perfusion/CRT, I/O chart.</div>';
+            o += '<div class="note" style="font-style:normal; color:#718096;">📖 Ref: IAP-NNF Fluid &amp; Electrolyte guideline · Meharban Singh — <i>Care of the Newborn</i>. Start 60 / 80 / 90 (by wt) → +15 ml/kg/day → max 150-180. Confirm vs your unit protocol.</div>';
+            res.innerHTML = o;
+        };
+
         window.runInteraction = function(){
             var res=document.getElementById('ixRes'); if(!res) return;
             var ea=document.getElementById('ixA'), eb=document.getElementById('ixB');
@@ -957,6 +1138,231 @@
                 _suggDb = firebase.database();
             }
         } catch (e) { _suggDb = null; }
+
+        // ==================== USER REGISTRATION / ROLES / ADMIN ====================
+        var NH_ADMIN_MOBILE = '9023403139';
+        var NH_ADMIN_EMAIL  = 'maliharsh12345@gmail.com';
+        var nhUser = null;
+        window._nhCanLibrary = false;
+
+        function nhIsAdminCred(mobile, email){ return (mobile && mobile.indexOf(NH_ADMIN_MOBILE) >= 0) || (email && email.toLowerCase() === NH_ADMIN_EMAIL); }
+        function nhLogout() {
+            if(confirm('Are you sure you want to log out?')) {
+                try{ localStorage.removeItem('nhUser'); localStorage.removeItem('nhGuestUsed'); }catch(e){}
+                window.location.reload();
+            }
+        }
+        function nhCanSeeLibrary(u){ return !!u; }  // all registered users (incl. Nursing Staff) can read the Disease Library
+        function nhDeviceId(){ var id=null; try{ id=localStorage.getItem('nhDeviceId'); }catch(e){} if(!id){ id='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,9); try{ localStorage.setItem('nhDeviceId', id); }catch(e){} } return id; }
+        function nhHideGate(){ var g=document.getElementById('nhGate'); if(g) g.style.display='none'; }
+        function nhShowGate(){ var g=document.getElementById('nhGate'); if(g) g.style.display='flex'; }
+
+        function nhApplyRole(){
+            window._nhCanLibrary = nhCanSeeLibrary(nhUser);
+            var libBtn = document.querySelector('.menu-item[onclick*="Library"]');
+            if(libBtn) libBtn.style.display = window._nhCanLibrary ? '' : 'none';
+            var ab = document.getElementById('nhAdminBtn');
+            if(ab) ab.style.display = (nhUser && nhUser.role === 'admin') ? '' : 'none';
+        }
+
+        function nhRegister(){
+            var name  = (document.getElementById('nhRegName').value || '').trim();
+            var mobile= (document.getElementById('nhRegMobile').value || '').replace(/\D/g,'');
+            var email = (document.getElementById('nhRegEmail').value || '').trim();
+            var desig = document.getElementById('nhRegDesig').value;
+            var err   = document.getElementById('nhRegErr');
+            if(name.length < 2){ err.style.color='#e53e3e'; err.textContent='Please enter your name.'; return; }
+            if(mobile.length < 10){ err.style.color='#e53e3e'; err.textContent='Please enter a valid mobile number.'; return; }
+            if(!desig){ err.style.color='#e53e3e'; err.textContent='Please select your designation.'; return; }
+            var role = nhIsAdminCred(mobile, email) ? 'admin' : desig;
+            err.style.color='var(--text-muted)'; err.textContent='Saving…';
+            function finish(u){ nhUser=u; try{ localStorage.setItem('nhUser', JSON.stringify(u)); }catch(e){} nhApplyRole(); nhHideGate(); }
+            var base = { name:name, mobile:mobile, email:email, designation:desig, role:role, blocked:false, guest:false, lastActive:Date.now() };
+            if(_suggDb){
+                _suggDb.ref('users/'+mobile).once('value').then(function(snap){
+                    var ex = snap.val();
+                    if(ex && ex.blocked){ err.style.color='#e53e3e'; err.textContent='⛔ This number is blocked by admin.'; return; }
+                    var toSave = ex ? Object.assign({}, ex, { name:name, email:email, designation:desig, role:role, lastActive:Date.now() }) : Object.assign({ createdAt:Date.now() }, base);
+                    _suggDb.ref('users/'+mobile).set(toSave).catch(function(){});
+                    finish(toSave);
+                }).catch(function(){ finish(Object.assign({ createdAt:Date.now() }, base)); });
+            } else { finish(Object.assign({ createdAt:Date.now() }, base)); }
+        }
+
+        function nhGuest(){
+            var err=document.getElementById('nhRegErr'); var dev=nhDeviceId();
+            var used=false; try{ used = localStorage.getItem('nhGuestUsed')==='1'; }catch(e){}
+            if(used){ err.style.color='#e53e3e'; err.textContent='Guest was already used once. Please register to continue.'; return; }
+            function allow(){ try{ localStorage.setItem('nhGuestUsed','1'); }catch(e){} nhUser={ name:'Guest', mobile:'', designation:'Guest', role:'guest', guest:true }; nhApplyRole(); nhHideGate(); }
+            if(_suggDb){
+                _suggDb.ref('guests/'+dev).once('value').then(function(snap){
+                    if(snap.val()){ err.style.color='#e53e3e'; err.textContent='Guest already used on this device. Please register.'; try{ localStorage.setItem('nhGuestUsed','1'); }catch(e){} return; }
+                    _suggDb.ref('guests/'+dev).set({ usedAt:Date.now(), device:dev }).catch(function(){});
+                    allow();
+                }).catch(function(){ allow(); });
+            } else { allow(); }
+        }
+
+        function nhAuthInit(){
+            var saved=null; try{ saved=JSON.parse(localStorage.getItem('nhUser')||'null'); }catch(e){}
+            if(saved && saved.mobile){
+                nhUser=saved; nhApplyRole(); nhHideGate();
+                if(_suggDb){
+                    _suggDb.ref('users/'+saved.mobile).once('value').then(function(snap){
+                        var u=snap.val();
+                        if(u && u.blocked){
+                            try{ localStorage.removeItem('nhUser'); }catch(e){}
+                            nhShowGate();
+                            var f=document.getElementById('nhRegForm'); if(f) f.innerHTML='<div style="color:#e53e3e; font-weight:bold; font-size:15px; padding:14px 0;">⛔ Your access has been blocked by admin.</div>';
+                        } else if(u){ _suggDb.ref('users/'+saved.mobile+'/lastActive').set(Date.now()).catch(function(){}); }
+                    }).catch(function(){});
+                }
+            } else { nhShowGate(); }
+        }
+
+        // ---- ADMIN PANEL ----
+        window._nhUsers = [];
+        function nhOpenAdmin(){
+            if(!nhUser || nhUser.role!=='admin') return;
+            var ov=document.getElementById('nhAdminPanel');
+            if(!ov){
+                ov=document.createElement('div'); ov.id='nhAdminPanel';
+                ov.style.cssText='position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100000; display:flex; align-items:flex-start; justify-content:center; padding:16px; overflow:auto;';
+                ov.innerHTML='<div style="background:var(--bg-card); border-radius:14px; max-width:640px; width:100%; padding:18px; box-shadow:0 10px 40px rgba(0,0,0,0.3);">'
+                    +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><div style="font-weight:800; font-size:17px; color:var(--primary-hover);">🛡️ Admin Panel</div><button class="action-btn" style="background:#e53e3e; padding:6px 10px;" onclick="nhCloseAdmin()">✕ Close</button></div>'
+                    +'<input type="text" id="nhAdminSearch" placeholder="Search name / mobile…" oninput="nhRenderUsers()" style="width:100%; padding:9px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin-bottom:10px; background:var(--bg-card); color:var(--text-main);">'
+                    +'<div id="nhAdminStats" style="font-size:12px; color:var(--text-muted); margin-bottom:8px;"></div>'
+                    +'<div id="nhUsersList" style="max-height:60vh; overflow:auto;">Loading…</div>'
+                    +'<button class="copy-all-btn" style="margin-top:10px;" onclick="nhOpenMeds()">💊 Manage Medicines (Add / Edit / Remove)</button></div>';
+                document.body.appendChild(ov);
+            }
+            ov.style.display='flex'; nhLoadUsers();
+        }
+        function nhCloseAdmin(){ var ov=document.getElementById('nhAdminPanel'); if(ov) ov.style.display='none'; }
+        function nhLoadUsers(){
+            var list=document.getElementById('nhUsersList');
+            if(!_suggDb){ list.innerHTML='<div style="color:#e53e3e;">Firebase not connected.</div>'; return; }
+            list.innerHTML='Loading…';
+            _suggDb.ref('users').once('value').then(function(snap){
+                var v=snap.val()||{}; window._nhUsers=Object.keys(v).map(function(k){ return v[k]; });
+                nhRenderUsers();
+            }).catch(function(e){ list.innerHTML='<div style="color:#e53e3e;">Load failed — check Realtime DB rules.</div>'; });
+        }
+        function nhRenderUsers(){
+            var list=document.getElementById('nhUsersList'); var stats=document.getElementById('nhAdminStats');
+            var q=(document.getElementById('nhAdminSearch').value||'').toLowerCase();
+            var users=window._nhUsers.slice().sort(function(a,b){ return (b.lastActive||0)-(a.lastActive||0); });
+            var shown=users.filter(function(u){ return !q || (u.name||'').toLowerCase().indexOf(q)>=0 || (u.mobile||'').indexOf(q)>=0; });
+            if(stats){ var blk=users.filter(function(u){return u.blocked;}).length; stats.textContent='Total users: '+users.length+' · Blocked: '+blk; }
+            if(!shown.length){ list.innerHTML='<div style="color:var(--text-muted);">No users yet.</div>'; return; }
+            list.innerHTML=shown.map(function(u){
+                var when=u.lastActive?new Date(u.lastActive).toLocaleString('en-GB'):'—';
+                var badge=u.role==='admin'?'#805ad5':(u.designation==='Nursing Staff'?'#dd6b20':'#3182ce');
+                var right=u.role==='admin'?'<span style="font-size:11px; color:#805ad5; font-weight:bold;">admin</span>':'<button class="action-btn" style="background:'+(u.blocked?'#38a169':'#e53e3e')+'; padding:6px 10px; font-size:12px;" onclick="nhToggleBlock(\''+_escSugg(u.mobile)+'\','+(u.blocked?'false':'true')+')">'+(u.blocked?'✓ Unblock':'⛔ Block')+'</button>';
+                return '<div style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:6px; '+(u.blocked?'opacity:0.55;':'')+'"><div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">'
+                    +'<div style="min-width:0;"><b>'+_escSugg(u.name||'—')+'</b> <span style="background:'+badge+'; color:#fff; font-size:10px; padding:1px 6px; border-radius:6px;">'+_escSugg(u.designation||u.role||'')+'</span>'
+                    +'<br><span style="font-size:12px; color:var(--text-muted);">📱 '+_escSugg(u.mobile||'—')+(u.email?' · '+_escSugg(u.email):'')+'</span>'
+                    +'<br><span style="font-size:11px; color:var(--text-muted);">last active: '+when+'</span></div>'
+                    +'<div style="flex-shrink:0;">'+right+'</div></div></div>';
+            }).join('');
+        }
+        function nhToggleBlock(mobile, block){
+            if(!_suggDb || !mobile) return;
+            _suggDb.ref('users/'+mobile+'/blocked').set(block).then(function(){
+                for(var i=0;i<window._nhUsers.length;i++){ if(window._nhUsers[i].mobile===mobile){ window._nhUsers[i].blocked=block; } }
+                nhRenderUsers();
+            }).catch(function(){ alert('Failed — check DB rules.'); });
+        }
+
+        // ---- ADMIN: MEDICINE CRUD (structured dose model → RTDB medicines/) ----
+        window._nhMeds = [];
+        var NH_MED_CATS = ["Emergency","NICU","PICU","Nebulizer","Fluids","Antibiotic","Neuro","Syrup","Drops","GI","Formula"];
+        function nhMedCalc(m){
+            return function(wt){
+                wt = wt || 0; var out=''; var per = parseFloat(m.dose)||0;
+                if(per>0 && wt>0){
+                    var total = per*wt; var mx=parseFloat(m.maxDose)||0; if(mx>0 && total>mx) total=mx;
+                    out += '<div class="highlight">'+total.toFixed(2).replace(/\.00$/,'').replace(/(\.\d)0$/,'$1')+' mg/dose <span style="font-size:12px;">('+per+' mg/kg'+(m.freq?' · '+_escSugg(m.freq):'')+')</span></div>';
+                    var c=parseFloat(m.conc)||0; if(c>0){ out += '<div class="note">= '+(total/c).toFixed(2)+' ml (of '+_escSugg(m.conc)+' mg/ml)</div>'; }
+                } else { out += '<div class="note">Enter weight to calculate dose.</div>'; }
+                if(m.route) out += '<div class="note">Route: '+_escSugg(m.route)+'</div>';
+                if(m.maxDose) out += '<div class="note">Max: '+_escSugg(m.maxDose)+' mg/dose</div>';
+                if(m.note) out += '<div class="note">'+_escSugg(m.note)+'</div>';
+                out += '<div class="note" style="color:#805ad5; background:#faf5ff; border-color:#d6bcfa;">➕ Added by admin</div>';
+                return out;
+            };
+        }
+        function nhSyncMedsToDrugs(){
+            for(var i=drugs.length-1;i>=0;i--){ if(drugs[i] && drugs[i]._admin) drugs.splice(i,1); }
+            (window._nhMeds||[]).forEach(function(m){
+                drugs.push({ name:m.name||'Medicine', category:m.category||'Emergency', tags:(m.name||'')+' admin medicine', _admin:true, _key:m.key, calc:nhMedCalc(m) });
+            });
+        }
+        function nhLoadMeds(cb){
+            if(!_suggDb){ if(cb)cb(); return; }
+            _suggDb.ref('medicines').once('value').then(function(snap){
+                var v=snap.val()||{}; window._nhMeds=Object.keys(v).map(function(k){ var m=v[k]||{}; m.key=k; return m; });
+                nhSyncMedsToDrugs(); if(cb)cb();
+            }).catch(function(){ if(cb)cb(); });
+        }
+        function nhMedInp(id,ph){ return '<input id="'+id+'" placeholder="'+ph+'" style="width:100%; padding:8px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin-bottom:6px; background:var(--bg-card); color:var(--text-main);">'; }
+        function nhOpenMeds(){
+            if(!nhUser || nhUser.role!=='admin') return;
+            var ov=document.getElementById('nhMedsPanel');
+            if(!ov){ ov=document.createElement('div'); ov.id='nhMedsPanel'; ov.style.cssText='position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100001; display:flex; align-items:flex-start; justify-content:center; padding:16px; overflow:auto;'; document.body.appendChild(ov); }
+            var cats = NH_MED_CATS.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('');
+            ov.innerHTML='<div style="background:var(--bg-card); border-radius:14px; max-width:520px; width:100%; padding:18px; box-shadow:0 10px 40px rgba(0,0,0,0.3);">'
+                +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><div style="font-weight:800; font-size:17px; color:var(--primary-hover);">💊 Manage Medicines</div><button class="action-btn" style="background:#e53e3e; padding:6px 10px;" onclick="nhCloseMeds()">✕ Close</button></div>'
+                +'<input type="hidden" id="nhMedKey">'
+                +nhMedInp('nhMedName','Medicine name (e.g. Inj Xyz)')
+                +'<select id="nhMedCat" style="width:100%; padding:8px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin-bottom:6px; background:var(--bg-card); color:var(--text-main);">'+cats+'</select>'
+                +'<div style="display:flex; gap:6px;">'+nhMedInp('nhMedDose','Dose mg/kg/dose')+nhMedInp('nhMedFreq','Frequency e.g. BD/TDS')+'</div>'
+                +'<div style="display:flex; gap:6px;">'+nhMedInp('nhMedMax','Max mg/dose (opt)')+nhMedInp('nhMedConc','Conc mg/ml (opt)')+'</div>'
+                +nhMedInp('nhMedRoute','Route e.g. IV / PO / IM')
+                +nhMedInp('nhMedNote','Note / dilution (optional)')
+                +'<button class="copy-all-btn" style="margin:6px 0;" onclick="nhSaveMed()">💾 Save Medicine</button>'
+                +'<div id="nhMedMsg" style="font-size:12px; color:var(--text-muted); min-height:14px;"></div>'
+                +'<hr style="border-top:1px solid var(--border); margin:10px 0;"><div style="font-weight:700; margin-bottom:6px;">Added medicines</div><div id="nhMedList" style="max-height:38vh; overflow:auto;">Loading…</div></div>';
+            ov.style.display='flex'; nhLoadMeds(nhRenderMedList);
+        }
+        function nhCloseMeds(){ var ov=document.getElementById('nhMedsPanel'); if(ov) ov.style.display='none'; }
+        function nhRenderMedList(){
+            var l=document.getElementById('nhMedList'); if(!l) return;
+            var meds=window._nhMeds||[];
+            if(!meds.length){ l.innerHTML='<div style="color:var(--text-muted);">None yet.</div>'; return; }
+            l.innerHTML=meds.map(function(m){
+                return '<div style="border:1px solid var(--border); border-radius:8px; padding:6px 8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; gap:6px;">'
+                    +'<div style="min-width:0;"><b>'+_escSugg(m.name||'—')+'</b> <span style="font-size:11px; color:var(--text-muted);">['+_escSugg(m.category||'')+']</span><br><span style="font-size:12px; color:var(--text-muted);">'+_escSugg(m.dose||'?')+' mg/kg'+(m.freq?' · '+_escSugg(m.freq):'')+(m.route?' · '+_escSugg(m.route):'')+'</span></div>'
+                    +'<div style="flex-shrink:0; white-space:nowrap;"><button class="action-btn" style="background:#3182ce; padding:5px 8px; font-size:12px;" onclick="nhEditMed(\''+m.key+'\')">✏️</button> <button class="action-btn" style="background:#e53e3e; padding:5px 8px; font-size:12px;" onclick="nhDeleteMed(\''+m.key+'\')">🗑️</button></div></div>';
+            }).join('');
+        }
+        function nhSaveMed(){
+            var msg=document.getElementById('nhMedMsg');
+            var name=(document.getElementById('nhMedName').value||'').trim();
+            if(name.length<2){ msg.style.color='#e53e3e'; msg.textContent='Enter medicine name.'; return; }
+            if(!_suggDb){ msg.style.color='#e53e3e'; msg.textContent='Firebase not connected.'; return; }
+            var m={ name:name, category:document.getElementById('nhMedCat').value, dose:(document.getElementById('nhMedDose').value||'').trim(), freq:(document.getElementById('nhMedFreq').value||'').trim(), maxDose:(document.getElementById('nhMedMax').value||'').trim(), conc:(document.getElementById('nhMedConc').value||'').trim(), route:(document.getElementById('nhMedRoute').value||'').trim(), note:(document.getElementById('nhMedNote').value||'').trim(), updatedAt:Date.now() };
+            var key=document.getElementById('nhMedKey').value;
+            msg.style.color='var(--text-muted)'; msg.textContent='Saving…';
+            var ref = key ? _suggDb.ref('medicines/'+key) : _suggDb.ref('medicines').push();
+            ref.set(m).then(function(){ msg.style.color='#38a169'; msg.textContent='✅ Saved.'; document.getElementById('nhMedKey').value=''; ['nhMedName','nhMedDose','nhMedFreq','nhMedMax','nhMedConc','nhMedRoute','nhMedNote'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; }); nhLoadMeds(function(){ nhRenderMedList(); if(document.getElementById('categoryView').style.display==='block') calculateAll(); }); }).catch(function(){ msg.style.color='#e53e3e'; msg.textContent='Failed — check DB rules.'; });
+        }
+        function nhEditMed(key){
+            var m=(window._nhMeds||[]).filter(function(x){return x.key===key;})[0]; if(!m) return;
+            document.getElementById('nhMedKey').value=key;
+            document.getElementById('nhMedName').value=m.name||''; document.getElementById('nhMedCat').value=m.category||'Emergency';
+            document.getElementById('nhMedDose').value=m.dose||''; document.getElementById('nhMedFreq').value=m.freq||'';
+            document.getElementById('nhMedMax').value=m.maxDose||''; document.getElementById('nhMedConc').value=m.conc||'';
+            document.getElementById('nhMedRoute').value=m.route||''; document.getElementById('nhMedNote').value=m.note||'';
+            document.getElementById('nhMedMsg').style.color='var(--text-muted)'; document.getElementById('nhMedMsg').textContent='Editing "'+(m.name||'')+'" — change fields &amp; Save.';
+        }
+        function nhDeleteMed(key){
+            if(!_suggDb || !key) return; if(!confirm('Delete this medicine?')) return;
+            _suggDb.ref('medicines/'+key).remove().then(function(){ nhLoadMeds(function(){ nhRenderMedList(); if(document.getElementById('categoryView').style.display==='block') calculateAll(); }); }).catch(function(){ alert('Failed — check DB rules.'); });
+        }
+
+        try{ nhAuthInit(); }catch(e){ try{ nhShowGate(); }catch(_){} }
+        try{ nhLoadMeds(function(){ if(document.getElementById('categoryView') && document.getElementById('categoryView').style.display==='block') calculateAll(); }); }catch(e){}
 
         function _escSugg(x){ return String(x == null ? '' : x).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
         function _fmtSugg(s){
@@ -1833,6 +2239,50 @@
                     res += `<div class="highlight" style="display:block; margin-top:5px; background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;">Severe Bolus: ${(wt*20).toFixed(0)} ml NS/RL Stat</div>`;
                     return res;
                 }
+            },
+            {
+                name: "💧 Dehydration — Smart Plan (A / B / C)",
+                category: "Fluids",
+                tags: "dehydration smart plan a b c ors deficit maintenance shock zinc severe moderate mild diarrhea gastroenteritis who iap holliday segar",
+                calc: (wt, age, unit) => `
+                    <div class="badge" style="background:#38a169; color:#fff;">SMART DEHYDRATION — WHO / IAP Plan A-B-C</div>
+                    <div style="font-size:12px; color:var(--text-muted); margin:4px 0 6px;">Uses Weight + Age above. Select severity &amp; shock:</div>
+                    <div class="calc-inputs">
+                        <select id="dhSeverity" onchange="window.runDehydration()">
+                            <option value="" disabled selected>Severity</option>
+                            <option value="mild">Mild (5%) — Plan A</option>
+                            <option value="moderate">Moderate (8%) — Plan B</option>
+                            <option value="severe">Severe (10%) — Plan C</option>
+                        </select>
+                        <select id="dhShock" onchange="window.runDehydration()">
+                            <option value="no" selected>No Shock</option>
+                            <option value="yes">Shock present</option>
+                        </select>
+                    </div>
+                    <div id="dhRes" style="margin-top:10px;">Enter weight + age above, then select severity…</div>
+                `
+            },
+            {
+                name: "🍼 Neonatal Fluid & Dehydration (Day of Life)",
+                category: "Fluids",
+                tags: "neonate neonatal dehydration fluid day of life maintenance deficit shock hypernatremia nicu newborn",
+                calc: (wt, age, unit) => `
+                    <div class="badge" style="background:#dd6b20; color:#fff;">NEONATAL FLUID — Day-of-Life + Birth-weight (IAP-NNF / Meharban Singh)</div>
+                    <div style="font-size:12px; color:var(--text-muted); margin:4px 0 6px;">Uses Weight (auto: Term&gt;1.5 / VLBW 1-1.5 / ELBW&lt;1 kg) + Age (enter in <b>Days</b> = day of life). Select if dehydrated + shock:</div>
+                    <div class="calc-inputs">
+                        <select id="neoSev" onchange="window.runNeoFluid()">
+                            <option value="none" selected>No dehydration</option>
+                            <option value="mild">Mild (5%)</option>
+                            <option value="moderate">Moderate (10%)</option>
+                            <option value="severe">Severe (15%)</option>
+                        </select>
+                        <select id="neoShock" onchange="window.runNeoFluid()">
+                            <option value="no" selected>No Shock</option>
+                            <option value="yes">Shock present</option>
+                        </select>
+                    </div>
+                    <div id="neoRes" style="margin-top:10px;">Enter weight + age (Days), then select…</div>
+                `
             },
             {
                 name: "🩸 DKA MASTER PROTOCOL",
@@ -3621,6 +4071,732 @@
             }
         ];
 
+        // ===================== DISEASE LIBRARY (NICU + PICU) =====================
+        function libSec(icon, title, body, color){
+            return '<div style="margin-top:8px; border-left:3px solid '+color+'; padding-left:8px;">'
+                + '<div style="font-weight:700; color:'+color+'; font-size:13px; margin-bottom:2px;">'+icon+' '+title+'</div>'
+                + '<div style="font-size:13px; line-height:1.55; color:var(--text-main);">'+body+'</div></div>';
+        }
+        function libCard(sys, cause, feat, ix, mgmt, pearls, tx){
+            return '<div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">'
+                    + (sys==='NICU'?'👶 NICU':'🛏️ PICU') + ' · tap to read full details ▾</div>'
+                + '<details style="border:1px solid var(--border); border-radius:8px; padding:8px;">'
+                + '<summary style="cursor:pointer; font-weight:700; color:var(--text-main); font-size:14px;">📖 Cause → Full Management</summary>'
+                + libSec('🔍','Cause / Etiology', cause, '#dd6b20')
+                + libSec('🩺','Clinical Features', feat, '#3182ce')
+                + libSec('🧪','Investigations', ix, '#805ad5')
+                + libSec('💊','Management', mgmt, '#38a169')
+                + (tx ? libSec('🪜','Treatment Ladder (1st → 2nd line)', tx, '#2b6cb0') : '')
+                + libSec('⚠️','Key Points', pearls, '#e53e3e')
+                + '<button onclick="this.parentElement.removeAttribute(\'open\')" style="margin-top:10px; padding:8px; background:var(--bg-main); border:1px solid var(--border); border-radius:6px; width:100%; font-weight:bold; color:var(--text-main); cursor:pointer;">⬆️ Close Details</button>'
+                + '</details>';
+        }
+        const _library = [
+          { n:"🦠 Neonatal Sepsis", t:"sepsis infection eos los blood culture antibiotics", s:"NICU",
+            c:`Bacterial infection. <b>EOS (&lt;72 h)</b> — vertical/maternal: PROM &gt;18 h, chorioamnionitis, maternal fever/UTI, GBS colonisation, prematurity. <b>LOS (&gt;72 h)</b> — nosocomial: central lines, ventilation, prolonged stay. Organisms: GBS, E. coli, Klebsiella, Staph, Listeria.`,
+            f:`Temperature instability, lethargy, poor feeding, apnea, respiratory distress/grunting, tachy- or bradycardia, hypo/hyperglycemia, abdominal distension, jaundice, poor perfusion, shock, seizures. Often subtle — "baby not doing well".`,
+            i:`Blood culture (gold standard) BEFORE antibiotics · CBC (WBC, ANC, I:T ratio ≥0.2, low platelets) · CRP (serial) · sepsis screen · blood glucose · LP if meningitis suspected · urine culture (LOS) · CXR if respiratory.`,
+            m:`Empiric IV antibiotics after cultures: <b>EOS → Ampicillin + Gentamicin</b>; <b>LOS/nosocomial → per unit</b> (e.g. Pip-tazo or Cefotaxime + Amikacin ± Vancomycin). Supportive: thermoneutral care, IV fluids, maintain glucose &amp; electrolytes, respiratory support, inotropes for shock. Duration 7–10 d (14–21 d meningitis). Reassess at 48–72 h with culture + CRP — stop if screen negative &amp; baby well.`,
+            tx:`1️⃣ EOS → <b>Ampicillin + Gentamicin</b> (after cultures) → 2️⃣ LOS/nosocomial → <b>Cefotaxime/Pip-tazo + Amikacin ± Vancomycin</b> (per unit) → 3️⃣ Meningitis / no response → broaden per culture (Meropenem), longer course.`,
+            p:`Low threshold to treat. Culture before antibiotics. Meningitis needs LP + longer course. Watch glucose, perfusion, coagulation.` },
+
+          { n:"🫁 Respiratory Distress Syndrome (RDS / HMD)", t:"rds hmd surfactant preterm hyaline membrane cpap", s:"NICU",
+            c:`Surfactant deficiency (immature type-II pneumocytes). Risk: <b>prematurity (main)</b>, infant of diabetic mother, male, elective C-section without labour, perinatal asphyxia, second twin.`,
+            f:`Onset within minutes–hours of birth: tachypnea, expiratory grunting, nasal flaring, intercostal/subcostal retractions, cyanosis; worsens over 24–48 h then improves.`,
+            i:`CXR — low lung volume, diffuse reticulogranular "ground-glass" + air bronchograms · ABG (hypoxemia, hypercarbia, acidosis) · Downes/Silverman score · rule out sepsis.`,
+            m:`Prevention = <b>antenatal corticosteroids</b>. Delivery room: early <b>CPAP</b>. <b>Surfactant</b> (INSURE / LISA) for moderate–severe. O2 targeting SpO2 90–95%; mechanical ventilation if CPAP fails; caffeine for apnea/extubation; thermal care, fluids, nutrition; treat PDA/sepsis.`,
+            tx:`1️⃣ Antenatal steroids (prevention) + early <b>CPAP</b> → 2️⃣ <b>Surfactant (INSURE/LISA)</b> for moderate–severe + caffeine → 3️⃣ <b>Mechanical ventilation</b> if CPAP fails → 4️⃣ Severe/refractory → <b>HFOV</b> (± repeat surfactant, treat PDA/PPHN).`,
+            p:`Antenatal steroids reduce RDS &amp; mortality. Avoid hyperoxia (ROP, BPD). Give surfactant early.` },
+
+          { n:"💩 Meconium Aspiration Syndrome (MAS)", t:"mas meconium aspiration pphn term post-term", s:"NICU",
+            c:`Aspiration of meconium-stained liquor — term/post-term with fetal distress/hypoxia. Causes airway obstruction (ball-valve), chemical pneumonitis, surfactant inactivation and PPHN.`,
+            f:`Meconium-stained skin/cord/nails, respiratory distress from birth, barrel-shaped chest, coarse crackles, cyanosis; may have air leak.`,
+            i:`CXR — patchy asymmetric infiltrates, hyperinflation, ± pneumothorax · ABG · ECHO for PPHN.`,
+            m:`NRP resuscitation — routine intubation/tracheal suction <b>no longer recommended</b> for non-vigorous babies. Supportive: O2/ventilation, surfactant, <b>iNO</b> + optimise oxygenation for PPHN, antibiotics (can't exclude sepsis), maintain BP/perfusion, avoid hypoxia/acidosis. Severe → HFOV/ECMO.`,
+            tx:`1️⃣ NRP resuscitation + O2/ventilation → 2️⃣ Antibiotics + <b>surfactant</b> → 3️⃣ PPHN → <b>iNO</b> + optimise oxygenation, HFOV → 4️⃣ Refractory → <b>ECMO</b>.`,
+            p:`Anticipate PPHN &amp; air leak. Minimal handling. Keep saturations up, avoid acidosis.` },
+
+          { n:"🌬️ Transient Tachypnea of Newborn (TTN)", t:"ttn transient tachypnea wet lung c-section", s:"NICU",
+            c:`Delayed clearance of fetal lung fluid. Risk: elective <b>C-section (no labour)</b>, late preterm, infant of diabetic mother, maternal asthma/sedation, macrosomia.`,
+            f:`Tachypnea (RR &gt;60) soon after birth in near-term/term, mild grunting/retractions, minimal O2 need; typically resolves in 24–72 h.`,
+            i:`CXR — prominent perihilar vascular markings, fluid in fissures, hyperinflation, small effusions. Diagnosis of exclusion.`,
+            m:`Supportive — O2/CPAP as needed to keep SpO2 &gt;90%, monitor; withhold oral feeds while RR high (IV fluids/gavage); rule out sepsis. Self-limiting.`,
+            tx:`1️⃣ <b>Supportive — O2/CPAP</b> + withhold oral feeds while tachypneic → 2️⃣ IV fluids/gavage + rule out sepsis → 3️⃣ Escalate respiratory support if not settling by 72 h (reconsider diagnosis).`,
+            p:`Diagnosis of exclusion — reconsider RDS/pneumonia/sepsis if not improving by 72 h.` },
+
+          { n:"💛 Neonatal Jaundice (Hyperbilirubinemia)", t:"jaundice bilirubin phototherapy kernicterus exchange", s:"NICU",
+            c:`<b>Unconjugated</b> — physiological, breastfeeding/breast-milk, hemolysis (Rh/ABO, G6PD, spherocytosis), sepsis, cephalhematoma, polycythemia. <b>Conjugated</b> (always pathological) — biliary atresia, neonatal hepatitis, TORCH, metabolic.`,
+            f:`Yellow skin/sclera, cephalocaudal progression. Bilirubin encephalopathy (kernicterus): lethargy, poor feeding, hypertonia, retrocollis/opisthotonus, high-pitched cry, seizures.`,
+            i:`Total &amp; direct bilirubin, plot on hour-specific (Bhutani) nomogram · blood group (mother+baby) + DCT/Coombs · CBC + reticulocyte · peripheral smear · G6PD · direct bili if &gt;2 wk.`,
+            m:`<b>Phototherapy</b> per age-in-hours + risk thresholds (AAP/NICE) · <b>exchange transfusion</b> for very high/rapidly rising TSB or encephalopathy · ensure hydration &amp; feeds · IVIG for isoimmune hemolysis · treat cause.`,
+            tx:`1️⃣ <b>Phototherapy</b> per hour-specific thresholds + hydration → 2️⃣ <b>IVIG</b> for isoimmune hemolysis → 3️⃣ Very high / rapidly rising TSB or encephalopathy → <b>exchange transfusion</b>.`,
+            p:`Jaundice in first 24 h is ALWAYS pathological. Prolonged (&gt;2 wk) → check conjugated bilirubin to exclude biliary atresia (Kasai by ~8 wk).` },
+
+          { n:"🧠 Perinatal Asphyxia / HIE", t:"hie asphyxia birth cooling hypothermia sarnat encephalopathy", s:"NICU",
+            c:`Perinatal hypoxia-ischemia — cord prolapse/around neck, placental abruption, uterine rupture, shoulder dystocia, maternal hypotension, prolonged/obstructed labour.`,
+            f:`Low Apgar, need for resuscitation, encephalopathy by <b>Sarnat stage</b> (I mild / II moderate / III severe): altered tone &amp; consciousness, poor feeding, seizures; multi-organ dysfunction (renal, hepatic, cardiac).`,
+            i:`ABG (metabolic acidosis, pH &lt;7, base deficit) · glucose, Ca, electrolytes · renal &amp; liver function · aEEG/EEG · cranial USG · MRI (best for prognosis).`,
+            m:`<b>Therapeutic hypothermia (33–34 °C × 72 h)</b> for moderate–severe HIE if ≥36 wk &amp; started within 6 h — key neuroprotection. Supportive: ventilation (avoid hyperoxia/hypocarbia), maintain perfusion/BP &amp; glucose, treat seizures (phenobarbitone), fluid restriction if SIADH/AKI, avoid hyperthermia.`,
+            tx:`1️⃣ Resuscitate + supportive (ventilation, BP, glucose) → 2️⃣ <b>Therapeutic hypothermia (33–34 °C ×72 h)</b> if ≥36 wk within 6 h → 3️⃣ Treat seizures (<b>phenobarbitone</b>), manage multi-organ dysfunction.`,
+            p:`Start cooling within 6 h. Avoid hyperthermia at all costs. Passive cooling while arranging transfer.` },
+
+          { n:"🍬 Neonatal Hypoglycemia", t:"hypoglycemia glucose gir idm sga dextrose", s:"NICU",
+            c:`↓ stores — prematurity, IUGR/SGA · ↑ utilisation — asphyxia, sepsis, hypothermia, polycythemia · hyperinsulinism — infant of diabetic mother, LGA, Beckwith-Wiedemann · endocrine/inborn errors.`,
+            f:`Often asymptomatic. Jitteriness, lethargy, poor feeding, apnea, hypotonia, high-pitched/weak cry, cyanosis, seizures.`,
+            i:`Bedside glucometer + confirm with lab. If persistent/refractory → critical sample (insulin, cortisol, GH, ketones, free fatty acids, lactate) at time of low glucose.`,
+            m:`Threshold ≈ &lt;45 mg/dL (unit-specific). Asymptomatic &amp; feeding: feed + recheck 30–60 min. Symptomatic or very low: <b>IV D10% 2 mL/kg bolus, then infusion GIR 6–8 mg/kg/min</b>, titrate up; increase GIR/concentration (central line if &gt;12.5%). Refractory → hydrocortisone, diazoxide, glucagon.`,
+            tx:`1️⃣ Asymptomatic + feeding → feed + recheck → 2️⃣ Symptomatic / very low → <b>IV D10 2 mL/kg bolus + infusion GIR 6–8</b>, titrate → 3️⃣ Persistent → ↑GIR / central line (higher dextrose) + <b>hydrocortisone</b> → 4️⃣ Refractory hyperinsulinism → <b>diazoxide / octreotide / glucagon</b>, endocrine workup.`,
+            p:`NEVER give a bolus without starting maintenance infusion (rebound). Maintain GIR; wean slowly.` },
+
+          { n:"⚡ Neonatal Seizures", t:"neonatal seizures phenobarbitone hie hypocalcemia convulsion", s:"NICU",
+            c:`HIE (commonest), metabolic (hypoglycemia, hypocalcemia, hyponatremia, hypomagnesemia), infection (meningitis, TORCH), intracranial hemorrhage/stroke, inborn errors, pyridoxine dependency.`,
+            f:`<b>Subtle</b> (commonest) — lip-smacking, chewing, eye deviation/blinking, cycling/pedalling, apnea; also clonic, tonic, myoclonic. Jitteriness stops on holding — a seizure does not.`,
+            i:`Glucose, Ca, Mg, Na · sepsis screen + LP · cranial USG/CT · aEEG/EEG · metabolic workup if refractory.`,
+            m:`<b>Correct metabolic cause first</b> (D10 for glucose, Ca gluconate for hypocalcemia). 1st line: <b>Phenobarbitone 20 mg/kg IV</b> loading (repeat 10 mg/kg to max 40). 2nd line: phenytoin/fosphenytoin 20 mg/kg or levetiracetam. Pyridoxine trial if refractory. Treat underlying cause.`,
+            tx:`1️⃣ <b>Correct glucose/Ca first</b> (D10, Ca gluconate) → 2️⃣ <b>Phenobarbitone 20 mg/kg IV</b> (repeat to max 40) → 3️⃣ <b>Phenytoin/fosphenytoin or levetiracetam</b> → 4️⃣ Refractory → <b>midazolam infusion + pyridoxine trial</b>, treat cause.`,
+            p:`Always check &amp; correct glucose and calcium before/with anticonvulsants. Rule out meningitis.` },
+
+          { n:"🩸 Necrotizing Enterocolitis (NEC)", t:"nec necrotizing enterocolitis pneumatosis preterm feeds", s:"NICU",
+            c:`Multifactorial — <b>prematurity (main)</b>, enteral feeding (esp. formula / rapid advancement), gut ischemia/hypoxia, abnormal bacterial colonisation, immature gut immunity.`,
+            f:`Feeding intolerance, increased/bilious aspirates, abdominal distension &amp; tenderness, bloody stools, vomiting, lethargy, apnea, temperature instability; abdominal wall erythema, shock (advanced).`,
+            i:`Abdominal X-ray — <b>pneumatosis intestinalis (hallmark)</b>, portal venous gas, persistent dilated loop, free air (perforation) · CBC (low platelets/neutrophils), CRP, blood gas (acidosis), blood culture. Modified Bell staging.`,
+            m:`<b>NPO / bowel rest</b>, orogastric decompression, IV fluids + TPN, <b>broad-spectrum antibiotics</b> (e.g. Ampicillin + Gentamicin + Metronidazole, per unit) 7–14 d; correct acidosis, coagulopathy, thrombocytopenia; serial X-rays + girth; <b>surgical consult</b> — surgery for perforation/necrosis.`,
+            tx:`1️⃣ <b>NPO + orogastric decompression + IV fluids/TPN</b> → 2️⃣ <b>Broad-spectrum antibiotics</b> (Ampicillin + Gentamicin + Metronidazole) 7–14 d → 3️⃣ Perforation/necrosis → <b>surgery</b>.`,
+            p:`Pneumatosis is diagnostic. Breast milk is protective. Watch for perforation &amp; late strictures.` },
+
+          { n:"🫁 PPHN (Persistent Pulmonary Hypertension)", t:"pphn pulmonary hypertension cyanosis ino term", s:"NICU",
+            c:`Failure of pulmonary vascular resistance to fall after birth → R→L shunt across PDA/PFO. Causes: MAS, sepsis/pneumonia, RDS, diaphragmatic hernia, birth asphyxia, idiopathic. Usually term/post-term.`,
+            f:`Severe cyanosis/hypoxemia out of proportion to lung disease, labile saturations, <b>pre- vs post-ductal SpO2 difference &gt;5–10%</b>, loud P2, respiratory distress.`,
+            i:`Pre- &amp; post-ductal SpO2 · ABG (marked hypoxemia) · <b>ECHO</b> (high pulmonary pressure, R→L shunt, exclude cyanotic CHD) · CXR · oxygenation index.`,
+            m:`Optimise oxygenation/ventilation (SpO2 90–95%, avoid acidosis/hypoxia), sedation + minimal handling, maintain systemic BP (fluids/inotropes), correct acidosis, treat cause.`,
+            tx:`1️⃣ Supportive — O2 + gentle ventilation, correct acidosis, keep BP up → 2️⃣ <b>Inhaled nitric oxide (iNO)</b> ± surfactant (if lung disease) → 3️⃣ <b>Sildenafil / milrinone + HFOV</b> → 4️⃣ Refractory → <b>ECMO</b>.`,
+            p:`Keep saturations up; avoid hypoxia/acidosis/agitation. Rule out cyanotic CHD by ECHO before labelling PPHN.` },
+
+          { n:"⏸️ Apnea of Prematurity", t:"apnea prematurity caffeine bradycardia preterm", s:"NICU",
+            c:`Immature respiratory control (central), obstructive, or mixed — preterm &lt;34 wk. Always exclude secondary causes (sepsis, hypoglycemia, IVH, anemia, hypothermia, GER, PDA).`,
+            f:`Breathing pause &gt;20 s, or shorter pause with bradycardia / desaturation / cyanosis / pallor.`,
+            i:`Rule out cause: sepsis screen, glucose, Ca, electrolytes, Hb/Hct, cranial USG · continuous apnea + SpO2 monitoring.`,
+            m:`Treat any underlying cause first · tactile stimulation, prone position, O2, correct anemia.`,
+            tx:`1️⃣ <b>Caffeine citrate</b> (load 20 mg/kg → maintain 5–10 mg/kg/day) + positioning → 2️⃣ CPAP / HFNC for mixed-obstructive → 3️⃣ Mechanical ventilation if frequent/severe.`,
+            p:`New-onset apnea in a previously stable baby = sepsis until proven otherwise. Caffeine is safe &amp; first-line.` },
+
+          { n:"🌫️ BPD / Chronic Lung Disease", t:"bpd chronic lung disease preterm oxygen ventilation", s:"NICU",
+            c:`Preterm lung injury from prolonged O2 + ventilation (volu/barotrauma, O2 toxicity) + inflammation/infection + PDA. Defined by O2 need at 36 wk PMA.`,
+            f:`Persistent respiratory distress / O2 dependence beyond 28 d or 36 wk PMA, tachypnea, retractions, poor growth, recurrent desaturations.`,
+            i:`CXR (hyperinflation, cystic/fibrotic changes) · blood gas · ECHO (pulmonary hypertension) · SpO2 trends.`,
+            m:`Optimise nutrition (high calorie), fluid restriction, adequate O2 (SpO2 90–95%), treat infection/PDA, immunise/palivizumab.`,
+            tx:`1️⃣ Prevention — antenatal steroids, gentle ventilation, <b>caffeine</b>, avoid hyperoxia → 2️⃣ Fluid restriction ± <b>diuretics</b>, inhaled/systemic steroids selectively, bronchodilators → 3️⃣ Treat pulmonary hypertension (sildenafil), prolonged O2/ventilation support.`,
+            p:`Prevention (gentle vent + caffeine + nutrition) matters most. Screen for pulmonary hypertension.` },
+
+          { n:"💨 Pneumothorax / Air Leak", t:"pneumothorax air leak transillumination chest drain", s:"NICU",
+            c:`Alveolar overdistension/rupture → air in pleural space. Spontaneous, or with RDS/MAS/positive-pressure ventilation/resuscitation.`,
+            f:`Sudden deterioration, respiratory distress, cyanosis, decreased breath sounds + hyperresonance on affected side, shifted apex, hypotension (tension), asymmetric chest.`,
+            i:`<b>Transillumination</b> (bedside) · CXR (lucency, collapsed lung, mediastinal shift) · ABG.`,
+            m:`Small/asymptomatic → observe ± O2 (nitrogen washout — caution in preterm/ROP). Symptomatic/tension → decompress.`,
+            tx:`1️⃣ Asymptomatic → observe/monitor → 2️⃣ Tension → <b>immediate needle aspiration</b> (2nd ICS mid-clavicular) → 3️⃣ <b>Intercostal chest drain</b> to underwater seal + ventilatory support.`,
+            p:`Tension pneumothorax = decompress immediately, don't wait for X-ray. Transillumination helps at the bedside.` },
+
+          { n:"❤️ PDA (Patent Ductus Arteriosus)", t:"pda patent ductus arteriosus murmur ibuprofen preterm", s:"NICU",
+            c:`Failure of ductus arteriosus to close after birth (common in preterm/RDS). Left→right shunt.`,
+            f:`Continuous "machinery" murmur (left infraclavicular), bounding pulses, wide pulse pressure, hyperactive precordium, tachycardia, worsening respiratory status / hard to wean vent, hepatomegaly, pulmonary edema.`,
+            i:`<b>ECHO</b> (confirms + sizes shunt) · CXR (cardiomegaly, pulmonary plethora) · signs of failure.`,
+            m:`Fluid restriction, treat anemia, adequate PEEP; decide by haemodynamic significance.`,
+            tx:`1️⃣ Conservative — fluid restriction, treat anemia → 2️⃣ Pharmacologic closure: <b>Ibuprofen / Indomethacin / Paracetamol</b> (if haemodynamically significant) → 3️⃣ Surgical/device ligation if drug fails/contraindicated.`,
+            p:`Not every PDA needs treatment — treat haemodynamically significant ones. Avoid fluid overload.` },
+
+          { n:"💙 Cyanotic CHD / Duct-dependent Lesion", t:"cyanotic congenital heart disease prostaglandin tga tof duct", s:"NICU",
+            c:`Structural defect with R→L shunt (TGA, TOF, TAPVC, tricuspid/pulmonary atresia, HLHS). Duct-dependent lesions need the PDA for pulmonary or systemic flow.`,
+            f:`Central cyanosis <b>not responding to O2</b> (failed hyperoxia test), tachypnea, murmur, differential cyanosis, collapse/shock when duct closes, poor feeding.`,
+            i:`Pre/post-ductal SpO2 · hyperoxia test · <b>ECHO</b> (diagnostic) · CXR (egg-on-side=TGA, boot=TOF) · ECG · ABG.`,
+            m:`Avoid high FiO2 (can close duct / overcirculate lungs), correct acidosis, treat shock, refer to cardiac centre.`,
+            tx:`1️⃣ <b>Prostaglandin E1 infusion (0.01–0.05 mcg/kg/min)</b> to keep duct open — life-saving → 2️⃣ Balloon atrial septostomy (TGA) / stabilise → 3️⃣ Definitive surgery/intervention at cardiac centre.`,
+            p:`Cyanosis not improving with O2 → suspect cyanotic CHD → start prostaglandin, don't flood with O2. Watch apnea from PGE1.` },
+
+          { n:"🩸 IVH (Intraventricular Hemorrhage)", t:"ivh intraventricular hemorrhage preterm germinal matrix cranial usg", s:"NICU",
+            c:`Bleeding from fragile germinal matrix in preterm (&lt;32 wk / &lt;1500 g). Risk: prematurity, RDS, BP swings, pneumothorax, coagulopathy. Graded I–IV.`,
+            f:`Often silent; or sudden deterioration — apnea, seizures, bulging fontanelle, falling Hct, hypotonia, altered consciousness, shock.`,
+            i:`<b>Cranial ultrasound</b> (screen + grade; day 3–7 &amp; follow-up) · coagulation · Hct.`,
+            m:`Mainly supportive/preventive — stable BP/perfusion, avoid rapid volume/osmolar shifts, treat coagulopathy, gentle handling, treat seizures.`,
+            tx:`1️⃣ Prevention — antenatal steroids, gentle handling, stable haemodynamics → 2️⃣ Supportive — treat seizures/coagulopathy, serial USG → 3️⃣ Post-hemorrhagic hydrocephalus → serial LP / reservoir / <b>VP shunt</b> if progressive.`,
+            p:`Prevention matters most. Watch for post-hemorrhagic hydrocephalus on serial scans.` },
+
+          { n:"🤕 Birth Injuries", t:"birth injury brachial plexus erb clavicle cephalhematoma subgaleal", s:"NICU",
+            c:`Mechanical trauma at delivery — macrosomia, malpresentation, instrumental/difficult delivery. Includes brachial plexus palsy (Erb/Klumpke), clavicle fracture, cephalhematoma, subgaleal hemorrhage, facial palsy.`,
+            f:`Erb palsy — "waiter's tip" arm; clavicle fracture — crepitus/pseudoparalysis; cephalhematoma — swelling not crossing sutures; subgaleal — boggy swelling crossing sutures + hypovolemia.`,
+            i:`Clinical exam · X-ray for fracture · monitor Hct/bilirubin · assess hypovolemia (subgaleal).`,
+            m:`Mostly supportive/expectant + analgesia; watch jaundice (cephalhematoma).`,
+            tx:`1️⃣ Supportive — gentle handling, analgesia, physiotherapy (brachial plexus) → 2️⃣ Subgaleal hemorrhage → <b>resuscitate blood loss</b> (fluids/transfusion) → 3️⃣ Refer if brachial plexus not recovering by 3–6 mo (surgical review).`,
+            p:`Subgaleal hemorrhage can be life-threatening (major blood loss) — monitor closely. Most brachial plexus/clavicle injuries recover well.` },
+
+          { n:"🦠 Congenital Infections (TORCH)", t:"torch congenital infection cmv toxoplasma rubella hsv syphilis", s:"NICU",
+            c:`Transplacental/perinatal — Toxoplasma, Others (syphilis, HIV, VZV, parvovirus), Rubella, CMV, HSV.`,
+            f:`IUGR, microcephaly, hepatosplenomegaly, jaundice, petechiae ("blueberry-muffin"), chorioretinitis, cataract, hearing loss, intracranial calcification, thrombocytopenia.`,
+            i:`Specific IgM/PCR, maternal serology · CBC, LFT · cranial imaging (CMV=periventricular, toxo=scattered calcification) · eye exam · BERA hearing · CSF.`,
+            m:`Long-term follow-up (hearing, vision, development) + specific therapy.`,
+            tx:`1️⃣ Identify organism → 2️⃣ Specific: <b>CMV→(val)ganciclovir; Toxoplasma→pyrimethamine+sulfadiazine+folinic acid; Syphilis→penicillin; HSV→acyclovir; HIV→ART</b>; Rubella=supportive → 3️⃣ Manage sequelae (hearing aids, cataract surgery, developmental therapy).`,
+            p:`Suspect in IUGR + microcephaly + hepatosplenomegaly + rash. Hearing &amp; vision follow-up essential (esp. CMV).` },
+
+          { n:"🔴 Omphalitis", t:"omphalitis umbilical infection cord sepsis necrotizing fasciitis", s:"NICU",
+            c:`Bacterial infection of umbilical stump (Staph, Strep, gram-negatives, anaerobes). Risk: unhygienic cord care / home delivery. Can progress to sepsis / necrotizing fasciitis.`,
+            f:`Periumbilical erythema, induration, tenderness, purulent/foul discharge ± systemic signs (fever, poor feeding, lethargy).`,
+            i:`Clinical · blood culture, CBC, CRP · swab culture · watch spreading cellulitis/fasciitis.`,
+            m:`Supportive sepsis care + local cord hygiene (chlorhexidine).`,
+            tx:`1️⃣ <b>IV antibiotics</b> covering Staph + gram-negatives (e.g. Cloxacillin/Vancomycin + aminoglycoside) → 2️⃣ Add <b>Metronidazole</b> if necrotizing/anaerobic suspicion → 3️⃣ <b>Surgical debridement</b> if necrotizing fasciitis.`,
+            p:`Can rapidly become sepsis / necrotizing fasciitis — treat aggressively. Promote clean cord care.` },
+
+          { n:"💪 Neonatal Tetanus", t:"neonatal tetanus cord spasm trismus tig immunoglobulin", s:"NICU",
+            c:`Clostridium tetani via unclean cord cutting/care (non-sterile instruments, cow-dung application) in unimmunised mother. Toxin (tetanospasmin).`,
+            f:`Onset 3–14 d: baby sucked well then <b>stops sucking</b>, trismus, stiffness, spasms/opisthotonus, risus sardonicus, stimulus-triggered spasms, autonomic instability.`,
+            i:`Clinical diagnosis; no specific test.`,
+            m:`Quiet dark minimal-stimulation environment, wound/cord care, airway + nutrition support, manage autonomic instability.`,
+            tx:`1️⃣ <b>Human tetanus immunoglobulin (TIG)</b> + <b>Metronidazole</b> (or penicillin) → 2️⃣ Control spasms — <b>benzodiazepines (diazepam/midazolam infusion)</b> ± magnesium → 3️⃣ Muscle relaxant + <b>mechanical ventilation</b> for refractory spasms. Immunise after recovery.`,
+            p:`Prevent via maternal TT + clean cord practices. Quiet environment + spasm control + airway are key. High mortality.` },
+
+          { n:"👁️ Ophthalmia Neonatorum", t:"ophthalmia neonatorum conjunctivitis gonococcal chlamydia eye discharge", s:"NICU",
+            c:`Conjunctivitis in first 4 wk. Gonococcal (day 2–5, severe), Chlamydial (day 5–14), other bacteria, chemical.`,
+            f:`Purulent eye discharge, lid edema, conjunctival injection; gonococcal = profuse pus + corneal ulcer/perforation risk.`,
+            i:`Gram stain + culture of discharge (gram-neg diplococci=gonococcus) · Chlamydia PCR/immunofluorescence.`,
+            m:`Frequent saline eye lavage + treat mother/partner + birth prophylaxis.`,
+            tx:`1️⃣ Gonococcal → <b>IV/IM Ceftriaxone (single dose)</b> or cefotaxime + eye lavage → 2️⃣ Chlamydial → <b>oral erythromycin ×14 d</b> (topical alone inadequate) → 3️⃣ Manage corneal complications (ophthalmology).`,
+            p:`Gonococcal is an ophthalmic emergency (corneal perforation) → systemic ceftriaxone + lavage. Always treat the mother.` },
+
+          { n:"🦴 Neonatal Hypocalcemia", t:"hypocalcemia calcium magnesium seizure jitteriness neonate", s:"NICU",
+            c:`Early (&lt;72 h) — prematurity, IDM, asphyxia, IUGR. Late (&gt;72 h) — high phosphate (cow-milk), hypomagnesemia, hypoparathyroidism (DiGeorge), vitamin D deficiency.`,
+            f:`Often asymptomatic; jitteriness, irritability, tremors, seizures, apnea, poor feeding, stridor/laryngospasm. (Ca &lt;7 mg/dL term, &lt;6 preterm.)`,
+            i:`Serum total &amp; ionised Ca, Mg, phosphate, PTH, vitamin D · ECG (prolonged QT).`,
+            m:`Treat cause; correct magnesium (Ca stays low if Mg low).`,
+            tx:`1️⃣ Symptomatic/seizures → <b>IV calcium gluconate 10% 2 mL/kg slow</b> (cardiac monitor) → 2️⃣ Maintenance calcium (infusion/oral) + <b>correct hypomagnesemia (IV MgSO4)</b> → 3️⃣ Treat underlying cause (vit D, low-phosphate feeds, hypoparathyroidism).`,
+            p:`Correct magnesium too — hypocalcemia is refractory if hypomagnesemic. Give IV calcium slowly (bradycardia/extravasation necrosis).` },
+
+          { n:"🍼 Infant of Diabetic Mother (IDM)", t:"idm infant diabetic mother hypoglycemia macrosomia", s:"NICU",
+            c:`Maternal (gestational/pre-existing) diabetes → fetal hyperinsulinism.`,
+            f:`Macrosomia (or IUGR if vasculopathy), <b>hypoglycemia</b> (commonest), birth injury, RDS (surfactant delay), hypocalcemia, hypomagnesemia, polycythemia, jaundice, septal-hypertrophic cardiomyopathy, congenital anomalies (cardiac, caudal regression, NTD).`,
+            i:`Serial glucose, Ca, Mg, Hct, bilirubin · ECHO if cardiomegaly/failure · anomaly screening.`,
+            m:`Early feeding + glucose monitoring, correct Ca/Mg, phototherapy, manage polycythemia, respiratory support, screen anomalies.`,
+            tx:`1️⃣ Early/frequent feeds + monitor glucose → 2️⃣ Hypoglycemia → <b>IV dextrose (GIR 6–8)</b>; jaundice → phototherapy; symptomatic polycythemia → partial exchange → 3️⃣ Obstructive cardiomyopathy → <b>propranolol</b> (avoid inotropes/digoxin); treat anomalies.`,
+            p:`Anticipate hypoglycemia (first hours), hypocalcemia, polycythemia. Screen for congenital anomalies (esp. cardiac).` },
+
+          { n:"🩸 Polycythemia", t:"polycythemia hyperviscosity hct partial exchange neonate", s:"NICU",
+            c:`Venous Hct &gt;65% → hyperviscosity. Delayed cord clamping, twin-twin transfusion, IUGR/placental insufficiency, IDM, maternal-fetal transfusion, high altitude.`,
+            f:`Often asymptomatic; plethora/ruddy, lethargy, poor feeding, jitteriness, hypoglycemia, respiratory distress, cyanosis, seizures, NEC, thrombosis, jaundice.`,
+            i:`<b>Venous</b> Hct (not capillary — overestimates) · glucose, bilirubin, platelets.`,
+            m:`Treat hypoglycemia/jaundice; hydration.`,
+            tx:`1️⃣ Asymptomatic Hct 65–70% → hydration + recheck → 2️⃣ Symptomatic or Hct &gt;70–75% → <b>partial exchange transfusion</b> (replace blood with normal saline, target Hct ~55%) → 3️⃣ Manage complications (NEC, thrombosis).`,
+            p:`Confirm with venous (not capillary) Hct. Partial exchange with saline for symptomatic hyperviscosity.` },
+
+          { n:"🩹 Hemorrhagic Disease of Newborn (VKDB)", t:"vkdb hemorrhagic disease vitamin k bleeding newborn", s:"NICU",
+            c:`Vitamin K deficiency → deficient factors II, VII, IX, X. Early (&lt;24 h — maternal drugs), Classic (2–7 d — no prophylaxis, breastfed), Late (2 wk–6 mo — malabsorption/cholestasis, no prophylaxis).`,
+            f:`Bleeding — GI (melena/hematemesis), umbilical, injection sites, mucosal, cephalhematoma; late VKDB → <b>intracranial hemorrhage</b> (serious).`,
+            i:`Prolonged PT (± aPTT), normal platelets &amp; fibrinogen; corrects with vitamin K.`,
+            m:`Prevention: routine <b>Vitamin K 1 mg IM at birth</b> (0.5 mg if &lt;1 kg).`,
+            tx:`1️⃣ <b>Vitamin K1 (IV/slow)</b> — treatment → 2️⃣ Active/severe bleeding → <b>Fresh frozen plasma</b> (± PCC) → 3️⃣ Supportive (transfuse for significant blood loss); manage intracranial bleed.`,
+            p:`Prevent with IM vitamin K at birth for ALL neonates. Late VKDB (esp. cholestasis) can present as devastating intracranial bleed.` },
+
+          { n:"💛 Rh / ABO Hemolytic Disease", t:"rh abo hemolytic disease coombs exchange hydrops isoimmune", s:"NICU",
+            c:`Maternal antibodies vs fetal RBC antigens → hemolysis. Rh — Rh-neg mother/Rh-pos baby, prior sensitisation (severe, worsens each pregnancy). ABO — O mother, A/B baby (milder, can affect first baby).`,
+            f:`Jaundice within 24 h, anemia, pallor, hepatosplenomegaly; severe Rh → hydrops fetalis (edema, effusions, heart failure), kernicterus risk.`,
+            i:`Blood group + <b>DCT/Coombs (positive)</b> · CBC + reticulocytes (high) · smear (spherocytes in ABO) · rising bilirubin · maternal antibody titres.`,
+            m:`Phototherapy, hydration; prevention = <b>Anti-D</b> to Rh-neg mother.`,
+            tx:`1️⃣ Phototherapy + <b>IVIG</b> (isoimmune hemolysis) → 2️⃣ Rapidly rising bilirubin / severe anemia → <b>exchange transfusion</b> → 3️⃣ Top-up transfusions for late anemia; hydrops → ventilate + drain effusions.`,
+            p:`Rh disease is preventable with anti-D. Positive Coombs confirms isoimmune hemolysis. Watch late/prolonged anemia.` },
+
+          { n:"🦋 Congenital Hypothyroidism", t:"congenital hypothyroidism tsh thyroxine screening newborn", s:"NICU",
+            c:`Thyroid dysgenesis (agenesis/ectopic — commonest), dyshormonogenesis, iodine deficiency, maternal antithyroid drugs. Preventable cause of intellectual disability.`,
+            f:`Often normal at birth; later — prolonged jaundice, lethargy, poor feeding, constipation, hypothermia, large fontanelle, macroglossia, umbilical hernia, hypotonia, hoarse cry, coarse facies, developmental delay.`,
+            i:`<b>Newborn screening TSH</b> (day 3–5) → confirm serum TSH (high) + free T4 (low) · thyroid scan/USG · bone age (delayed).`,
+            m:`Regular monitoring + developmental follow-up.`,
+            tx:`1️⃣ <b>Levothyroxine 10–15 mcg/kg/day</b> started ASAP (ideally before 2 wk) → 2️⃣ Titrate dose to normalise TSH/free T4 → 3️⃣ Lifelong therapy + periodic monitoring &amp; developmental assessment.`,
+            p:`Early treatment (first 2 weeks) → normal development. Clinical signs appear late — screening is critical. Don't delay thyroxine.` },
+
+          { n:"⚕️ CAH (Congenital Adrenal Hyperplasia)", t:"cah congenital adrenal hyperplasia salt wasting ambiguous genitalia", s:"NICU",
+            c:`Enzyme deficiency (mostly <b>21-hydroxylase</b>) → impaired cortisol ± aldosterone + androgen excess. Autosomal recessive.`,
+            f:`<b>Salt-wasting crisis</b> (1–2 wk): vomiting, dehydration, poor feeding, shock, <b>hyponatremia + hyperkalemia</b>. Virilisation: ambiguous genitalia in females.`,
+            i:`<b>17-OH progesterone (high)</b> · electrolytes (↓Na, ↑K) · glucose (low) · cortisol (low), renin (high) · karyotype/USG for ambiguous genitalia.`,
+            m:`Maintenance therapy + sick-day dosing education; genital reconstruction/counselling.`,
+            tx:`1️⃣ Salt-wasting crisis = emergency → <b>IV normal saline + dextrose + IV hydrocortisone</b>, correct hyperkalemia → 2️⃣ Maintenance <b>hydrocortisone + fludrocortisone</b> + NaCl → 3️⃣ Stress dosing during illness; surgical/psychological management of ambiguous genitalia.`,
+            p:`Suspect in ambiguous genitalia or a neonate with vomiting/shock + low Na/high K. Give hydrocortisone + saline immediately. Don't assign sex hastily — karyotype.` },
+
+          { n:"🧬 Inborn Errors of Metabolism (IEM)", t:"iem inborn error metabolism ammonia acidosis metabolic newborn", s:"NICU",
+            c:`Genetic enzyme defects → toxic accumulation or energy deficiency (urea-cycle defects, organic acidemias, aminoacidopathies, galactosemia, MSUD, fatty-acid oxidation defects).`,
+            f:`Previously well neonate → sepsis-like deterioration after feeding: poor feeding, vomiting, lethargy, seizures, coma, abnormal tone, tachypnea (acidosis), unusual odor, hepatomegaly; consanguinity / prior neonatal deaths.`,
+            i:`Blood gas (high-anion-gap metabolic acidosis), <b>ammonia (high)</b>, glucose, lactate, ketones · <b>TMS</b>, urine organic acids, plasma amino acids · septic screen.`,
+            m:`Specialist metabolic consult; specific diet later; cofactor vitamins.`,
+            tx:`1️⃣ <b>Stop feeds (stop protein) + high-GIR IV dextrose</b> to reverse catabolism, correct acidosis → 2️⃣ Hyperammonemia → <b>sodium benzoate/phenylacetate + arginine</b> → 3️⃣ Severe/refractory → <b>dialysis</b>; long-term specific diet + cofactors.`,
+            p:`Suspect IEM in a term baby well then deteriorating after feeds, esp. high ammonia/acidosis + consanguinity. Stop feeds + high dextrose + lower ammonia urgently.` },
+
+          { n:"🟢 Biliary Atresia / Neonatal Cholestasis", t:"biliary atresia cholestasis conjugated jaundice kasai pale stool", s:"NICU",
+            c:`Progressive obliteration of bile ducts (biliary atresia — commonest surgical cause), or intrahepatic cholestasis (neonatal hepatitis, TORCH, metabolic, TPN, choledochal cyst).`,
+            f:`<b>Prolonged conjugated jaundice (&gt;2 wk)</b>, <b>pale/clay stools</b>, dark urine, hepatomegaly, failure to thrive.`,
+            i:`<b>Fractionated bilirubin (↑ direct)</b> · LFT, GGT · USG (absent/small gallbladder, triangular-cord sign) · HIDA scan · liver biopsy · coagulation.`,
+            m:`Fat-soluble vitamins (ADEK), MCT-based nutrition, ursodeoxycholic acid; treat specific causes.`,
+            tx:`1️⃣ Confirm (direct bilirubin + stool colour + USG/biopsy) → 2️⃣ Biliary atresia → <b>Kasai portoenterostomy, ideally before 8 weeks</b> → 3️⃣ <b>Liver transplant</b> if Kasai fails / late presentation.`,
+            p:`Any jaundice beyond 2 weeks → check conjugated bilirubin &amp; stool colour. Biliary atresia is time-critical — Kasai before 8 weeks.` },
+
+          { n:"🫁 Congenital Diaphragmatic Hernia (CDH)", t:"cdh diaphragmatic hernia scaphoid abdomen pphn bochdalek", s:"NICU",
+            c:`Diaphragm defect (usually left posterolateral — Bochdalek) → abdominal viscera in thorax → pulmonary hypoplasia + PPHN.`,
+            f:`Respiratory distress at birth, scaphoid abdomen, barrel chest, bowel sounds in chest, displaced heart sounds, cyanosis; often antenatal diagnosis.`,
+            i:`<b>CXR</b> (bowel loops in chest, mediastinal shift, NG tube in chest) · antenatal USG · ABG · ECHO (PPHN, cardiac anomalies).`,
+            m:`Gentle ventilation (avoid barotrauma), treat PPHN, stabilise haemodynamics; surgery delayed until stable.`,
+            tx:`1️⃣ <b>NO bag-mask ventilation → immediate intubation + NG decompression</b> → 2️⃣ Gentle ventilation + treat PPHN (<b>iNO</b>), maintain BP; ECMO if refractory → 3️⃣ <b>Surgical repair after physiological stabilisation</b> (not an immediate surgical emergency).`,
+            p:`Avoid bag-mask ventilation — intubate + decompress stomach. Stabilise physiology first; surgery is elective after stabilisation.` },
+
+          { n:"🍽️ Esophageal Atresia / TEF", t:"esophageal atresia tef fistula ng tube frothing vacterl", s:"NICU",
+            c:`Failed esophageal canalisation ± tracheo-esophageal fistula (commonest: EA with distal TEF). Associated VACTERL.`,
+            f:`Excessive frothing/drooling, choking/coughing/cyanosis with feeds, <b>unable to pass NG tube (coils)</b>, respiratory distress, abdominal distension (distal fistula) or scaphoid (pure atresia); polyhydramnios.`,
+            i:`Inability to pass NG tube + coiled tube on X-ray · CXR/AXR (gas pattern) · screen VACTERL (ECHO, spine, renal, limb).`,
+            m:`Manage aspiration pneumonia; screen associations.`,
+            tx:`1️⃣ <b>NPO + upper-pouch Replogle suction + head-up position</b>, IV fluids, antibiotics → 2️⃣ <b>Surgical repair</b> (fistula ligation + esophageal anastomosis) → 3️⃣ Staged repair for long-gap; manage strictures/reflux later.`,
+            p:`Suspect if NG tube won't pass + frothing/choking with feeds. Keep upper pouch suctioned &amp; NPO to prevent aspiration; screen VACTERL.` },
+
+          { n:"🫄 Gastroschisis / Omphalocele", t:"gastroschisis omphalocele abdominal wall defect bowel silo", s:"NICU",
+            c:`Abdominal wall defects. Gastroschisis — paraumbilical (usually right), no sac, few associated anomalies. Omphalocele — central, covered by sac, cord inserts on sac, high association with other anomalies (cardiac, chromosomal, Beckwith-Wiedemann).`,
+            f:`Visible abdominal-wall defect with herniated viscera at birth (often antenatal diagnosis).`,
+            i:`Antenatal USG · postnatal exam · screen associated anomalies (ECHO, karyotype for omphalocele) · electrolytes, temperature.`,
+            m:`Thermoregulation, high fluids (third-space loss), position to avoid kinking mesentery.`,
+            tx:`1️⃣ <b>Cover exposed bowel (warm sterile saline gauze + plastic wrap/bowel bag) + NPO + NG decompression + IV fluids + antibiotics</b> → 2️⃣ <b>Primary surgical closure</b> if small → 3️⃣ <b>Staged closure (silo)</b> for large defects; omphalocele → treat associated anomalies.`,
+            p:`Immediate priority = cover bowel, conserve fluid &amp; heat (big insensible losses), NG decompression. Omphalocele → look hard for associated anomalies.` },
+
+          { n:"📉 IUGR / SGA & LBW", t:"iugr sga low birth weight growth restriction hypoglycemia kmc", s:"NICU",
+            c:`IUGR — failure to reach growth potential (placental insufficiency; maternal hypertension/malnutrition/smoking; fetal infection/chromosomal). SGA — weight &lt;10th centile. LBW &lt;2500 g.`,
+            f:`Low birth weight, wasted/thin, loose skin, scaphoid abdomen (asymmetric); risks — asphyxia, hypothermia, hypoglycemia, polycythemia, hypocalcemia, meconium aspiration, feeding issues.`,
+            i:`Growth centiles, ponderal index · monitor glucose, Hct, Ca, temperature · cause workup (TORCH/anomaly scan if symmetric).`,
+            m:`Prevent infection; growth monitoring; catch-up nutrition.`,
+            tx:`1️⃣ <b>Thermoneutral care (KMC) + early frequent feeds + glucose monitoring</b> → 2️⃣ Treat hypoglycemia (IV dextrose), correct Hct/Ca → 3️⃣ Promote breastfeeding + catch-up growth + developmental follow-up.`,
+            p:`Anticipate hypoglycemia, hypothermia, polycythemia. Early feeding + warmth + glucose monitoring. Symmetric IUGR → think infection/chromosomal.` },
+
+          { n:"👁️ Retinopathy of Prematurity (ROP)", t:"rop retinopathy prematurity oxygen laser anti-vegf screening", s:"NICU",
+            c:`Abnormal retinal vascular proliferation in preterm from oxygen exposure + immature retina. Risk: prematurity/low birth weight, prolonged/uncontrolled O2, sepsis, transfusions, unstable course.`,
+            f:`Asymptomatic (screening-detected); severe → retinal detachment, leukocoria, blindness. Staged 1–5, zones I–III, ± "plus disease".`,
+            i:`<b>Screening dilated fundus exam</b> by ophthalmologist (e.g. ≤34 wk or ≤2000 g / per criteria), first ~4 wk or 31 wk PMA, serial follow-up.`,
+            m:`Prevention: judicious O2 (target SpO2 90–95%, avoid swings).`,
+            tx:`1️⃣ Prevention — careful O2 titration + saturation targeting → 2️⃣ Threshold / type-1 disease → <b>laser photocoagulation</b> or <b>anti-VEGF (intravitreal bevacizumab/ranibizumab)</b> → 3️⃣ Retinal detachment → vitreoretinal surgery.`,
+            p:`Prevent by careful O2 titration. Timely screening + treatment prevents blindness — don't miss follow-up.` },
+
+          { n:"💥 Septic Shock", t:"septic shock sepsis fluid bolus adrenaline lactate picu", s:"PICU",
+            c:`Infection (bacterial commonest; also viral, fungal) → dysregulated host response → vasodilation, capillary leak, myocardial depression → tissue hypoperfusion.`,
+            f:`Fever or hypothermia, tachycardia, altered mental status, poor perfusion. <b>Cold shock</b> — CRT &gt;2 s, cool mottled limbs, weak pulses, narrow pulse pressure. <b>Warm shock</b> — flash CRT, bounding pulses, wide pulse pressure. Hypotension is a LATE sign; oliguria.`,
+            i:`Cultures (blood, urine, CSF) · CBC, CRP/procalcitonin · <b>lactate</b> · glucose, electrolytes/Ca · renal &amp; liver function · coagulation/DIC · ABG.`,
+            m:`Surviving Sepsis (paediatric): recognise early → O2, IV/IO access. <b>Fluid boluses 10–20 mL/kg isotonic</b>, reassess after each for overload (crepitations, hepatomegaly), up to 40–60 mL/kg in 1st hour. <b>Empiric antibiotics within 1 h</b>. Fluid-refractory → <b>adrenaline (cold) / noradrenaline (warm)</b> early, peripheral/IO ok. Hydrocortisone for catecholamine-resistant shock. Correct glucose/Ca; source control; targets — CRT, MAP, urine &gt;1 mL/kg/h, lactate clearance.`,
+            tx:`1️⃣ O2 + IV/IO access + <b>fluid boluses 10–20 mL/kg (reassess) + antibiotics within 1 h</b> → 2️⃣ Fluid-refractory → <b>adrenaline (cold) / noradrenaline (warm)</b> → 3️⃣ Catecholamine-resistant → <b>hydrocortisone</b> ± vasopressin/milrinone + source control → 4️⃣ Refractory → <b>ECMO</b> / targeted haemodynamic support.`,
+            p:`Antibiotics + fluids within the first hour save lives. Reassess after EVERY bolus for overload. Start inotropes early in cold shock.` },
+
+          { n:"⚡ Status Epilepticus", t:"status epilepticus seizure lorazepam midazolam convulsion picu", s:"PICU",
+            c:`Febrile (young children), CNS infection, known epilepsy/poor compliance or drug withdrawal, metabolic (hypoglycemia, hypo-Na/Ca), trauma, hypoxia, toxins, structural lesion.`,
+            f:`Continuous seizure ≥5 min, or recurrent seizures without regaining consciousness in between.`,
+            i:`<b>Bedside glucose</b> · electrolytes, Ca, Mg · CBC · AED levels · tox screen · CT/MRI · EEG · LP if CNS infection (after stabilisation).`,
+            m:`ABC, O2, position, secure airway, check glucose. <b>0–5 min</b>: benzodiazepine — IV Lorazepam 0.1 mg/kg (max 4 mg) OR IV/IM/buccal/IN Midazolam 0.15–0.2 mg/kg; may repeat once. <b>5–20 min (2nd line)</b>: IV Fosphenytoin/Phenytoin 20 mg/kg OR Levetiracetam 40–60 mg/kg OR Valproate 40 mg/kg. <b>&gt;20–30 min (refractory)</b>: intubate + midazolam infusion / thiopentone / propofol, continuous EEG. Correct hypoglycemia (D10/D25), hypocalcemia, hyponatremia; treat cause.`,
+            tx:`1️⃣ (0–5 min) <b>Benzodiazepine — Lorazepam 0.1 mg/kg / Midazolam 0.15–0.2 mg/kg</b>, repeat once → 2️⃣ (5–20 min) <b>Fosphenytoin/Phenytoin 20 mg/kg OR Levetiracetam 40–60 OR Valproate 40</b> → 3️⃣ (20–40 min, refractory) → <b>midazolam / thiopentone / propofol infusion + intubate</b> + cEEG → 4️⃣ Super-refractory (&gt;24 h) → <b>ketamine, high-dose suppression, steroids/immunotherapy, ketogenic diet</b>.`,
+            p:`Time-critical — treat by the clock. Don't under-dose benzodiazepines. Pyridoxine in refractory infants.` },
+
+          { n:"😮‍💨 Acute Severe Asthma", t:"asthma status asthmaticus salbutamol magnesium steroid wheeze picu", s:"PICU",
+            c:`Trigger (viral URTI, allergen, smoke, exercise) → bronchospasm + airway inflammation + mucus plugging → airflow obstruction.`,
+            f:`Severe breathlessness, wheeze (<b>silent chest = ominous</b>), accessory-muscle use/retractions, tachypnea, tachycardia, unable to speak/feed, SpO2 &lt;92%, agitation → drowsiness (life-threatening).`,
+            i:`Clinical + SpO2. PEFR if able. ABG only if severe — <b>normal/rising PaCO2 = exhaustion = danger</b>. CXR only if pneumothorax/complication suspected.`,
+            m:`<b>O2</b> to keep SpO2 ≥94%. <b>Inhaled salbutamol</b> (MDI+spacer or nebuliser) back-to-back/continuous + <b>ipratropium</b>. <b>Systemic steroids early</b> — oral prednisolone 1–2 mg/kg (max 40 mg) or IV hydrocortisone/methylprednisolone. Severe → <b>IV Magnesium sulfate 25–50 mg/kg</b> (max 2 g) over 20 min. Refractory → IV salbutamol/terbutaline or aminophylline in PICU; consider adrenaline. Escalate to NIV/intubation for impending failure.`,
+            tx:`1️⃣ <b>O2 + inhaled salbutamol (back-to-back) + ipratropium + systemic steroids</b> → 2️⃣ Severe → <b>IV Magnesium sulfate 25–50 mg/kg</b> → 3️⃣ Refractory → <b>IV salbutamol / terbutaline or aminophylline infusion</b> (HDU/PICU) → 4️⃣ Impending failure → <b>NIV → intubation + mechanical ventilation</b> (± ketamine).`,
+            p:`Silent chest + drowsiness + rising CO2 = near-arrest. Steroids early. Reassess response continuously.` },
+
+          { n:"👶 Bronchiolitis", t:"bronchiolitis rsv wheeze infant supportive oxygen apnea", s:"PICU",
+            c:`Viral — <b>RSV (commonest)</b>, rhinovirus, human metapneumovirus. Infants &lt;2 y (peak &lt;6 mo), winter season.`,
+            f:`Preceding coryza → cough, tachypnea, wheeze &amp; fine crackles, retractions, nasal flaring, feeding difficulty, <b>apnea</b> (young/preterm), hypoxia.`,
+            i:`<b>Clinical diagnosis</b> — routine CXR / blood tests NOT recommended. SpO2 monitoring. NPA for virus only if it changes cohorting/management.`,
+            m:`Mainly <b>supportive</b> — O2 if SpO2 &lt;90–92%, maintain hydration (NG/IV if not feeding), gentle nasal suction, minimal handling, monitor for apnea. <b>HFNC / CPAP</b> for severe. Bronchodilators, steroids &amp; antibiotics are <b>NOT</b> routinely recommended.`,
+            tx:`1️⃣ <b>Supportive — O2 (SpO2 &lt;90–92%) + hydration + nasal suction</b> → 2️⃣ <b>HFNC / CPAP</b> for severe → 3️⃣ Intubation/ventilation for impending failure. (Bronchodilators/steroids/antibiotics NOT routine.)`,
+            p:`Supportive care is the mainstay — avoid unnecessary drugs/tests. Watch apnea in &lt;2 mo / ex-preterm. Palivizumab prophylaxis for high-risk infants.` },
+
+          { n:"🫁 Severe Pneumonia", t:"pneumonia lrti fast breathing empyema antibiotics oxygen", s:"PICU",
+            c:`Bacterial — <b>S. pneumoniae (commonest)</b>, H. influenzae, S. aureus, atypicals (Mycoplasma); viral; consider TB if chronic/non-resolving.`,
+            f:`Fever, cough, <b>fast breathing</b>, chest indrawing, grunting, nasal flaring, hypoxia, crackles/bronchial breathing, dullness (effusion). Danger signs: unable to drink, persistent vomiting, convulsions, lethargy, cyanosis.`,
+            i:`CXR (consolidation ± effusion) · SpO2 · CBC, CRP · blood culture · pleural fluid analysis if effusion/empyema.`,
+            m:`WHO severe pneumonia → <b>admit</b>, O2 if SpO2 &lt;90%, <b>IV antibiotics</b> — Ampicillin + Gentamicin OR Ceftriaxone; add Cloxacillin/Vancomycin if staph/empyema; macrolide if atypical. Supportive fluids/feeds, antipyretics; <b>drain empyema</b>/large effusion; escalate respiratory support (HFNC/CPAP/ventilation).`,
+            tx:`1️⃣ Admit + O2 + <b>IV Ampicillin + Gentamicin OR Ceftriaxone</b> → 2️⃣ Staph/empyema → add <b>Cloxacillin/Vancomycin</b>; atypical → macrolide → 3️⃣ <b>Drain empyema</b> + escalate respiratory support.`,
+            p:`Count respiratory rate for age. O2 saves lives. Suspect staph if pneumatocele / rapid deterioration — look for &amp; drain empyema.` },
+
+          { n:"🦟 Dengue / Dengue Shock Syndrome", t:"dengue dss shock hct platelets fluid warning signs", s:"PICU",
+            c:`Dengue virus (DENV 1–4) via Aedes mosquito. Phases: <b>febrile</b> (d1–3) → <b>critical / plasma-leak</b> (d4–6, around defervescence) → <b>recovery</b>.`,
+            f:`High fever, headache/retro-orbital pain, myalgia, flushing/rash. <b>Warning signs</b>: abdominal pain, persistent vomiting, mucosal bleed, lethargy/restlessness, hepatomegaly, rising HCT with falling platelets. <b>DSS</b>: narrow pulse pressure (≤20 mmHg), cold clammy skin, tachycardia, prolonged CRT, hypotension.`,
+            i:`NS1 antigen / dengue IgM-IgG · <b>CBC with serial HCT</b> (haemoconcentration), platelets · LFT · coagulation · monitor urine output.`,
+            m:`WHO groups: <b>A</b> (no warning) — oral fluids, paracetamol, monitor, NO NSAIDs/aspirin/IM. <b>B/C</b> — IV isotonic crystalloid, volume by phase &amp; HCT. <b>DSS</b>: <b>10–20 mL/kg isotonic bolus over 15–30 min</b>, reassess vitals + HCT, titrate down as improves; colloid if refractory; blood products for significant bleeding. AVOID fluid overload — reduce fluids in recovery phase (leaked fluid reabsorbs).`,
+            tx:`1️⃣ Group A (no warning) → oral fluids + paracetamol (NO NSAIDs) → 2️⃣ Group B/C → <b>IV isotonic crystalloid</b> (phase/HCT-guided) → 3️⃣ DSS → <b>10–20 mL/kg bolus</b>, reassess HCT/vitals → 4️⃣ Refractory shock → <b>colloid + blood products</b> (bleeding), inotropes; avoid overload.`,
+            p:`Critical phase is around defervescence (fever drop) — watch closely. Serial HCT + urine output guide fluids. Falling HCT after stabilising = reabsorption or bleed.` },
+
+          { n:"🗣️ Croup (Laryngotracheobronchitis)", t:"croup stridor barking cough dexamethasone adrenaline parainfluenza", s:"PICU",
+            c:`Viral laryngotracheobronchitis — <b>parainfluenza</b> (commonest), also RSV, influenza. 6 mo–3 y. Subglottic edema.`,
+            f:`<b>Barking/seal-like cough</b>, inspiratory <b>stridor</b>, hoarseness, low-grade fever, worse at night; preceding coryza. Severe: stridor at rest, retractions, agitation/hypoxia.`,
+            i:`<b>Clinical diagnosis</b>. X-ray (if done) — "steeple sign". Avoid distressing the child (exclude epiglottitis, foreign body).`,
+            m:`Keep child calm (agitation worsens obstruction), humidified air, O2 for hypoxia.`,
+            tx:`1️⃣ <b>Single dose oral/IM dexamethasone 0.15–0.6 mg/kg</b> (all severities) → 2️⃣ Moderate–severe (stridor at rest) → <b>nebulised adrenaline</b> + O2 (observe 3–4 h for rebound) → 3️⃣ Impending obstruction → intubation (small ETT) / PICU.`,
+            p:`Dexamethasone for essentially all croup. Nebulised adrenaline for moderate–severe (watch rebound). Keep the child calm.` },
+
+          { n:"🌊 ARDS / PARDS", t:"ards pards acute respiratory distress lung protective ventilation hypoxia", s:"PICU",
+            c:`Acute lung injury — direct (pneumonia, aspiration, drowning, inhalation) or indirect (sepsis, shock, trauma, transfusion) → inflammation, capillary leak, non-cardiogenic pulmonary edema.`,
+            f:`Acute hypoxemic respiratory failure, tachypnea, severe work of breathing, refractory hypoxia, bilateral infiltrates (within 7 d of insult).`,
+            i:`CXR/CT (bilateral infiltrates) · ABG (low PaO2/FiO2 or SpO2/FiO2, oxygenation index) · echo (exclude cardiac cause) · workup for cause.`,
+            m:`Treat underlying cause; conservative fluids; sedation/analgesia; treat infection.`,
+            tx:`1️⃣ Treat cause + O2/respiratory support → 2️⃣ <b>Lung-protective ventilation</b> (tidal 5–8 mL/kg, permissive hypercapnia, adequate PEEP) + conservative fluids → 3️⃣ Refractory → <b>prone positioning + neuromuscular blockade</b>, ↑PEEP, iNO → 4️⃣ Severe refractory → <b>HFOV / ECMO</b>.`,
+            p:`Lung-protective ventilation + treat the cause. Conservative fluid strategy. Prone positioning for severe hypoxemia.` },
+
+          { n:"🥜 Foreign Body Aspiration", t:"foreign body aspiration choking bronchoscopy toddler wheeze", s:"PICU",
+            c:`Aspiration of object (peanut/seed — commonest, small toys) into airway. Toddlers 1–3 y. Right main bronchus common.`,
+            f:`Sudden choking/coughing, wheeze, stridor (if laryngeal), unilateral decreased breath sounds, recurrent/non-resolving pneumonia (chronic). Witnessed choking.`,
+            i:`<b>CXR</b> (hyperinflation/air-trapping of affected side, atelectasis; object if radio-opaque), inspiratory/expiratory films · <b>bronchoscopy</b> (diagnostic + therapeutic).`,
+            m:`Keep calm; O2; don't agitate a stable partial obstruction.`,
+            tx:`1️⃣ Complete obstruction (can't breathe/speak) → <b>BLS: back blows + chest thrusts (infant) / abdominal thrusts (child)</b>; CPR if unconscious → 2️⃣ Stable/partial → O2 + <b>rigid bronchoscopy</b> for removal → 3️⃣ Post-removal → bronchodilators/antibiotics if needed.`,
+            p:`Complete obstruction = immediate BLS maneuvers. Stable partial → don't agitate, arrange bronchoscopy. Consider FB in recurrent focal pneumonia.` },
+
+          { n:"😤 Pertussis (Whooping Cough)", t:"pertussis whooping cough bordetella apnea azithromycin infant", s:"PICU",
+            c:`Bordetella pertussis. Unimmunised/partially immunised infants at highest risk. Highly contagious.`,
+            f:`Catarrhal (coryza) → <b>paroxysmal cough with inspiratory "whoop"</b> + post-tussive vomiting, cyanosis; <b>young infants → apnea</b> (may lack whoop), poor feeding; prolonged convalescence. Marked lymphocytosis.`,
+            i:`Clinical + <b>lymphocytosis</b> (very high WBC — poor prognosis in infants) · nasopharyngeal PCR/culture · CXR.`,
+            m:`Supportive — O2, monitor apnea, small frequent feeds, gentle handling; isolate; chemoprophylaxis for contacts; immunise.`,
+            tx:`1️⃣ <b>Macrolide (azithromycin/erythromycin)</b> — reduces transmission → 2️⃣ Supportive PICU for young infants (apnea monitoring, O2) → 3️⃣ Malignant pertussis (extreme leukocytosis, pulmonary hypertension) → <b>exchange transfusion</b>/intensive support.`,
+            p:`Young infants → apnea (may have no whoop) + risk of malignant pertussis. Azithromycin + isolate + immunise contacts.` },
+
+          { n:"🫁 Empyema / Pleural Effusion", t:"empyema pleural effusion chest drain fibrinolytics staph pneumonia", s:"PICU",
+            c:`Pus in pleural space, usually complicating bacterial pneumonia (Staph aureus, pneumococcus).`,
+            f:`Persistent/spiking fever despite antibiotics, respiratory distress, dullness to percussion, reduced breath sounds, chest pain, toxic look.`,
+            i:`CXR (effusion ± loculation) · <b>USG chest</b> (loculations, guide tap) · <b>pleural fluid</b> (pus, ↑neutrophils, ↓glucose, ↓pH, Gram stain/culture) · blood culture, CBC/CRP.`,
+            m:`Supportive O2/nutrition; prolonged antibiotics covering Staph.`,
+            tx:`1️⃣ <b>IV antibiotics</b> (cover Staph — cloxacillin/vancomycin + others), prolonged → 2️⃣ <b>Intercostal chest drain</b> ± <b>intrapleural fibrinolytics</b> (streptokinase/urokinase) for loculations → 3️⃣ <b>VATS / decortication</b> if fails.`,
+            p:`Persistent fever in "treated" pneumonia → look for empyema (USG). Needs drainage + prolonged antibiotics. Cover Staph.` },
+
+          { n:"💓 Congestive Heart Failure (CHF)", t:"chf heart failure hepatomegaly diuretic ace digoxin infant", s:"PICU",
+            c:`Heart unable to meet demands. By age: neonate — duct-dependent/HLHS/coarctation; infant — large L→R shunts (VSD, PDA), SVT; older — myocarditis, cardiomyopathy, rheumatic heart disease, arrhythmia, severe anemia.`,
+            f:`Infant: poor feeding, sweating with feeds, tachypnea, poor weight gain, recurrent chest infections. Signs: tachycardia, tachypnea, <b>hepatomegaly</b>, gallop, cardiomegaly, raised JVP (older), edema, basal crepitations.`,
+            i:`CXR (cardiomegaly, pulmonary congestion) · ECG · <b>ECHO</b> (cause + function) · electrolytes · ± BNP.`,
+            m:`Treat cause; positioning (propped up), O2, salt/fluid restriction, nutrition; treat precipitants (anemia, infection, arrhythmia).`,
+            tx:`1️⃣ <b>Diuretics (furosemide)</b> + O2 + positioning → 2️⃣ <b>ACE inhibitor</b> (afterload reduction) ± <b>digoxin</b>/inotropes → 3️⃣ Surgery for correctable lesion; escalate for cardiogenic shock.`,
+            p:`Hepatomegaly + tachypnea + feeding difficulty in an infant = think CHF. Always find &amp; treat the cause + precipitants.` },
+
+          { n:"🫀 Myocarditis", t:"myocarditis viral cardiogenic shock troponin echo inotrope ecmo", s:"PICU",
+            c:`Myocardial inflammation — usually <b>viral</b> (coxsackie/enterovirus, adenovirus, influenza, COVID), also other infections, immune, toxins.`,
+            f:`Preceding viral illness → lethargy, poor feeding, tachypnea, <b>tachycardia out of proportion</b>, heart failure/cardiogenic shock, arrhythmia, chest pain (older), sudden collapse.`,
+            i:`<b>ECG</b> (low voltage, ST-T changes, arrhythmia), <b>ECHO</b> (poor LV function, dilated chambers), <b>troponin (elevated)</b>, CXR (cardiomegaly), viral studies, BNP; cardiac MRI.`,
+            m:`PICU; cautious fluids (can worsen — it's cardiogenic); rest; treat arrhythmia.`,
+            tx:`1️⃣ Supportive — <b>inotropes/vasoactives (milrinone, dobutamine, low-dose adrenaline)</b> + diuretics → 2️⃣ IVIG (used in some) + treat arrhythmias → 3️⃣ Refractory cardiogenic shock → <b>ECMO / VAD</b>.`,
+            p:`Suspect with unexplained tachycardia/shock after viral illness + poor cardiac function. Cautious fluids (cardiogenic, not hypovolemic). ECMO can bridge recovery.` },
+
+          { n:"💗 SVT / Arrhythmia", t:"svt supraventricular tachycardia adenosine vagal cardioversion wpw", s:"PICU",
+            c:`<b>Supraventricular tachycardia</b> — re-entry (accessory pathway/WPW) commonest in infants; also AVNRT. Precipitants: fever, infection, CHD, drugs.`,
+            f:`Infant — poor feeding, irritability, pallor, tachypnea → heart failure/shock if prolonged. HR usually <b>&gt;220 (infant) / &gt;180 (child)</b>, regular, little variability; palpitations (older).`,
+            i:`<b>ECG/rhythm strip</b> (narrow-complex tachycardia, absent/abnormal P; look for WPW after conversion) · electrolytes · echo (function/CHD).`,
+            m:`Identify stable vs unstable; correct precipitants; refer for ablation (prevention).`,
+            tx:`1️⃣ Stable → <b>vagal maneuvers</b> (ice to face in infant, Valsalva) → 2️⃣ Fails → <b>IV adenosine</b> (rapid push 0.1 → 0.2 mg/kg + flush) → 3️⃣ Unstable (shock/failure) → <b>synchronised cardioversion 0.5–1 → 2 J/kg</b> → 4️⃣ Recurrent → <b>maintenance antiarrhythmic</b> (beta-blocker/amiodarone) → catheter ablation.`,
+            p:`Vagal → adenosine (stable); synchronised cardioversion (unstable). Adenosine must be a rapid bolus with flush. Look for WPW after conversion.` },
+
+          { n:"🦴 Acute Rheumatic Fever / RHD", t:"rheumatic fever rhd jones criteria strep penicillin carditis chorea", s:"PICU",
+            c:`Immune reaction ~2–4 wk after <b>Group A strep pharyngitis</b>. School-age. Leads to rheumatic heart disease (mitral/aortic valves).`,
+            f:`<b>Jones criteria</b> — major: carditis (murmur, CHF), migratory polyarthritis, Sydenham chorea, erythema marginatum, subcutaneous nodules; minor: fever, arthralgia, ↑ESR/CRP, prolonged PR; + evidence of preceding strep.`,
+            i:`ASO/anti-DNase B (high) · throat swab · ESR/CRP (high) · ECG (prolonged PR) · <b>ECHO</b> (valvulitis/regurgitation).`,
+            m:`Treat heart failure; chorea — supportive ± meds; bed rest.`,
+            tx:`1️⃣ Eradicate strep → <b>Benzathine penicillin</b> + anti-inflammatory (<b>aspirin</b> for arthritis) → 2️⃣ Severe carditis → <b>corticosteroids</b> → 3️⃣ <b>Long-term secondary prophylaxis</b> (benzathine penicillin every 3–4 wk for years).`,
+            p:`Prevent by treating strep throat. Long-term secondary penicillin prophylaxis is essential to prevent RHD progression. ECHO for carditis.` },
+
+          { n:"🫀 Cardiogenic Shock", t:"cardiogenic shock pump failure inotrope cautious fluid ecmo hepatomegaly", s:"PICU",
+            c:`Pump failure → inadequate output. Causes: myocarditis, cardiomyopathy, arrhythmia (SVT), CHD/duct-dependent lesions, post-cardiac surgery, severe sepsis with myocardial depression.`,
+            f:`Shock signs (poor perfusion, tachycardia, hypotension, altered sensorium, oliguria) <b>+ cardiac signs</b>: hepatomegaly, gallop, raised JVP, cardiomegaly, crepitations; <b>worsens with fluid boluses</b>.`,
+            i:`<b>ECHO</b> (poor function/cause) · ECG · CXR (cardiomegaly, congestion) · troponin/BNP · lactate · electrolytes.`,
+            m:`PICU; correct acidosis/electrolytes; treat arrhythmia (cardiovert SVT); prostaglandin for duct-dependent neonate.`,
+            tx:`1️⃣ <b>Cautious small fluid boluses (5–10 mL/kg), reassess</b> (avoid overload) → 2️⃣ <b>Inotropes (adrenaline/dobutamine/milrinone)</b> + diuretics for congestion → 3️⃣ Refractory → <b>ECMO</b>.`,
+            p:`Distinguish from other shock — hepatomegaly + crepitations + worsening with fluids. Give fluids cautiously (small aliquots) + start inotropes early.` },
+
+          { n:"🌡️ Febrile Seizures", t:"febrile seizure fever convulsion benzodiazepine simple complex child", s:"PICU",
+            c:`Seizure with fever (usually viral) in children <b>6 mo–5 y</b> without CNS infection/metabolic cause. Genetic predisposition. Simple (generalised, &lt;15 min, once/24 h) vs complex (focal, prolonged, or recurrent in 24 h).`,
+            f:`Generalised tonic-clonic seizure during febrile illness, brief, post-ictal drowsiness; child otherwise well between.`,
+            i:`<b>Directed at fever source</b>, not the seizure. <b>LP if meningitis suspected</b> (esp. &lt;12–18 mo, complex, ill-looking). EEG/imaging NOT routine for simple.`,
+            m:`Reassure parents (benign, low epilepsy risk); antipyretics for comfort; treat infection. No long-term AEDs for simple.`,
+            tx:`1️⃣ Most self-limit; if &gt;5 min → <b>benzodiazepine</b> (buccal/IN midazolam, rectal/IV diazepam, IV lorazepam) → 2️⃣ Control fever + treat underlying infection → 3️⃣ Recurrent/complex → neurology review ± rescue benzodiazepine plan.`,
+            p:`Rule out meningitis (low threshold for LP in young/complex/toxic). Simple febrile seizures are benign — reassure. Antipyretics don't prevent recurrence.` },
+
+          { n:"🧠 Acute Encephalitis", t:"encephalitis hsv acyclovir altered sensorium seizure csf mri", s:"PICU",
+            c:`Brain parenchyma inflammation — <b>viral</b> (HSV — treatable &amp; serious, Japanese encephalitis, enterovirus, dengue), autoimmune (anti-NMDA), post-infectious (ADEM).`,
+            f:`<b>Fever + altered sensorium/behaviour change</b>, seizures, focal deficits, headache, vomiting, ± meningism; HSV — temporal lobe (personality change, focal seizures).`,
+            i:`<b>LP/CSF</b> (lymphocytic, ↑protein, normal glucose; <b>HSV PCR</b>) · <b>MRI brain</b> (temporal lobes=HSV; thalamus=JE) · EEG · serology · glucose/electrolytes/ammonia.`,
+            m:`Supportive PICU — manage seizures &amp; raised ICP, airway/ventilation, fluids/electrolytes (SIADH), treat fever.`,
+            tx:`1️⃣ <b>Empiric IV acyclovir immediately</b> (until HSV excluded — don't wait) → 2️⃣ Manage seizures + raised ICP + supportive care → 3️⃣ Specific: JE=supportive; <b>autoimmune → steroids/IVIG/immunotherapy</b>.`,
+            p:`Start acyclovir empirically for suspected encephalitis (HSV treatable, delay = poor outcome). Manage raised ICP &amp; seizures.` },
+
+          { n:"🧠 Bacterial Meningitis", t:"meningitis csf lp ceftriaxone dexamethasone neck stiffness kernig", s:"PICU",
+            c:`Age-dependent — <b>neonate</b>: GBS, E. coli, Listeria; <b>&gt;3 mo</b>: S. pneumoniae, N. meningitidis, Hib (less common with vaccination).`,
+            f:`Fever, irritability, poor feeding, vomiting, lethargy. <b>Infant</b> — bulging fontanelle, high-pitched cry, seizures. <b>Older</b> — neck stiffness, Kernig/Brudzinski, photophobia, altered sensorium; petechial/purpuric rash (meningococcemia).`,
+            i:`<b>LP</b> — CSF: ↑ neutrophils, ↑ protein, ↓ glucose (CSF:blood &lt;0.4), Gram stain, culture, ± PCR · blood culture, CBC, CRP, glucose, electrolytes. <b>CT before LP</b> if focal deficit, ↓ consciousness, or raised-ICP signs.`,
+            m:`Supportive — manage raised ICP &amp; seizures, careful fluids/electrolytes (watch SIADH), airway/perfusion. Duration per organism (7–21 d).`,
+            tx:`1️⃣ <b>Empiric IV Ceftriaxone/Cefotaxime ± Vancomycin</b> (neonate: Ampicillin + Cefotaxime) — don't delay for LP if unstable → 2️⃣ <b>Dexamethasone</b> with / just before first dose (esp. Hib, &gt;6 wk) → 3️⃣ Adjust per culture; manage raised ICP/seizures/SIADH; complete 7–21 d.`,
+            p:`Antibiotics within the first hour. Steroids before/with first dose for Hib. Monitor for SIADH, subdural effusion, hydrocephalus, hearing loss (audiometry follow-up).` },
+
+          { n:"🧠 Raised Intracranial Pressure (ICP)", t:"raised icp intracranial pressure cushing mannitol hypertonic saline herniation", s:"PICU",
+            c:`Space-occupying lesion, cerebral edema (trauma, HIE, DKA, infection, metabolic), hydrocephalus, intracranial bleed, tumor.`,
+            f:`Headache (worse morning), vomiting, altered consciousness, <b>Cushing triad (bradycardia + hypertension + irregular breathing — late)</b>, papilledema, pupillary changes, abnormal posturing, focal deficits, bulging fontanelle (infant), 6th-nerve palsy.`,
+            i:`<b>CT/MRI brain</b> (cause) · fundoscopy · <b>avoid LP if raised ICP</b> (herniation) · monitor GCS/pupils/vitals · ± ICP monitoring.`,
+            m:`Avoid hypoxia/hypercarbia/hypotension; adequate sedation/analgesia; maintain cerebral perfusion; treat seizures/fever.`,
+            tx:`1️⃣ <b>Head-up 30° midline + airway/oxygenation, normocapnia</b> + sedation/analgesia → 2️⃣ <b>Hyperosmolar therapy — 3% saline or mannitol</b> + controlled ventilation → 3️⃣ Treat cause (<b>surgery</b> for mass/hematoma, <b>CSF diversion</b> for hydrocephalus) → 4️⃣ Refractory ICP → <b>deep sedation ± barbiturate coma, hypothermia, decompressive craniectomy</b> (brief hyperventilation only for herniation).`,
+            p:`Cushing triad is a late/pre-herniation sign. Head-up + osmotherapy + treat cause. Avoid LP. Prevent secondary injury (no hypoxia/hypotension).` },
+
+          { n:"🦵 Guillain-Barré Syndrome (GBS)", t:"gbs guillain barre ascending weakness ivig fvc respiratory areflexia", s:"PICU",
+            c:`Post-infectious <b>immune-mediated demyelinating polyneuropathy</b> (often after Campylobacter, viral GI/respiratory infection).`,
+            f:`<b>Ascending symmetrical flaccid weakness</b> (legs→arms), areflexia, sensory symptoms; may progress to respiratory + bulbar involvement, autonomic instability; ± pain. Progresses over days.`,
+            i:`<b>CSF — albuminocytological dissociation</b> (high protein, normal cells) · <b>nerve conduction studies</b> · monitor <b>respiratory function (FVC)</b> + autonomics · MRI spine (exclude mimics).`,
+            m:`Supportive — DVT/pressure care, physiotherapy, pain management; monitor respiration &amp; autonomics closely.`,
+            tx:`1️⃣ <b>IVIG</b> (or plasmapheresis) — first line → 2️⃣ Respiratory failure (falling FVC/bulbar) → <b>intubate + ventilate</b> → 3️⃣ Manage autonomic instability; rehabilitation. (Steroids alone NOT effective.)`,
+            p:`Monitor respiratory function (FVC) closely — respiratory failure can develop rapidly. IVIG/plasmapheresis. Watch autonomic instability.` },
+
+          { n:"🦟 Malaria (Severe & Cerebral)", t:"malaria cerebral severe falciparum artesunate hypoglycemia coma", s:"PICU",
+            c:`<b>P. falciparum</b> (also vivax) — sequestration in microvasculature. Severe malaria = one/more of: cerebral (coma/seizures), severe anemia, hypoglycemia, respiratory distress/acidosis, AKI, jaundice, bleeding, shock. Endemic areas.`,
+            f:`Fever + (cerebral) <b>impaired consciousness/coma, seizures</b>; ± severe anemia, jaundice, dark urine (blackwater), respiratory distress, oliguria, bleeding, shock. Travel/endemic exposure.`,
+            i:`<b>Peripheral smear / rapid diagnostic test</b> (parasitemia) · glucose (<b>hypoglycemia common</b>) · CBC (anemia, thrombocytopenia) · renal/liver function · ABG/lactate · blood culture · LP (exclude meningitis if safe).`,
+            m:`Supportive PICU — treat hypoglycemia &amp; seizures, transfuse severe anemia, careful fluids (avoid overload), treat acidosis/AKI, cover concomitant bacterial sepsis.`,
+            tx:`1️⃣ <b>IV artesunate</b> (drug of choice for severe malaria) → 2️⃣ Complete with oral <b>ACT</b> once improving → 3️⃣ Manage complications (dialysis for AKI, transfusion, ventilation).`,
+            p:`IV artesunate + treat hypoglycemia + seizures. Check glucose repeatedly. Careful fluids (avoid overload). Consider concomitant bacterial sepsis.` },
+
+          { n:"🌡️ Enteric Fever (Typhoid)", t:"enteric fever typhoid salmonella ceftriaxone stepladder perforation", s:"PICU",
+            c:`<b>Salmonella Typhi/Paratyphi</b>, fecal-oral (contaminated food/water).`,
+            f:`Prolonged <b>stepladder fever</b>, headache, malaise, abdominal pain, relative bradycardia, hepatosplenomegaly, coated tongue, rose spots; complications — <b>GI bleed/perforation</b> (3rd wk), encephalopathy, myocarditis.`,
+            i:`<b>Blood culture</b> (gold standard, esp. 1st week) · Widal (supportive, limited) · CBC (leukopenia) · LFT · stool/urine culture later.`,
+            m:`Supportive — hydration, antipyretics, nutrition; monitor for perforation/bleed (surgical consult); vaccinate/sanitation.`,
+            tx:`1️⃣ <b>Antibiotics — Ceftriaxone</b> (IV, severe) or azithromycin (per local sensitivity; watch XDR) → 2️⃣ Severe (encephalopathy/shock) → add <b>dexamethasone</b> → 3️⃣ Perforation/bleed → surgery + broaden cover.`,
+            p:`Blood culture is key. Watch for GI perforation/bleeding in 3rd week (acute abdomen). Rising drug resistance (XDR) — treat per local sensitivity.` },
+
+          { n:"🔥 MIS-C / COVID-19", t:"misc covid multisystem inflammatory ivig steroid coronary troponin", s:"PICU",
+            c:`<b>Multisystem Inflammatory Syndrome in Children</b> — post-SARS-CoV-2 hyperinflammatory syndrome (2–6 wk after infection). Also acute COVID-19.`,
+            f:`Persistent <b>fever + multisystem</b>: GI (abdominal pain, vomiting, diarrhea), rash, conjunctivitis, mucocutaneous changes (Kawasaki-like), <b>shock/myocardial dysfunction</b>, lymphadenopathy; ± respiratory.`,
+            i:`<b>Very high inflammatory markers</b> (CRP, ferritin, ESR, D-dimer, procalcitonin) · <b>cardiac — troponin, BNP, ECHO</b> (coronary/ventricular) · ECG · CBC (lymphopenia) · coagulation · SARS-CoV-2 PCR/antibody; exclude other infections.`,
+            m:`Supportive PICU — shock management (cautious fluids + inotropes for cardiac dysfunction); monitor cardiac/coronary.`,
+            tx:`1️⃣ <b>IVIG</b> ± <b>corticosteroids</b> (immunomodulation) + aspirin (Kawasaki-like/coronary) → 2️⃣ Refractory → <b>biologics (anakinra/tocilizumab)</b> → 3️⃣ Anticoagulation as indicated; cardiac follow-up.`,
+            p:`Suspect MIS-C in persistent fever + multisystem + very high inflammatory markers + recent COVID. Cardiac involvement — ECHO + troponin. IVIG + steroids.` },
+
+          { n:"🍓 Kawasaki Disease", t:"kawasaki vasculitis coronary aneurysm ivig aspirin strawberry tongue", s:"PICU",
+            c:`Medium-vessel <b>vasculitis</b> of unknown cause; &lt;5 y. Risk: <b>coronary artery aneurysms</b>.`,
+            f:`<b>Fever ≥5 days + ≥4 of</b>: bilateral non-exudative conjunctivitis, oral changes (red cracked lips, strawberry tongue), polymorphous rash, extremity changes (edema → periungual peeling), cervical lymphadenopathy (≥1.5 cm). Irritability. Incomplete forms exist.`,
+            i:`↑ESR/CRP, leukocytosis, <b>thrombocytosis (2nd wk)</b>, anemia, sterile pyuria, ↑ALT, low albumin · <b>ECHO</b> (coronary arteries — baseline &amp; follow-up).`,
+            m:`Coronary surveillance (ECHO follow-up).`,
+            tx:`1️⃣ <b>IVIG (2 g/kg) + aspirin</b> — ideally within 10 days (reduces coronary aneurysms) → 2️⃣ High-dose aspirin → low-dose antiplatelet after fever settles → 3️⃣ IVIG-resistant/high-risk → <b>corticosteroids / infliximab</b>.`,
+            p:`Treat within 10 days with IVIG + aspirin to prevent coronary aneurysms. Consider incomplete Kawasaki in prolonged unexplained fever. ECHO surveillance.` },
+
+          { n:"🕷️ Scrub Typhus", t:"scrub typhus orientia eschar doxycycline azithromycin rickettsia", s:"PICU",
+            c:`<b>Orientia tsutsugamushi</b> via chigger (mite) bite. Endemic (rural, monsoon).`,
+            f:`Fever, headache, myalgia, <b>eschar</b> (painless black scab at bite site — look in skin folds), regional lymphadenopathy, rash; complications — pneumonitis/ARDS, meningoencephalitis, AKI, myocarditis, hepatitis, shock, MODS.`,
+            i:`<b>Eschar</b> (clinical clue) · Weil-Felix (OX-K) · <b>IgM ELISA/rapid</b> · PCR · CBC (thrombocytopenia), LFT (raised transaminases), renal function, CXR.`,
+            m:`Supportive — organ support for complications (ARDS, AKI, shock).`,
+            tx:`1️⃣ <b>Doxycycline</b> (drug of choice, all ages in scrub typhus) or <b>azithromycin</b> → 2️⃣ Rapid defervescence expected (supports diagnosis) → 3️⃣ Severe/MODS → intensive organ support.`,
+            p:`Look for the eschar — a key clue. Doxycycline/azithromycin → dramatic response. Suspect in acute febrile illness with MODS in endemic areas.` },
+
+          { n:"💪 Tetanus (Childhood)", t:"tetanus trismus spasm tig immunoglobulin metronidazole wound", s:"PICU",
+            c:`<b>Clostridium tetani</b> spores enter wound (dirty/penetrating injury, unimmunised). Toxin blocks inhibitory neurons.`,
+            f:`<b>Trismus (lockjaw)</b>, risus sardonicus, neck/back stiffness, <b>generalised spasms/opisthotonus</b> triggered by stimuli, dysphagia, autonomic instability; conscious throughout.`,
+            i:`<b>Clinical diagnosis</b>; wound assessment; no confirmatory test.`,
+            m:`Quiet dark minimal-stimulation environment; airway/nutrition support; manage autonomic instability; immunise after recovery.`,
+            tx:`1️⃣ <b>Human tetanus immunoglobulin (TIG)</b> + <b>wound debridement</b> + <b>Metronidazole</b> (or penicillin) → 2️⃣ Control spasms — <b>benzodiazepines (diazepam/midazolam infusion)</b> ± magnesium → 3️⃣ Neuromuscular blockade + <b>ventilation</b> for refractory spasms.`,
+            p:`Minimise stimuli (quiet dark room). TIG + metronidazole + spasm control + airway. Prevent with vaccination + proper wound care.` },
+
+          { n:"🫁 Tuberculosis (TB / TB Meningitis)", t:"tb tuberculosis tbm att hrze contact mantoux cbnaat steroid", s:"PICU",
+            c:`<b>Mycobacterium tuberculosis</b>; child usually infected by adult contact. Pulmonary or extrapulmonary (TBM, miliary, lymph node, abdominal, spine).`,
+            f:`Chronic cough &gt;2 wk, prolonged fever, weight loss/failure to thrive, contact history; <b>TBM</b>: subacute fever, headache, vomiting, altered sensorium, cranial-nerve palsies, seizures, meningism (staged I–III); miliary — disseminated.`,
+            i:`<b>Contact history + Mantoux/TST</b> · <b>CBNAAT/GeneXpert</b> &amp; AFB smear/culture (gastric aspirate/sputum/CSF) · CXR (hilar lymphadenopathy, miliary) · <b>CSF in TBM</b> (lymphocytic, high protein, low glucose) · USG/CT.`,
+            m:`Nutrition; pyridoxine; contact tracing &amp; prophylaxis; manage hydrocephalus in TBM.`,
+            tx:`1️⃣ <b>ATT per NTEP</b> — intensive (HRZE) then continuation (HR) → 2️⃣ TBM/miliary → <b>add corticosteroids</b> + longer duration (12 mo) → 3️⃣ Manage complications (hydrocephalus → CSF diversion; drug-resistant TB → regimen change).`,
+            p:`Contact history is key in children. TBM → steroids + prolonged ATT; watch hydrocephalus. Start ATT promptly on strong suspicion.` },
+
+          { n:"🩺 Acute Kidney Injury (AKI)", t:"aki acute kidney injury oliguria hyperkalemia dialysis creatinine", s:"PICU",
+            c:`<b>Pre-renal</b> (hypovolemia, shock, dehydration, sepsis), <b>renal</b> (ATN, glomerulonephritis, HUS, nephrotoxins, sepsis), <b>post-renal</b> (obstruction).`,
+            f:`Oliguria/anuria (&lt;1 mL/kg/h) or non-oliguric, fluid overload (edema, hypertension, pulmonary edema), rising creatinine/urea, lethargy; complications — hyperkalemia, acidosis, uremia.`,
+            i:`<b>Serum creatinine/urea (rising), electrolytes (K), ABG</b> · urine output · urinalysis · USG (size/obstruction) · fractional excretion of Na · cause-specific.`,
+            m:`Treat cause + optimise perfusion (fluid challenge if pre-renal; relieve obstruction); adjust drug doses; nutrition; avoid nephrotoxins.`,
+            tx:`1️⃣ Optimise volume/perfusion + treat cause → 2️⃣ Manage complications: <b>hyperkalemia</b> (calcium gluconate, insulin-dextrose, salbutamol, resins), <b>acidosis</b> (bicarbonate), <b>overload</b> (fluid restriction + diuretics), hypertension → 3️⃣ <b>Dialysis</b> for refractory hyperkalemia/overload/acidosis/uremia.`,
+            p:`Classify pre/renal/post-renal. Treat hyperkalemia urgently (ECG changes). Careful fluid balance. Avoid nephrotoxins + adjust drug doses.` },
+
+          { n:"💧 Nephrotic Syndrome", t:"nephrotic syndrome proteinuria edema steroid prednisolone minimal change", s:"PICU",
+            c:`Glomerular disease → proteinuria. <b>Minimal change disease</b> commonest in children (idiopathic); also FSGS, secondary (infection, SLE, HSP).`,
+            f:`<b>Generalised edema</b> (periorbital → dependent → anasarca, ascites), frothy urine, weight gain, ± oliguria; complications — <b>infection (peritonitis, cellulitis), thrombosis, hypovolemia, AKI</b>.`,
+            i:`<b>Urine — heavy proteinuria (3+/4+, high protein:creatinine)</b> · hypoalbuminemia · hyperlipidemia · CBC, renal function, complement (C3) · ± biopsy (atypical/steroid-resistant).`,
+            m:`Supportive — salt restriction, cautious diuretics (hypovolemia risk), albumin for severe symptomatic edema, treat/prevent infection, pneumococcal vaccine.`,
+            tx:`1️⃣ <b>Oral corticosteroids (prednisolone)</b> — first line (most minimal-change respond) → 2️⃣ Frequent relapse/steroid-dependent → <b>steroid-sparing (levamisole, cyclophosphamide, calcineurin inhibitors, MMF)</b> → 3️⃣ Steroid-resistant → biopsy + specialist regimen (± rituximab).`,
+            p:`Watch for infection (spontaneous bacterial peritonitis) &amp; thrombosis. Diurese cautiously (hypovolemia). Most children are steroid-responsive.` },
+
+          { n:"🔴 Acute Glomerulonephritis (AGN / PSGN)", t:"agn psgn glomerulonephritis hematuria hypertension low c3 nephritic", s:"PICU",
+            c:`<b>Post-streptococcal</b> (after strep throat/skin infection, ~1–3 wk) immune-complex GN commonest; also IgA, lupus, vasculitis.`,
+            f:`<b>Acute nephritic syndrome</b> — hematuria (smoky/cola urine), edema (periorbital), hypertension, oliguria, ± proteinuria; complications — <b>hypertensive encephalopathy, pulmonary edema, AKI</b>.`,
+            i:`<b>Urinalysis (RBC casts, hematuria, proteinuria)</b> · <b>low C3</b> · <b>ASO/anti-DNase B</b> · renal function (raised urea/creatinine) · electrolytes. (C3 normalises by 8 wk in PSGN.)`,
+            m:`Treat residual strep (penicillin); manage AKI/complications; most PSGN resolves spontaneously.`,
+            tx:`1️⃣ <b>Salt &amp; fluid restriction + diuretics (furosemide)</b> for edema/overload → 2️⃣ <b>Antihypertensives</b> to control BP (prevent encephalopathy) → 3️⃣ Manage AKI (dialysis if needed); persistent → renal biopsy.`,
+            p:`Nephritic (hematuria + hypertension + edema). Control BP to prevent hypertensive encephalopathy/pulmonary edema. Low C3 normalising by 8 wk supports PSGN.` },
+
+          { n:"🩸 Hemolytic Uremic Syndrome (HUS)", t:"hus hemolytic uremic schistocytes thrombocytopenia aki bloody diarrhea", s:"PICU",
+            c:`<b>Triad: microangiopathic hemolytic anemia + thrombocytopenia + AKI.</b> Typical — Shiga-toxin <b>E. coli (O157:H7)/Shigella</b> after bloody diarrhea; atypical — complement dysregulation.`,
+            f:`Prodrome of <b>bloody diarrhea</b> → pallor, oliguria/anuria, edema, hypertension, lethargy, petechiae/bleeding, ± CNS (seizures, altered sensorium).`,
+            i:`<b>CBC (anemia, ↓platelets), smear (schistocytes)</b> · ↑LDH, ↑bilirubin, low haptoglobin · <b>negative Coombs</b> · rising creatinine/urea · electrolytes (K) · stool culture/Shiga toxin.`,
+            m:`Mainly supportive — fluid/electrolyte management, control hypertension, nutrition; PRBC for severe anemia (platelets only if bleeding/procedure).`,
+            tx:`1️⃣ Supportive — fluid/electrolyte + BP control + transfusion as needed → 2️⃣ <b>Dialysis</b> for AKI (overload/hyperkalemia/uremia) → 3️⃣ Atypical HUS → <b>eculizumab</b>. (Avoid antibiotics/antimotility in typical STEC.)`,
+            p:`Suspect after bloody diarrhea + pallor + oliguria. Schistocytes + low platelets + AKI + negative Coombs. Supportive + dialysis; avoid antibiotics in typical STEC-HUS.` },
+
+          { n:"🤢 Acute Gastroenteritis + Dehydration", t:"gastroenteritis diarrhea dehydration ors zinc rotavirus plan c", s:"PICU",
+            c:`Mostly <b>viral (rotavirus, norovirus)</b>; bacterial (E. coli, Shigella, Salmonella, Cholera, Campylobacter), parasitic. Fecal-oral.`,
+            f:`<b>Diarrhea ± vomiting</b>, fever, abdominal pain; <b>dehydration</b> (thirst, dry mucosa, sunken eyes/fontanelle, reduced skin turgor, tachycardia, lethargy, reduced urine, shock if severe).`,
+            i:`Mostly clinical. Severe/dysentery — stool exam/culture; electrolytes &amp; renal function if severe/IV fluids; glucose.`,
+            m:`Continue feeding/breastfeeding; correct electrolytes/hypoglycemia; antibiotics only for dysentery/cholera/specific (not routine); avoid antimotility.`,
+            tx:`1️⃣ <b>ORS</b> for mild–moderate (WHO Plan A/B) + <b>zinc ×14 d</b> → 2️⃣ Severe/shock → <b>IV fluids (Plan C)</b> → 3️⃣ Dysentery/cholera → specific antibiotics; selective ondansetron for vomiting. (See Dehydration calculator.)`,
+            p:`Rehydration (ORS/IV) + zinc + continue feeds is the core. Antibiotics only for specific indications.` },
+
+          { n:"🟡 Acute Liver Failure", t:"acute liver failure hepatitis paracetamol nac encephalopathy inr", s:"PICU",
+            c:`<b>Viral hepatitis (A, E; also B)</b>, drugs/toxins (<b>paracetamol</b>, anti-TB, valproate), metabolic (Wilson, galactosemia, tyrosinemia), autoimmune, ischemia, sepsis.`,
+            f:`<b>Jaundice + coagulopathy + encephalopathy</b> (without chronic liver disease); vomiting, hepatomegaly (or shrinking liver), ascites, bleeding, hypoglycemia, altered sensorium/coma, cerebral edema.`,
+            i:`<b>LFT, coagulation (↑PT/INR — key), ammonia (high), glucose (low)</b>, electrolytes, renal function · etiology workup (viral serology, paracetamol level, ceruloplasmin, autoimmune, metabolic).`,
+            m:`PICU supportive — treat cause, manage encephalopathy &amp; cerebral edema (avoid sedatives, lactulose, hyperosmolar therapy), maintain glucose, treat infection.`,
+            tx:`1️⃣ <b>N-acetylcysteine</b> (paracetamol; also used in non-paracetamol ALF) + supportive → 2️⃣ Correct coagulopathy (vit K, FFP for bleeding/procedures), manage cerebral edema → 3️⃣ Poor prognosis → <b>liver transplant</b> referral.`,
+            p:`INR + encephalopathy define severity. NAC for paracetamol. Watch cerebral edema, hypoglycemia, sepsis. Early transplant referral.` },
+
+          { n:"🌀 Intussusception", t:"intussusception red currant jelly target sign enema reduction bowel", s:"PICU",
+            c:`Telescoping of bowel (usually <b>ileocolic</b>) → obstruction + ischemia. 3 mo–3 y (idiopathic, ± post-viral lymphoid hyperplasia); older — pathological lead point.`,
+            f:`<b>Paroxysmal colicky pain (drawing up legs, screaming) + vomiting + "red-currant jelly" stools (late)</b>; lethargy between episodes, <b>sausage-shaped mass</b> (RUQ), distension, later shock/peritonitis.`,
+            i:`<b>USG abdomen — "target/doughnut" sign</b> (diagnostic) · abdominal X-ray (obstruction) · assess perforation/peritonitis.`,
+            m:`Resuscitate; antibiotics; surgical backup.`,
+            tx:`1️⃣ <b>Resuscitate (IV fluids + NG decompression)</b> → 2️⃣ No peritonitis/perforation → <b>air/saline (hydrostatic) enema reduction</b> under guidance → 3️⃣ Enema fails / perforation / peritonitis / lead point → <b>surgery</b>.`,
+            p:`Classic triad is late/incomplete — think of it in intermittent pain + lethargy. USG diagnostic; enema reduction if stable, surgery if peritonitis/failed.` },
+
+          { n:"🍭 DKA (Diabetic Ketoacidosis)", t:"dka diabetic ketoacidosis insulin potassium cerebral edema kussmaul", s:"PICU",
+            c:`<b>Insulin deficiency</b> (new-onset T1DM, missed insulin, infection/stress) → hyperglycemia + ketosis + metabolic acidosis.`,
+            f:`Polyuria, polydipsia, weight loss, vomiting, abdominal pain, <b>Kussmaul breathing, acetone breath</b>, dehydration, lethargy → altered sensorium/coma; precipitating infection.`,
+            i:`<b>Hyperglycemia (&gt;200), ketosis, metabolic acidosis (pH &lt;7.3, low HCO3)</b>, high anion gap · electrolytes (<b>K — total-body depleted</b>), corrected Na, renal function, blood gas · look for infection.`,
+            m:`Monitor glucose/electrolytes/pH hourly; add dextrose when glucose ~250–300; treat precipitant; watch cerebral edema. (App has a DKA protocol.)`,
+            tx:`1️⃣ <b>Careful fluid resuscitation</b> (avoid rapid — cerebral edema) → 2️⃣ <b>Insulin infusion 0.05–0.1 U/kg/h (NO bolus in children), start ~1 h after fluids</b> + <b>replace potassium</b> → 3️⃣ Cerebral edema (headache, ↓GCS, bradycardia) → <b>mannitol / 3% saline</b>.`,
+            p:`No insulin bolus in children; correct fluids/K carefully; watch cerebral edema. Don't stop insulin until acidosis clears (overlap with SC). (See DKA Master Protocol.)` },
+
+          { n:"⚕️ Adrenal Crisis", t:"adrenal crisis hydrocortisone shock hyponatremia hyperkalemia cah", s:"PICU",
+            c:`Acute cortisol (± aldosterone) deficiency — known adrenal insufficiency/CAH with stress/missed steroids, abrupt steroid withdrawal, sepsis (Waterhouse-Friderichsen), adrenal hemorrhage.`,
+            f:`<b>Shock poorly responsive to fluids/inotropes</b>, vomiting, dehydration, hypoglycemia, lethargy/altered sensorium, abdominal pain, hyperpigmentation (chronic); <b>hyponatremia + hyperkalemia</b>.`,
+            i:`Electrolytes (<b>↓Na, ↑K</b>) · <b>glucose (low)</b> · cortisol (low — sample before steroids but don't delay Rx), ACTH, renin · septic workup.`,
+            m:`Treat precipitant (infection); then maintenance steroid + mineralocorticoid; stress-dosing education.`,
+            tx:`1️⃣ <b>IV hydrocortisone immediately</b> (don't wait for results) + <b>IV normal saline + dextrose</b> → 2️⃣ Correct hypoglycemia &amp; hyperkalemia → 3️⃣ Maintenance <b>hydrocortisone + fludrocortisone</b>; sick-day dosing.`,
+            p:`Suspect in fluid/inotrope-refractory shock + low Na/high K/low glucose. Give hydrocortisone first, ask questions later. Educate families on sick-day steroid dosing.` },
+
+          { n:"🧪 Electrolyte Emergencies (K / Na / Ca)", t:"electrolyte hyperkalemia hyponatremia hypocalcemia potassium sodium calcium", s:"PICU",
+            c:`<b>Hyperkalemia</b> (AKI, acidosis, hemolysis, CAH, tissue breakdown); <b>hypokalemia</b> (diarrhea/vomiting, DKA); <b>hypo/hypernatremia</b> (dehydration, SIADH, fluid errors); <b>hypocalcemia</b> (rickets, hypoparathyroidism, CKD).`,
+            f:`Hyperkalemia — arrhythmia, peaked T/wide QRS, weakness. Hypokalemia — weakness, ileus, arrhythmia. Na — altered sensorium/seizures (esp. rapid change). Hypocalcemia — tetany, seizures, carpopedal spasm.`,
+            i:`Serum electrolytes · <b>ECG</b> (K changes) · ABG · glucose · Ca/Mg/phosphate · renal function · assess hydration &amp; cause.`,
+            m:`Treat underlying cause. (App has K/Na/Ca calculators.)`,
+            tx:`1️⃣ <b>Hyperkalemia + ECG changes</b> → <b>calcium gluconate (cardioprotect) → insulin-dextrose + salbutamol ± bicarbonate → remove K (resins/dialysis)</b> → 2️⃣ <b>Symptomatic hyponatremia/seizures → 3% saline</b>; correct Na SLOWLY otherwise → 3️⃣ <b>Symptomatic hypocalcemia → IV calcium gluconate + correct Mg</b>; hypernatremia → correct over 48 h.`,
+            p:`Correct Na SLOWLY (both directions) to avoid brain injury. Hyperkalemia with ECG changes = emergency (calcium first). Use the app's electrolyte calculators.` },
+
+          { n:"🩸 Severe Anemia", t:"severe anemia transfusion iron deficiency hemolytic reticulocyte heart failure", s:"PICU",
+            c:`Nutritional (<b>iron deficiency</b> commonest), hemolytic (thalassemia, sickle cell, G6PD, autoimmune), blood loss, marrow failure/malignancy, chronic disease, malaria.`,
+            f:`Pallor, fatigue, tachycardia, tachypnea, flow murmur, <b>heart failure if severe/rapid</b> (edema, hepatomegaly, gallop); features of cause (jaundice — hemolysis).`,
+            i:`<b>CBC + reticulocyte + peripheral smear</b> (morphology), <b>MCV</b> · iron studies · hemolytic workup (bilirubin, LDH, Coombs) · Hb electrophoresis · malaria smear · marrow if indicated.`,
+            m:`Treat cause; iron for iron-deficiency; folate; specific therapy (chelation in thalassemia).`,
+            tx:`1️⃣ Identify cause (smear + reticulocytes) → 2️⃣ Severe symptomatic / heart failure → <b>PRBC transfusion SLOWLY in small aliquots + diuretic</b> (avoid overload) → 3️⃣ Definitive cause-specific therapy (iron, chelation, etc.).`,
+            p:`Transfuse slowly with a diuretic in severe anemia with heart failure (overload/pulmonary edema risk). Always work up the cause.` },
+
+          { n:"🟣 ITP (Immune Thrombocytopenia)", t:"itp immune thrombocytopenia petechiae platelets ivig steroid post viral", s:"PICU",
+            c:`<b>Immune-mediated platelet destruction</b>, often <b>post-viral</b> in children. Acute, usually self-limiting.`,
+            f:`<b>Sudden petechiae, purpura, bruising, mucosal bleeding</b> in an otherwise well child; <b>isolated thrombocytopenia</b>; serious intracranial bleed rare. No hepatosplenomegaly/lymphadenopathy (if present — reconsider).`,
+            i:`<b>CBC (isolated low platelets, rest normal), peripheral smear</b> (large platelets, exclude blasts); marrow only if atypical.`,
+            m:`Avoid trauma/NSAIDs/antiplatelets; manage by bleeding not count.`,
+            tx:`1️⃣ No/minor bleeding → <b>observe</b> (self-limiting) regardless of count → 2️⃣ Significant bleeding → <b>IVIG, corticosteroids, or anti-D</b> → 3️⃣ Life-threatening bleed → <b>platelet transfusion + IVIG/steroids</b>; chronic/refractory → second-line agents.`,
+            p:`Isolated thrombocytopenia in a well child post-viral = ITP. Manage by bleeding, not platelet count. Reconsider diagnosis if other cytopenias/organomegaly.` },
+
+          { n:"🌡️ Febrile Neutropenia", t:"febrile neutropenia chemotherapy anc antibiotics pseudomonas emergency", s:"PICU",
+            c:`<b>Fever + neutropenia (ANC &lt;500, or &lt;1000 falling)</b>, usually <b>post-chemotherapy</b>. Emergency — infection risk high, signs blunted.`,
+            f:`Fever ± few localising signs; look for source — mucositis, skin/line site, perianal, chest, abdomen; may progress rapidly to <b>sepsis/shock</b>.`,
+            i:`<b>Blood cultures (peripheral + each central line lumen)</b> · CBC (ANC) · CRP/procalcitonin · site-specific cultures · CXR/imaging as indicated · lactate if unwell.`,
+            m:`Supportive — fluids/sepsis management; G-CSF selectively; source control (line removal if indicated).`,
+            tx:`1️⃣ <b>Empiric broad-spectrum IV antibiotics within 1 h</b> (antipseudomonal — pip-tazo / cefepime / meropenem) after cultures — don't wait for counts → 2️⃣ Add <b>vancomycin</b> (line/skin/severe) → 3️⃣ Persistent fever → add <b>antifungals</b>; escalate.`,
+            p:`Fever + neutropenia = emergency → cultures then antibiotics within 1 hour. Don't wait for a source; signs are blunted. Cover Pseudomonas.` },
+
+          { n:"🔵 Sickle Cell Crisis", t:"sickle cell crisis vaso-occlusive acute chest sequestration transfusion", s:"PICU",
+            c:`<b>Sickle cell disease</b> (HbS) — sickling in hypoxia/dehydration/infection/cold/stress → vaso-occlusion. Crises: vaso-occlusive (painful), acute chest syndrome, splenic sequestration, aplastic, hemolytic.`,
+            f:`<b>Vaso-occlusive</b> — severe bone/joint/abdominal pain, dactylitis (infants); <b>acute chest syndrome</b> — fever, chest pain, hypoxia, infiltrate; <b>splenic sequestration</b> — rapid splenomegaly + falling Hb + shock; aplastic (parvovirus). Functional asplenia → infection-prone.`,
+            i:`CBC + reticulocytes · Hb electrophoresis (diagnosis) · smear (sickle cells) · CXR (chest syndrome) · cultures/infection workup · crossmatch · SpO2.`,
+            m:`Folate; hydroxyurea (prevention); penicillin prophylaxis + vaccines; treat precipitants; warmth.`,
+            tx:`1️⃣ Crisis → <b>hydration (IV fluids) + analgesia (opioids) + oxygen + treat/look for infection (antibiotics)</b> → 2️⃣ Acute chest syndrome / severe → <b>transfusion (exchange for severe)</b> → 3️⃣ Splenic sequestration + shock → <b>urgent transfusion</b>.`,
+            p:`Crisis = hydration + analgesia + oxygen + treat infection. Acute chest syndrome &amp; splenic sequestration are life-threatening → transfuse. High infection risk (asplenia).` },
+
+          { n:"☠️ Organophosphate (OP) Poisoning", t:"organophosphate op poisoning atropine pralidoxime cholinergic dumbels", s:"PICU",
+            c:`<b>Cholinesterase inhibition</b> by organophosphate/carbamate insecticides (ingestion/skin/inhalation).`,
+            f:`<b>Cholinergic — DUMBELS</b>: Diarrhea, Urination, Miosis, Bradycardia/Bronchorrhea/Bronchospasm, Emesis, Lacrimation, Salivation; also sweating, fasciculations, weakness, seizures, coma, respiratory failure; garlic odor.`,
+            i:`<b>Clinical (cholinergic features + history)</b> · <b>plasma/RBC cholinesterase (low — confirmatory)</b> · monitor respiratory failure · ECG.`,
+            m:`<b>ABC + decontamination</b> (remove clothes, wash skin; suction secretions); ventilate for respiratory failure; watch intermediate syndrome; protect staff.`,
+            tx:`1️⃣ <b>Atropine — titrate to dry secretions/clear chest</b> (large doses; ± infusion) → 2️⃣ <b>Pralidoxime (2-PAM)</b> for OP (reactivates cholinesterase) → 3️⃣ <b>Benzodiazepines</b> for seizures + ventilation for respiratory failure.`,
+            p:`Atropine titrated to secretions (not pupils/HR) is priority + pralidoxime for OP. Decontaminate (protect yourself). Watch respiratory failure &amp; intermediate syndrome.` },
+
+          { n:"🛢️ Kerosene / Hydrocarbon Poisoning", t:"kerosene hydrocarbon poisoning aspiration pneumonitis no lavage", s:"PICU",
+            c:`Ingestion of kerosene/petrol/paint thinner (accidental in toddlers). Low viscosity → <b>aspiration → chemical pneumonitis</b> (main danger, not GI absorption).`,
+            f:`<b>Coughing/choking at ingestion, respiratory distress, tachypnea, wheeze, hypoxia</b> (aspiration pneumonitis), fever; CNS — drowsiness/seizures if large ingestion; vomiting.`,
+            i:`<b>CXR</b> (may lag 6–24 h — infiltrates, esp. right lower/perihilar) · SpO2 · ABG if severe · observe.`,
+            m:`<b>DO NOT induce vomiting / gastric lavage</b> (aspiration risk); observe asymptomatic ~6 h; steroids not recommended.`,
+            tx:`1️⃣ <b>Supportive — O2 + respiratory support</b> (CPAP/ventilation if severe) → 2️⃣ Bronchodilators for wheeze → 3️⃣ <b>Antibiotics only if secondary infection</b> (not prophylactic); treat seizures.`,
+            p:`Never induce emesis/lavage (aspiration risk). Management is respiratory/supportive. CXR changes may be delayed — observe. Antibiotics only for proven infection.` },
+
+          { n:"💊 Paracetamol / Corrosive Poisoning", t:"paracetamol overdose nac corrosive acid alkali endoscopy poisoning", s:"PICU",
+            c:`<b>Paracetamol overdose</b> → hepatotoxicity (NAPQI). <b>Corrosives</b> (acids/alkalis — cleaners) → mucosal/esophageal/gastric burns.`,
+            f:`Paracetamol — early asymptomatic → 24–72 h hepatic injury → liver failure. Corrosive — oral/lip burns, drooling, dysphagia, odynophagia, retrosternal/abdominal pain, stridor (airway), ± hematemesis; perforation/stricture risk.`,
+            i:`Paracetamol — <b>serum level on nomogram (from time of ingestion)</b>, LFT, INR. Corrosive — assess airway · <b>endoscopy</b> (grade burns ~12–24 h) · CXR/erect abdomen (perforation).`,
+            m:`Corrosive — <b>NPO, secure airway, NO emesis / no neutralising agents / no lavage</b>; IV fluids, analgesia, PPI.`,
+            tx:`1️⃣ Paracetamol → <b>N-acetylcysteine (NAC)</b> per nomogram/timing (± early charcoal) → 2️⃣ Corrosive → airway + <b>endoscopy staging</b> → 3️⃣ Complications — ALF/transplant (paracetamol); perforation (surgery) &amp; strictures (dilatation) (corrosive).`,
+            p:`Paracetamol → NAC (use nomogram + time). Corrosive → no emesis/no neutralisation; protect airway + endoscopy; watch perforation &amp; strictures.` },
+
+          { n:"🐍 Snake Bite", t:"snake bite envenomation asv neostigmine 20wbct neurotoxic vasculotoxic", s:"PICU",
+            c:`Venomous snake bite — <b>neurotoxic</b> (cobra, krait), <b>vasculotoxic/hemotoxic</b> (viper — Russell's, saw-scaled), local cytotoxic.`,
+            f:`Neurotoxic — ptosis, ophthalmoplegia, bulbar/respiratory paralysis (descending); vasculotoxic — local swelling/pain/necrosis, <b>bleeding (gums, hematuria), coagulopathy (non-clotting blood), AKI, shock</b>; fang marks; some "dry bites".`,
+            i:`<b>20-minute Whole Blood Clotting Test (20-WBCT)</b> — key bedside test · CBC, coagulation, renal function · urine (hematuria) · monitor neurology &amp; respiration.`,
+            m:`<b>Reassure + immobilise limb + rapid transport</b> (avoid tourniquet/incision/suction); wound care; tetanus prophylaxis.`,
+            tx:`1️⃣ Signs of envenomation → <b>Polyvalent Anti-Snake Venom (ASV)</b> (repeat per protocol) → 2️⃣ Neurotoxic → <b>atropine + neostigmine</b> + ventilate for respiratory failure → 3️⃣ Manage coagulopathy (ASV ± blood products), AKI (dialysis).`,
+            p:`20-WBCT guides ASV in vasculotoxic bites. Neurotoxic → neostigmine + ventilate. Avoid tourniquets/incision. ASV only for actual envenomation. Watch airway.` },
+
+          { n:"🦂 Scorpion Sting", t:"scorpion sting prazosin red scorpion autonomic storm pulmonary edema", s:"PICU",
+            c:`Venom (esp. <b>red scorpion</b> — India) → <b>autonomic storm</b> (catecholamine surge).`,
+            f:`Severe local pain; <b>autonomic</b> — vomiting, profuse sweating, salivation, priapism, cool extremities, tachy/bradycardia, hypo/hypertension; serious — <b>pulmonary edema/myocarditis, shock</b> ("warm → cold" progression).`,
+            i:`Clinical · monitor <b>BP, HR, perfusion, ECG</b> (myocardial dysfunction) · CXR/echo if pulmonary edema/heart failure.`,
+            m:`Analgesia for local pain; close cardiovascular monitoring.`,
+            tx:`1️⃣ <b>Prazosin</b> (alpha-blocker — cornerstone for red scorpion autonomic storm) → 2️⃣ <b>Scorpion antivenom</b> (where available/indicated) → 3️⃣ Pulmonary edema/myocarditis → O2, ventilation, <b>dobutamine/nitroprusside</b>.`,
+            p:`Prazosin is key for red scorpion envenomation (counters catecholamine storm/pulmonary edema). Watch for pulmonary edema/myocardial dysfunction.` },
+
+          { n:"🌊 Drowning", t:"drowning submersion hypoxia cpr rewarming pulmonary edema", s:"PICU",
+            c:`Submersion/immersion → <b>hypoxia</b> (laryngospasm/aspiration) → respiratory + cerebral injury; ± hypothermia.`,
+            f:`Respiratory distress, hypoxia, cough, pulmonary edema (may be delayed), altered consciousness/coma, arrhythmia, hypothermia; secondary deterioration hours later.`,
+            i:`SpO2/ABG · <b>CXR</b> (aspiration/edema — may evolve) · electrolytes · temperature · ECG · monitor.`,
+            m:`C-spine precautions if trauma/diving; supportive PICU — manage cerebral hypoxia, seizures; observe symptomatic for delayed edema.`,
+            tx:`1️⃣ <b>Rescue + immediate CPR/rescue breaths</b> (airway/oxygenation priority) → 2️⃣ <b>O2/ventilation (CPAP/PEEP for pulmonary edema/ARDS)</b> → 3️⃣ <b>Rewarm</b> if hypothermic ("not dead until warm and dead"); supportive neuroprotection.`,
+            p:`Hypoxia is the killer — prioritise oxygenation/ventilation + CPR. Rewarm before declaring death. Observe for delayed respiratory deterioration. C-spine care if diving/trauma.` },
+
+          { n:"🔥 Burns", t:"burns tbsa parkland fluid airway inhalation scald resuscitation", s:"PICU",
+            c:`Thermal (scald — commonest in children, flame), electrical, chemical. Assess <b>% TBSA + depth</b>.`,
+            f:`Skin burn (erythema/blisters/eschar), pain; <b>airway/inhalation injury</b> (facial burns, singed nares, soot, stridor, hoarseness); large burns → <b>hypovolemic shock</b>, hypothermia; complications — infection, compartment syndrome.`,
+            i:`<b>% TBSA</b> (Lund-Browder; palm ≈1%) · depth · airway assessment · weight · carboxyhemoglobin/ABG if inhalation · electrolytes, group &amp; save.`,
+            m:`First aid = <b>cool running water</b> (not ice); tetanus prophylaxis; prevent hypothermia; analgesia; nutrition; infection surveillance (no routine prophylactic systemic antibiotics).`,
+            tx:`1️⃣ <b>ABC + airway (early intubation if inhalation injury)</b> → 2️⃣ <b>Fluid resuscitation — Parkland (~3–4 mL/kg/%TBSA RL, half in first 8 h) + maintenance</b>, titrate to urine output → 3️⃣ Escharotomy for circumferential burns; refer major burns to burns unit; wound care/grafting.`,
+            p:`Airway first (inhalation injury → early intubation). Fluid resuscitate by % TBSA + weight, titrate to urine output. First aid = cool running water, not ice.` },
+
+          { n:"⚡ Anaphylaxis", t:"anaphylaxis adrenaline allergy shock stridor im epinephrine biphasic", s:"PICU",
+            c:`Severe <b>IgE-mediated (or non-immune) systemic hypersensitivity</b> — foods (nuts, egg, milk, seafood), drugs, insect stings, latex.`,
+            f:`<b>Rapid onset (minutes) multisystem</b>: skin (urticaria, angioedema, flushing), <b>respiratory (stridor, wheeze, throat tightness, hypoxia)</b>, <b>cardiovascular (hypotension, shock, collapse)</b>, GI (vomiting, cramps); can be biphasic.`,
+            i:`<b>Clinical diagnosis</b> — do not delay treatment for tests; serum tryptase (later); identify trigger afterwards.`,
+            m:`Remove trigger; position (supine + legs up; upright if respiratory distress); high-flow O2; observe for biphasic reaction; discharge with auto-injector + allergy referral.`,
+            tx:`1️⃣ <b>IM adrenaline (0.01 mg/kg of 1:1000, max 0.5 mg, anterolateral thigh) — FIRST &amp; immediate, repeat every 5–15 min</b> → 2️⃣ <b>IV fluid bolus</b> for hypotension + inhaled bronchodilator (wheeze) → 3️⃣ Adjuncts (antihistamines, steroids — secondary, do NOT replace adrenaline); refractory → <b>adrenaline infusion</b>.`,
+            p:`Adrenaline IM is first-line — give immediately, don't delay for antihistamines/steroids. Repeat as needed. Observe for biphasic reaction. Prescribe auto-injector on discharge.` },
+
+          { n:"🍚 Severe Acute Malnutrition (SAM)", t:"sam malnutrition marasmus kwashiorkor f75 resomal refeeding muac", s:"PICU",
+            c:`<b>Inadequate intake/absorption</b> ± infection. Defined by <b>severe wasting (WFH &lt;-3 SD), MUAC &lt;11.5 cm (6–59 mo), or bilateral pedal edema</b> (marasmus vs kwashiorkor).`,
+            f:`Marasmus — severe wasting, "old-man" facies, no edema; Kwashiorkor — edema, skin/hair changes, hepatomegaly, apathy; both — hidden infections, hypoglycemia, hypothermia, dyselectrolytemia, micronutrient deficiency.`,
+            i:`Anthropometry (WFH, MUAC, edema) · blood glucose · electrolytes · Hb · infection screen (often occult) · appetite test (RUTF).`,
+            m:`<b>WHO 10 steps</b>; sensory stimulation; prepare follow-up. <b>Watch refeeding syndrome.</b>`,
+            tx:`1️⃣ Stabilisation → treat/prevent <b>hypoglycemia, hypothermia, dehydration (ReSoMal — cautious, not standard ORS/IV)</b>, correct electrolytes (K, Mg; low Na), <b>empirical antibiotics</b> → 2️⃣ <b>Cautious feeding F-75</b> (no iron yet), micronutrients (vit A, zinc, folate) → 3️⃣ Catch-up — <b>F-100 / RUTF</b> + add iron.`,
+            p:`Feed cautiously (F-75) — avoid refeeding syndrome; give K/Mg, restrict Na, no iron in stabilisation; use ReSoMal (not standard ORS); avoid IV unless shock. Infections often hidden — treat empirically.` },
+
+          { n:"🟪 HSP (Henoch-Schönlein Purpura)", t:"hsp henoch schonlein iga vasculitis purpura arthritis nephritis abdominal", s:"PICU",
+            c:`<b>IgA-mediated small-vessel vasculitis</b>, often <b>post-infectious</b> (URTI). Commonest childhood vasculitis, 3–10 y.`,
+            f:`<b>Palpable purpura (buttocks &amp; legs, symmetrical)</b> + arthritis/arthralgia + abdominal pain (± GI bleed, intussusception) + renal (hematuria/proteinuria — HSP nephritis); usually non-thrombocytopenic; scrotal involvement.`,
+            i:`<b>Clinical</b> · CBC (normal platelets — distinguishes from ITP) · <b>urinalysis (hematuria/proteinuria — monitor renal)</b> · renal function/BP · USG if severe abdominal pain (intussusception) · ± renal biopsy.`,
+            m:`Rest, hydration; monitor BP &amp; urine (nephritis may appear later — follow up weeks–months).`,
+            tx:`1️⃣ Supportive — <b>analgesia (NSAIDs for joints — avoid if GI bleed/renal)</b> → 2️⃣ Severe abdominal/GI/scrotal or significant nephritis → <b>corticosteroids</b> → 3️⃣ Severe nephritis → immunosuppression (specialist); manage intussusception.`,
+            p:`Palpable purpura on buttocks/legs + abdominal pain + arthritis + normal platelets. Monitor urine &amp; BP (nephritis may appear/persist later). Watch for intussusception.` }
+        ];
+        _library.forEach(function(x){
+            drugs.push({
+                name: x.n,
+                category: "Library",
+                tags: (x.t || "") + " library disease " + (x.s || ""),
+                calc: (function(o){ return function(){ return libCard(o.s, o.c, o.f, o.i, o.m, o.p, o.tx); }; })(x)
+            });
+        });
+
         // --- MARKET STRENGTH / DILUTION (auto-shown inside each drug card) ---
         const MARKET_INFO = {
             "Inj Ceftriaxone (Monocef)": "Vials 250/500mg, 1g, 2g · reconstitute 1g→10ml, 500mg→5ml WFI (100 mg/ml)",
@@ -3713,7 +4889,7 @@
             if(currentCategory === 'TreatmentSheet'){ renderTxSheet(); return; }
 
             // --- FIX FOR EMPTY SECTIONS: ALLOW VACCINE, TRAINING & CALCS WITHOUT WEIGHT ---
-            if(w <= 0 && s === "" && currentCategory !== 'Training' && currentCategory !== 'Vaccine' && currentCategory !== 'Calculators'){
+            if(w <= 0 && s === "" && currentCategory !== 'Training' && currentCategory !== 'Vaccine' && currentCategory !== 'Calculators' && currentCategory !== 'Library'){
                 d.innerHTML='<p style="text-align:center; color:var(--text-muted); margin-top:30px;">Please enter weight to see data.</p>';
                 return;
             }
@@ -3721,6 +4897,7 @@
             let grouped = {};
             drugs.forEach(x => {
                 if(currentCategory !== 'All' && x.category !== currentCategory) return;
+                if(x.category === 'Library' && !window._nhCanLibrary) return;
                 if(s && !x.name.toLowerCase().includes(s) && !(x.tags||"").toLowerCase().includes(s)) return;
 
                 if(a >= 0 && document.getElementById('age').value !== "") {
@@ -3759,7 +4936,7 @@
 
             let html = "";
             let catOrder = [
-                "Training", "Vaccine", "Calculators", "NICU", "PICU", "Nebulizer",
+                "Training", "Vaccine", "Calculators", "Library", "NICU", "PICU", "Nebulizer",
                 "Emergency", "Fluids", "Antibiotic", "Neuro", "Syrup", "Drops", "GI", "Formula"
             ];
 
@@ -3767,6 +4944,7 @@
                 "Training": "📺 Training & Procedures",
                 "Vaccine": "💉 Vaccines & Schedule",
                 "Calculators": "🧮 Calculators & Tools",
+                "Library": "📚 Disease Library",
                 "NICU": "👶 NICU Protocol",
                 "PICU": "🛏️ PICU Protocol",
                 "Nebulizer": "💨 Nebulizers",
@@ -3789,6 +4967,9 @@
                 }
             });
 
+            if(currentCategory === 'Library' && html){
+                html = '<div class="note" style="background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0; margin-bottom:10px; line-height:1.6;">📖 <b>References:</b> IAP (Indian Academy of Pediatrics) Guidelines · NNF (National Neonatology Forum) · Dr. Meharban Singh — <i>Care of the Newborn</i> · Ghai Essential Pediatrics / Nelson Textbook of Pediatrics · WHO Pocketbook of Hospital Care for Children. Educational reference — always verify against your unit protocol &amp; latest guidelines.</div>' + html;
+            }
             d.innerHTML = html || '<p style="text-align:center; color:var(--text-muted); margin-top:30px;">No results found.</p>';
         }
 
