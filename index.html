@@ -103,9 +103,10 @@
 
         .header-card {
             background: var(--bg-card);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 16px;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+            border: 1px solid var(--border);
         }
 
         .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
@@ -114,7 +115,7 @@
 
         label {
             display: block;
-            font-size: 14px;
+            font-size: 13px;
             margin-bottom: 5px;
             font-weight: bold;
             color: var(--text-muted);
@@ -122,27 +123,32 @@
 
         input, select {
             width: 100%;
-            padding: 10px;
-            font-size: 15px;
+            padding: 10px 12px;
+            font-size: 14.5px;
             border: 2px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             text-align: center;
             box-sizing: border-box;
             background: var(--bg-card);
             color: var(--text-main);
-            transition: 0.3s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        input:focus, select:focus { border-color: var(--primary); outline: none; }
+        input:focus, select:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 3px rgba(49,130,206,0.15);
+            outline: none; 
+        }
 
         .action-btn {
             padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             border: none;
             font-weight: bold;
             cursor: pointer;
             color: white;
             font-size: 13px;
             transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
         .back-btn {
@@ -164,8 +170,8 @@
 
         .menu-item {
             background: var(--bg-card);
-            border: 2px solid var(--border);
-            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
             padding: 15px 10px;
             text-align: center;
             font-weight: bold;
@@ -176,14 +182,14 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
         }
 
         .menu-item:hover {
             border-color: var(--primary);
             transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(49,130,206,0.2);
+            box-shadow: 0 6px 16px rgba(49,130,206,0.18);
             color: var(--primary);
         }
         .menu-icon { font-size: 26px; margin-bottom: 8px; }
@@ -191,30 +197,38 @@
         .cat-header {
             background: var(--cat-head-bg);
             color: var(--cat-head-text);
-            padding: 8px 15px;
-            border-radius: 8px;
+            padding: 10px 16px;
+            border-radius: 10px;
             font-weight: bold;
-            margin: 20px 0 10px 0;
-            font-size: 15px;
-            border-left: 4px solid #f6ad55;
+            margin: 20px 0 12px 0;
+            font-size: 14px;
+            border-left: 5px solid #f6ad55;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Cards */
         .card {
             background: var(--bg-card);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            margin-bottom: 12px;
+            padding: 16px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            margin-bottom: 14px;
+            border: 1px solid var(--border);
             border-left: 5px solid var(--primary);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.07);
         }
 
         .drug-name {
             font-weight: 800;
-            font-size: 17px;
+            font-size: 17.5px;
             color: var(--primary-hover);
             margin-bottom: 8px;
+            letter-spacing: 0.2px;
         }
 
         /* Category Specific Colors */
@@ -257,47 +271,57 @@
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(49,130,206,0.3);
+            transition: 0.2s;
         }
+        .copy-all-btn:hover { background: var(--primary-hover); }
 
         .calc-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
         .gir-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; text-align: center; font-size: 11px; margin-bottom: 5px; }
 
         /* Badges and Highlights */
         .badge {
-            display: inline-block;
-            font-size: 12px;
-            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
             background: var(--badge-bg);
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
             color: var(--badge-text);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
         }
 
         .highlight {
-            font-size: 15px;
+            font-size: 14.5px;
             font-weight: bold;
             color: var(--hl-text);
             background-color: var(--hl-bg);
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 10px 12px;
+            border-radius: 10px;
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             border: 1px solid var(--hl-border);
+            border-left: 4px solid var(--primary);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
         }
 
         .note {
-            font-size: 13px;
+            font-size: 12.5px;
             color: var(--text-muted);
-            margin-top: 6px;
+            margin-top: 8px;
             font-style: italic;
             background: var(--note-bg);
-            padding: 8px;
-            border-radius: 6px;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid var(--note-border);
+        }
             border-left: 3px solid var(--note-border);
             line-height: 1.5;
         }
@@ -343,8 +367,13 @@
         .about-section { background: var(--note-bg); border: 1px dashed var(--note-border); border-radius: 12px; padding: 15px; margin-top: 25px; margin-bottom: 20px; box-shadow: none; }
         .footer-credits { text-align: center; font-size: 11px; color: #a0aec0; margin-top: 30px; margin-bottom: 10px; letter-spacing: 0.5px; font-weight: bold; }
         #printArea { display:none; }
-        @media print { body > *:not(#printArea) { display:none !important; } #printArea { display:block !important; } }
+        @media print {
+            html, body { background: #ffffff !important; color: #000000 !important; margin: 0 !important; padding: 0 !important; }
+            body > *:not(#printArea) { display: none !important; }
+            #printArea { display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 15px; box-sizing: border-box; background: #ffffff !important; color: #000000 !important; }
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -376,7 +405,9 @@
         // PWA: register service worker for offline + installability
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function(){
-                navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('SW registration failed:', e); });
+                navigator.serviceWorker.register('sw.js').then(function(reg){
+                    reg.update();
+                }).catch(function(e){ console.log('SW registration failed:', e); });
             });
         }
     </script>
@@ -434,6 +465,7 @@
         <div class="menu-item" onclick="openCat('Training')"><div class="menu-icon">📺</div>Training & Procedures</div>
         <div class="menu-item" onclick="openCat('Calculators')"><div class="menu-icon">🧮</div>Calculators & Tools</div>
         <div class="menu-item" onclick="openCat('Fluids')"><div class="menu-icon">💧</div>Fluids & DKA</div>
+        <div class="menu-item" onclick="openInfusions()"><div class="menu-icon">💉</div>Infusion Calc</div>
         <div class="menu-item" onclick="openCat('Neuro')"><div class="menu-icon">🧠</div>Neuro & Seizure</div>
         <div class="menu-item" onclick="openCat('Antibiotic')"><div class="menu-icon">💊</div>Antibiotics</div>
         <div class="menu-item" onclick="openCat('Nebulizer')"><div class="menu-icon">💨</div>Nebulizers</div>
@@ -443,6 +475,7 @@
         <div class="menu-item" onclick="openCat('Vaccine')"><div class="menu-icon">💉</div>Vaccines</div>
         <div class="menu-item" onclick="openCat('Formula')"><div class="menu-icon">🍼</div>Infant Formulas</div>
         <div class="menu-item" onclick="openCat('TreatmentSheet')"><div class="menu-icon">📋</div>Tx Sheet</div>
+
         <div class="menu-item" onclick="openSuggestions()"><div class="menu-icon">💬</div>Suggestions</div>
     </div>
 
@@ -507,6 +540,37 @@
 
     <div id="printArea"></div>
 
+    <!-- INFUSION CALCULATOR PAGE -->
+    <div id="infusionPage" style="display:none; padding-top:5px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="font-weight:900; font-size:18px; color:var(--primary);">💉 Infusion Calculator</div>
+            <button onclick="goHome()" class="inf-back-btn">🏠 Home</button>
+        </div>
+        <div style="background:#ebf8ff; border-left:3px solid #3182ce; padding:8px 10px; border-radius:6px; margin-bottom:10px; font-size:12px; color:#2b6cb0; line-height:1.5;">
+            📌 <b>Weight ઉપર enter કરો</b>, પછી Medicine select કરો → 25mL & 50mL syringe preparation + Rate Table automatically calculate થશે.
+        </div>
+        <div id="infListWrap">
+            <div class="inf-search-bar">
+                <input type="text" id="infSearch" placeholder="🔍 Search medicine..." oninput="renderInfusionList()">
+                <select id="infCatFilter" onchange="renderInfusionList()">
+                    <option value="">All Categories</option>
+                    <option value="Inotropes">🔴 Inotropes</option>
+                    <option value="Sedation">🟡 Sedation</option>
+                    <option value="Antiepileptic">🟢 Antiepileptics</option>
+                    <option value="Cardiac">🔵 Cardiac</option>
+                    <option value="Metabolic">🟣 Metabolic</option>
+                    <option value="Respiratory">🟠 Respiratory</option>
+                    <option value="NMB">⚪ NMB</option>
+                    <option value="Anticoagulant">🔶 Anticoagulant</option>
+                    <option value="Diuretic">🔷 Diuretic</option>
+                    <option value="Misc">🟤 Misc</option>
+                </select>
+            </div>
+            <div id="infList"></div>
+        </div>
+        <div id="infDetail" style="display:none;"></div>
+    </div>
+
     <!-- Firebase SDK (for the public Suggestions Chat) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -517,6 +581,33 @@
         window.savedRabiesDate = "";
         let txSheet = JSON.parse(localStorage.getItem('nhTx') || '[]');
         window._txPatient = localStorage.getItem('nhTxPatient') || '';
+
+        // Automatic Online Live Code Sync & Purger across all devices
+        (function(){
+            var APP_VER = 'v25.0';
+            fetch('version.json?t=' + Date.now())
+                .then(function(r){ return r.json(); })
+                .then(function(data){
+                    if(data && data.version && localStorage.getItem('dosecalc_app_ver') !== data.version){
+                        localStorage.setItem('dosecalc_app_ver', data.version);
+                        if('caches' in window){
+                            caches.keys().then(function(names){
+                                names.forEach(function(n){ caches.delete(n); });
+                            });
+                        }
+                        if(navigator.serviceWorker){
+                            navigator.serviceWorker.getRegistrations().then(function(regs){
+                                regs.forEach(function(r){ r.update(); });
+                            });
+                        }
+                        window.location.reload(true);
+                    }
+                }).catch(function(e){
+                    if(localStorage.getItem('dosecalc_app_ver') !== APP_VER){
+                        localStorage.setItem('dosecalc_app_ver', APP_VER);
+                    }
+                });
+        })();
 
         // YouTube iframe helper function using Direct Video IDs
         const yt = (videoId, title) => {
@@ -537,34 +628,87 @@
 
         // Navigation Functions
         // Navigation Functions
+        // Native Android Bridge & Global Back Handler
+        window.handleNativeBackPressed = function() {
+            var handled = handleGlobalBack();
+            if (!handled) {
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                    window.Capacitor.Plugins.App.exitApp();
+                }
+            }
+        };
+
+        function handleGlobalBack() {
+            // 1. Infusion Detail View Open?
+            var infDetail = document.getElementById('infDetail');
+            if (infDetail && infDetail.style.display !== 'none') {
+                infDetail.style.display = 'none';
+                var infWrap = document.getElementById('infListWrap');
+                if (infWrap) infWrap.style.display = 'block';
+                return true;
+            }
+
+            // 2. Infusion Calculator Page Open?
+            var infPage = document.getElementById('infusionPage');
+            if (infPage && infPage.style.display !== 'none') {
+                _showHome();
+                return true;
+            }
+
+            // 3. Category View Open?
+            var catView = document.getElementById('categoryView');
+            if (catView && catView.style.display !== 'none') {
+                _showHome();
+                return true;
+            }
+
+            // 4. Suggestions Chat Page Open?
+            var sugPage = document.getElementById('suggestionsPage');
+            if (sugPage && sugPage.style.display !== 'none') {
+                _showHome();
+                return true;
+            }
+
+            // 5. Search Bar Filtered?
+            var searchInp = document.getElementById('search');
+            if (searchInp && searchInp.value.trim() !== '') {
+                _showHome();
+                return true;
+            }
+
+            return false; // Already on Home page, safe to exit app
+        }
+
+        function _showHome() {
+            if(document.getElementById('search')) document.getElementById('search').value = "";
+            currentCategory = 'All';
+            if(document.getElementById('mainMenu')) document.getElementById('mainMenu').style.display = 'grid';
+            if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'block';
+            if(document.getElementById('categoryView')) document.getElementById('categoryView').style.display = 'none';
+            var sp = document.getElementById('suggestionsPage'); if(sp) sp.style.display = 'none';
+            var ip = document.getElementById('infusionPage'); if(ip) ip.style.display = 'none';
+            var id = document.getElementById('infDetail'); if(id) id.style.display = 'none';
+            var iw = document.getElementById('infListWrap'); if(iw) iw.style.display = 'block';
+        }
+
         function initRouter() {
-            // Handle Native Android Hardware Back Button via Capacitor Bridge
-            document.addEventListener('deviceready', function() {
+            var attachCapacitor = function() {
                 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                    try {
+                        window.Capacitor.Plugins.App.removeAllListeners();
+                    } catch(e){}
                     window.Capacitor.Plugins.App.addListener('backButton', function() {
-                        if (window.location.hash === '#view') {
-                            _showHome();
-                            window.location.hash = 'home';
-                        } else {
+                        var handled = handleGlobalBack();
+                        if (!handled) {
                             window.Capacitor.Plugins.App.exitApp();
                         }
                     });
                 }
-            }, false);
-            
-            // Also listen to Capacitor directly in case deviceready is missed
-            setTimeout(function() {
-                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-                    window.Capacitor.Plugins.App.addListener('backButton', function() {
-                        if (window.location.hash === '#view') {
-                            _showHome();
-                            window.location.hash = 'home';
-                        } else {
-                            window.Capacitor.Plugins.App.exitApp();
-                        }
-                    });
-                }
-            }, 1000);
+            };
+
+            document.addEventListener('deviceready', attachCapacitor, false);
+            setTimeout(attachCapacitor, 300);
+            setTimeout(attachCapacitor, 1200);
 
             if (!window.location.hash || window.location.hash === '') {
                 window.location.replace('#base');
@@ -589,19 +733,11 @@
             }
         }
 
-        function _showHome() {
-            document.getElementById('search').value = "";
-            currentCategory = 'All';
-            document.getElementById('mainMenu').style.display = 'grid';
-            if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'block';
-            document.getElementById('categoryView').style.display = 'none';
-            var sp = document.getElementById('suggestionsPage'); if(sp) sp.style.display = 'none';
-        }
-
         window.addEventListener('hashchange', function(e) {
-            if (window.location.hash !== '#view') {
-                _showHome();
-            }
+            handleGlobalBack();
+        });
+        window.addEventListener('popstate', function(e) {
+            handleGlobalBack();
         });
 
         function openCat(cat) {
@@ -617,11 +753,7 @@
         }
 
         function goHome() {
-            if (window.location.hash === '#view') {
-                history.back();
-            } else {
-                _showHome();
-            }
+            handleGlobalBack();
         }
 
         function openSuggestions() {
@@ -674,6 +806,7 @@
                 if(window.runUrine) window.runUrine();
                 if(window.runDehydration) window.runDehydration();
                 if(window.runNeoFluid) window.runNeoFluid();
+                if(window.runNeoCalorie) window.runNeoCalorie();
                 if(window.runInteraction) window.runInteraction();
             }, 50);
         }
@@ -905,6 +1038,281 @@
                 + `<div class="highlight" style="display:block;">3. Salbutamol nebulization (high dose)</div>`
                 + `<div class="highlight" style="display:block;">4. NaHCO3 (1 mEq/kg): <b>${bicarb} mEq</b> if acidotic</div>`
                 + `<div class="note">Stop all K+ intake. Then K-binding resin / dialysis if persistent. (IAP / Dr. Meharban Singh)</div>`;
+        };
+
+        window.toggleNeoFeedMode = function(wt) {
+            let mode = (document.getElementById('neoFeedMode') || {}).value || 'feeds';
+            let feedDiv = document.getElementById('neoFeedDiv');
+            let feedVolInp = document.getElementById('neoFeedVol');
+            if (mode === 'nbm') {
+                if (feedDiv) feedDiv.style.display = 'none';
+                if (feedVolInp) feedVolInp.value = 0;
+            } else {
+                if (feedDiv) feedDiv.style.display = 'block';
+                if (feedVolInp && parseFloat(feedVolInp.value) === 0) feedVolInp.value = 20;
+            }
+        };
+
+        window.runNeoCalorie = function(wtOverride) {
+            let wt = wtOverride || val('weight');
+            let res = document.getElementById('neoCalRes');
+            if (!res) return;
+            if (wt <= 0) {
+                res.innerHTML = '<div class="highlight" style="background:#fff5f5; color:#c53030; display:block;">⚠️ Please enter patient weight (kg) at the top first!</div>';
+                return;
+            }
+
+            let mode = (document.getElementById('neoFeedMode') || {}).value || 'feeds';
+            let isNbm = (mode === 'nbm');
+            let dol = val('neoDol') || 3;
+            let ga = (document.getElementById('neoGa') || {}).value || 'preterm';
+            let feedType = (document.getElementById('neoFeedType') || {}).value || 'ebm';
+            let feedVol = isNbm ? 0 : val('neoFeedVol'); // mL/kg/day
+            let tfi = val('neoTfi') || (isNbm ? 80 : 120); // mL/kg/day
+            let dexPct = parseFloat((document.getElementById('neoDexPct') || {}).value || 10);
+            let aaG = val('neoAa'); // g/kg/day
+            let lipG = val('neoLip'); // g/kg/day
+            let naG = val('neoNa') || 3.0; // mEq/kg/day
+            let kG = val('neoK') || 2.0; // mEq/kg/day
+            let isHmf = !!(document.getElementById('neoHmf') && document.getElementById('neoHmf').checked);
+
+            // 1. Enteral Feed Calculations
+            let feedDensity = 0.67; // kcal/mL
+            let feedProteinRatio = 0.011; // g/mL (1.1g/100mL)
+            let feedCarbRatio = 0.070; // g/mL (7g/100mL lactose)
+            let feedFatRatio = 0.038; // g/mL (3.8g/100mL)
+
+            if (feedType === 'preterm') {
+                feedDensity = 0.80;
+                feedProteinRatio = 0.020;
+                feedCarbRatio = 0.078;
+                feedFatRatio = 0.044;
+            } else if (feedType === 'dilute') {
+                feedDensity = 0.33;
+                feedProteinRatio = 0.0055;
+                feedCarbRatio = 0.035;
+                feedFatRatio = 0.019;
+            }
+
+            if (isHmf) {
+                feedDensity += 0.13; // +0.13 kcal/mL from HMF sachet
+                feedProteinRatio += 0.004; // +0.4g protein / 100 mL
+            }
+
+            let totalFeedVol = feedVol * wt; // mL/day
+            let enteralCal = totalFeedVol * feedDensity; // kcal/day
+            let enteralProtein = totalFeedVol * feedProteinRatio; // g/day
+            let enteralCarb = totalFeedVol * feedCarbRatio; // g/day
+            let enteralFat = totalFeedVol * feedFatRatio; // g/day
+
+            // 2. Parenteral TPN Calculations
+            let totalAA_g = aaG * wt; // g/day
+            let aaVol = totalAA_g / 0.1; // mL/day of 10% AA
+            let aaCal = totalAA_g * 4.0; // kcal/day
+
+            let totalLip_g = lipG * wt; // g/day
+            let lipVol = totalLip_g / 0.2; // mL/day of 20% Lipid
+            let lipCal = totalLip_g * 9.0; // kcal/day
+
+            // 3. TPN Electrolytes
+            let totalNa_mEq = naG * wt; // mEq/day
+            let vol3pctNS = totalNa_mEq / 0.513; // mL/day of 3% NS (0.513 mEq/mL)
+            let totalK_mEq = kG * wt; // mEq/day
+            let vol15pctKCl = totalK_mEq / 2.0; // mL/day of 15% KCl (2.0 mEq/mL)
+
+            // Total Fluid & Dextrose Volume
+            let totalFluidMl = tfi * wt; // mL/day
+            let ivDexVol = totalFluidMl - totalFeedVol - aaVol - lipVol - vol3pctNS - vol15pctKCl; // mL/day
+            if (ivDexVol < 0) ivDexVol = 0;
+
+            // Dextrose mass & GIR
+            let dexMass_g = (ivDexVol * dexPct) / 100; // g/day
+            let dexCal = dexMass_g * 3.4; // 3.4 kcal/g anhydrous dextrose
+            let gir = (dexPct * ivDexVol) / (wt * 144); // mg/kg/min
+
+            // Total Macronutrients
+            let totalCal = enteralCal + dexCal + aaCal + lipCal;
+            let calPerKg = totalCal / wt;
+
+            let totalProtein = enteralProtein + totalAA_g;
+            let proteinPerKg = totalProtein / wt;
+
+            let totalCarb = enteralCarb + dexMass_g;
+            let carbPerKg = totalCarb / wt;
+
+            let totalFat = enteralFat + totalLip_g;
+            let fatPerKg = totalFat / wt;
+
+            let proteinEnergyRatio = totalCal > 0 ? (totalProtein / totalCal) * 100 : 0;
+
+            // AIIMS Targets based on Mode & DOL
+            let targetCalMin = isNbm ? (dol <= 2 ? 50 : 60) : (dol <= 2 ? 50 : (dol <= 5 ? 70 : 90));
+            let targetCalMax = isNbm ? 80 : (dol <= 2 ? 70 : (dol <= 5 ? 100 : 120));
+
+            // Status Badge
+            let statusBadgeHtml = '';
+            if (calPerKg >= 110) {
+                statusBadgeHtml = '<div style="background:#c6f6d5; color:#22543d; border:1px solid #9ae6b4; padding:6px 10px; border-radius:6px; font-weight:bold; font-size:12px; margin-bottom:8px;">🟢 OPTIMAL WEIGHT GAIN CALORIES (' + calPerKg.toFixed(1) + ' kcal/kg/d — Target ≥110)</div>';
+            } else if (calPerKg >= 80) {
+                statusBadgeHtml = '<div style="background:#ebf8ff; color:#2b6cb0; border:1px solid #90cdf4; padding:6px 10px; border-radius:6px; font-weight:bold; font-size:12px; margin-bottom:8px;">🔵 ADEQUATE MAINTENANCE CALORIES (' + calPerKg.toFixed(1) + ' kcal/kg/d — Target 80-110)</div>';
+            } else {
+                statusBadgeHtml = '<div style="background:#feebc8; color:#7b341e; border:1px solid #fbd38d; padding:6px 10px; border-radius:6px; font-weight:bold; font-size:12px; margin-bottom:8px;">🟧 INADEQUATE CALORIES (' + calPerKg.toFixed(1) + ' kcal/kg/d — Target ≥' + targetCalMin + ') — Advance Feeds / Dextrose / Lipids</div>';
+            }
+
+            let html = `
+                <div style="background:var(--bg-main); border:1px solid var(--border); border-radius:10px; padding:10px; margin-top:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:2px solid var(--border); padding-bottom:4px;">
+                        <div style="font-weight:900; font-size:14px; color:var(--primary);">
+                            📊 NUTRITION SUMMARY (${wt} kg, DOL ${dol})
+                        </div>
+                        <div style="font-size:11px; font-weight:bold; padding:2px 8px; border-radius:4px; background:${isNbm ? '#fed7d7' : '#c6f6d5'}; color:${isNbm ? '#9b2c2c' : '#22543d'};">
+                            ${isNbm ? '🚫 NBM (TPN)' : '🥣 ON FEEDS'}
+                        </div>
+                    </div>
+
+                    ${statusBadgeHtml}
+
+                    <table class="inf-table" style="margin-bottom:10px;">
+                        <tr style="background:var(--primary); color:#fff;">
+                            <th>Source</th>
+                            <th>Volume (mL/d)</th>
+                            <th>Calories (kcal/d)</th>
+                            <th>Protein (g/d)</th>
+                            <th>% Cal</th>
+                        </tr>
+                        ${!isNbm ? `
+                        <tr>
+                            <td><b>🍼 Enteral (${feedType.toUpperCase()}${isHmf ? ' + HMF' : ''})</b></td>
+                            <td>${totalFeedVol.toFixed(1)}</td>
+                            <td>${enteralCal.toFixed(1)}</td>
+                            <td>${enteralProtein.toFixed(2)}</td>
+                            <td>${totalCal > 0 ? ((enteralCal/totalCal)*100).toFixed(1) : 0}%</td>
+                        </tr>` : ''}
+                        <tr>
+                            <td><b>💧 IV Dextrose (${dexPct}%)</b></td>
+                            <td>${ivDexVol.toFixed(1)}</td>
+                            <td>${dexCal.toFixed(1)}</td>
+                            <td>—</td>
+                            <td>${totalCal > 0 ? ((dexCal/totalCal)*100).toFixed(1) : 0}%</td>
+                        </tr>
+                        <tr>
+                            <td><b>🧪 IV Amino Acids (10%)</b></td>
+                            <td>${aaVol.toFixed(1)}</td>
+                            <td>${aaCal.toFixed(1)}</td>
+                            <td>${totalAA_g.toFixed(2)}</td>
+                            <td>${totalCal > 0 ? ((aaCal/totalCal)*100).toFixed(1) : 0}%</td>
+                        </tr>
+                        <tr>
+                            <td><b>🟡 IV Lipids (20%)</b></td>
+                            <td>${lipVol.toFixed(1)}</td>
+                            <td>${lipCal.toFixed(1)}</td>
+                            <td>—</td>
+                            <td>${totalCal > 0 ? ((lipCal/totalCal)*100).toFixed(1) : 0}%</td>
+                        </tr>
+                        <tr>
+                            <td><b>🧪 IV 3% NS (Sodium)</b></td>
+                            <td>${vol3pctNS.toFixed(1)}</td>
+                            <td>—</td>
+                            <td>— (${totalNa_mEq.toFixed(1)} mEq)</td>
+                            <td>0%</td>
+                        </tr>
+                        <tr>
+                            <td><b>🧪 IV 15% KCl (Potassium)</b></td>
+                            <td>${vol15pctKCl.toFixed(1)}</td>
+                            <td>—</td>
+                            <td>— (${totalK_mEq.toFixed(1)} mEq)</td>
+                            <td>0%</td>
+                        </tr>
+                        <tr style="font-weight:bold; background:#ebf8ff; font-size:13px;">
+                            <td>TOTAL</td>
+                            <td>${totalFluidMl.toFixed(1)} mL</td>
+                            <td>${totalCal.toFixed(1)} kcal</td>
+                            <td>${totalProtein.toFixed(2)} g</td>
+                            <td>100%</td>
+                        </tr>
+                    </table>
+
+                    <!-- MACRONUTRIENT & ELECTROLYTE BREAKDOWN TABLE -->
+                    <div style="font-weight:bold; font-size:12px; color:var(--text-main); margin-bottom:4px;">🧬 MACRONUTRIENT & ELECTROLYTE INTAKE vs TARGETS</div>
+                    <table class="inf-table" style="margin-bottom:10px; font-size:11px;">
+                        <tr style="background:#e2e8f0; color:#2d3748;">
+                            <th>Nutrient / Ion</th>
+                            <th>Total / day</th>
+                            <th>Per kg (per d)</th>
+                            <th>Target AIIMS</th>
+                        </tr>
+                        <tr>
+                            <td><b>🍞 Carbohydrates (Glucose)</b></td>
+                            <td>${totalCarb.toFixed(1)} g</td>
+                            <td><b>${carbPerKg.toFixed(1)}</b> g/kg/d</td>
+                            <td>${isNbm ? 'GIR: 4-8 mg/kg/min' : '11-14 g/kg/d'}</td>
+                        </tr>
+                        <tr>
+                            <td><b>🥩 Protein (Amino Acids)</b></td>
+                            <td>${totalProtein.toFixed(2)} g</td>
+                            <td><b>${proteinPerKg.toFixed(2)}</b> g/kg/d</td>
+                            <td>${ga==='preterm' ? '3.0-4.0 g/kg/d' : '2.0-3.0 g/kg/d'}</td>
+                        </tr>
+                        <tr>
+                            <td><b>🥑 Fat (Lipids)</b></td>
+                            <td>${totalFat.toFixed(2)} g</td>
+                            <td><b>${fatPerKg.toFixed(2)}</b> g/kg/d</td>
+                            <td>${isNbm ? '1.0-3.0 g/kg/d' : '5.0-6.5 g/kg/d'}</td>
+                        </tr>
+                        <tr>
+                            <td><b>🧂 Sodium (Na+)</b></td>
+                            <td>${totalNa_mEq.toFixed(1)} mEq</td>
+                            <td><b>${naG.toFixed(1)}</b> mEq/kg/d</td>
+                            <td>2.0 - 4.0 mEq/kg/d (${vol3pctNS.toFixed(1)} mL 3% NS)</td>
+                        </tr>
+                        <tr>
+                            <td><b>🍌 Potassium (K+)</b></td>
+                            <td>${totalK_mEq.toFixed(1)} mEq</td>
+                            <td><b>${kG.toFixed(1)}</b> mEq/kg/d</td>
+                            <td>1.0 - 2.0 mEq/kg/d (${vol15pctKCl.toFixed(1)} mL 15% KCl)</td>
+                        </tr>
+                    </table>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
+                        <div style="background:var(--bg-card); border:1px solid var(--border); padding:8px; border-radius:6px; text-align:center;">
+                            <div style="font-size:10px; color:var(--text-muted);">TOTAL CALORIES</div>
+                            <div style="font-size:16px; font-weight:bold; color:${calPerKg >= targetCalMin ? '#2b6cb0' : '#dd6b20'};">
+                                ${calPerKg.toFixed(1)} <span style="font-size:11px;">kcal/kg/d</span>
+                            </div>
+                            <div style="font-size:10px; color:var(--text-muted);">Target: ${targetCalMin}-${targetCalMax} kcal/kg</div>
+                        </div>
+                        <div style="background:var(--bg-card); border:1px solid var(--border); padding:8px; border-radius:6px; text-align:center;">
+                            <div style="font-size:10px; color:var(--text-muted);">GIR (GLUCOSE RATE)</div>
+                            <div style="font-size:16px; font-weight:bold; color:${(gir >= 4 && gir <= 8) ? '#2b6cb0' : '#e53e3e'};">
+                                ${gir.toFixed(2)} <span style="font-size:11px;">mg/kg/min</span>
+                            </div>
+                            <div style="font-size:10px; color:var(--text-muted);">Target: 4.0 - 8.0 mg/kg/min</div>
+                        </div>
+                    </div>
+                            <div style="font-size:16px; font-weight:bold; color:${(gir >= 4 && gir <= 8) ? '#2b6cb0' : '#e53e3e'};">
+                                ${gir.toFixed(2)} <span style="font-size:11px;">mg/kg/min</span>
+                            </div>
+                            <div style="font-size:10px; color:var(--text-muted);">Target: 4.0 - 8.0 mg/kg/min</div>
+                        </div>
+                    </div>
+
+                    <!-- AIIMS Protocol Guidance -->
+                    <div style="background:#fffaf0; border-left:3px solid #dd6b20; padding:8px; border-radius:6px; font-size:11px; color:#9c4221; line-height:1.5;">
+                        <b>📋 AIIMS Protocol Guidance (${isNbm ? '🚫 NBM' : '🥣 On Feeds'}):</b><br>
+                        ${isNbm ? `
+                        • <b>NBM / TPN Strategy:</b> Target 60–80 kcal/kg/d maintenance.<br>
+                        • <b>Glucose (GIR):</b> Start 4–6 mg/kg/min, advance to 6–8 mg/kg/min. Maintain Blood Sugar 45–125 mg/dL.<br>
+                        • <b>Amino Acids (Protein):</b> Start 1.5–2.0 g/kg/d on Day 1, advance by 0.5–1.0 g/kg/d to 3.5–4.0 g/kg/d (preterm).<br>
+                        • <b>Lipids (20% Intralipid):</b> Start 1.0 g/kg/d, advance by 0.5–1.0 g/kg/d to max 3.0 g/kg/d (monitor triglycerides if >2 g/kg/d).
+                        ` : `
+                        • <b>Enteral Feeding Strategy:</b> Trophic feeds 10–20 mL/kg/d early, advance by 20–30 mL/kg/d.<br>
+                        • <b>Full Feeds Target:</b> 150–180 mL/kg/d (~110–120 kcal/kg/d) for weight gain 15 g/kg/day.<br>
+                        • <b>Fortification:</b> Add HMF (Human Milk Fortifier) once enteral feeds reach 100 mL/kg/d in VLBW (<1.5 kg).
+                        `}
+                    </div>
+                </div>
+            `;
+            res.innerHTML = html;
         };
 
         window.runGCS = function() {
@@ -2133,6 +2541,99 @@
                         <input type="number" id="gTargFluid" placeholder="Fluid ml/kg/day" oninput="window.runGIR()">
                     </div>
                     <div class="highlight" id="girMixRes" style="display:block; width:100%;">Enter Target GIR & Fluid</div>
+                `
+            },
+            {
+                name: "Neonatal Total Calorie Intake & TPN Calculator (AIIMS Protocol)",
+                category: "Calculators",
+                tags: "neonatal calorie intake tpn aiims protocol ebm dextrose gir protein lipid fluid nutrition nicu preterm",
+                calc: (wt) => `
+                    <div class="badge" style="background:#ebf8ff; color:#2b6cb0;">🍼 AIIMS NEONATAL NUTRITION & CALORIE CALCULATOR</div>
+                    <div style="font-size:12px; margin-bottom:8px; color:var(--text-muted);">
+                        Calculate Total Calories (Enteral + Dextrose + Amino Acid + Lipid), GIR, Protein, Fat & Carbs (AIIMS Protocol).
+                    </div>
+
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:11px; font-weight:bold;">Feeding Status / Mode:</label>
+                        <select id="neoFeedMode" onchange="window.toggleNeoFeedMode(${wt}); window.runNeoCalorie(${wt});" style="padding:6px; font-size:13px; width:100%; box-sizing:border-box; font-weight:bold; border:2px solid var(--primary); border-radius:6px; background:var(--bg-card); color:var(--text-main);">
+                            <option value="feeds" selected>🥣 On Feeds (Partial or Full Enteral Feeds)</option>
+                            <option value="nbm">🚫 NBM (Nil By Mouth / 100% TPN)</option>
+                        </select>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
+                        <div>
+                            <label style="font-size:11px; font-weight:bold;">Day of Life (DOL):</label>
+                            <input type="number" id="neoDol" value="3" min="1" max="30" oninput="window.runNeoCalorie(${wt})" style="padding:5px; font-size:13px; width:100%; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:bold;">Gestational Age:</label>
+                            <select id="neoGa" onchange="window.runNeoCalorie(${wt})" style="padding:5px; font-size:13px; width:100%; box-sizing:border-box;">
+                                <option value="preterm" selected>Preterm (≤34 wk)</option>
+                                <option value="term">Term (>34 wk)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="neoFeedDiv" style="background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:8px; margin-bottom:8px;">
+                        <div style="font-weight:bold; font-size:12px; color:var(--primary); margin-bottom:4px;">1. Enteral Feeds (Milk)</div>
+                        <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:6px; margin-bottom:4px;">
+                            <select id="neoFeedType" onchange="window.runNeoCalorie(${wt})" style="padding:4px; font-size:12px; width:100%; box-sizing:border-box;">
+                                <option value="ebm">EBM / Std Formula (0.67 kcal/mL)</option>
+                                <option value="preterm">Preterm Formula / EBM+HMF (0.80 kcal/mL)</option>
+                                <option value="dilute">Dilute EBM 1:1 (0.33 kcal/mL)</option>
+                            </select>
+                            <input type="number" id="neoFeedVol" placeholder="Feed Vol (mL/kg/d)" value="20" oninput="window.runNeoCalorie(${wt})" style="padding:4px; font-size:12px; width:100%; box-sizing:border-box;">
+                        </div>
+                        <div style="margin-top:4px;">
+                            <label style="font-size:11px; cursor:pointer; font-weight:bold; color:var(--primary);">
+                                <input type="checkbox" id="neoHmf" onchange="window.runNeoCalorie(${wt})"> 
+                                🍼 Added HMF Sachet (Human Milk Fortifier — +0.13 kcal/mL, +0.4g protein/100mL)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:8px; margin-bottom:8px;">
+                        <div style="font-weight:bold; font-size:12px; color:var(--primary); margin-bottom:4px;">2. Parenteral Nutrition & IVF (TPN)</div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:4px;">
+                            <div>
+                                <label style="font-size:10px;">Total Fluid (TFI mL/kg/d):</label>
+                                <input type="number" id="neoTfi" placeholder="TFI (mL/kg/d)" value="80" oninput="window.runNeoCalorie(${wt})" style="padding:4px; font-size:12px; width:100%; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size:10px;">Dextrose Concentration:</label>
+                                <select id="neoDexPct" onchange="window.runNeoCalorie(${wt})" style="padding:4px; font-size:12px; width:100%; box-sizing:border-box;">
+                                    <option value="5">D5W (5%)</option>
+                                    <option value="7.5">D7.5W (7.5%)</option>
+                                    <option value="10" selected>D10W (10%)</option>
+                                    <option value="12.5">D12.5W (12.5%)</option>
+                                    <option value="15">D15W (15%)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:4px;">
+                            <div>
+                                <label style="font-size:10px;">Amino Acid (g/kg/d):</label>
+                                <input type="number" id="neoAa" value="2.0" step="0.5" oninput="window.runNeoCalorie(${wt})" style="padding:4px; font-size:12px; width:100%; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size:10px;">Lipid 20% (g/kg/d):</label>
+                                <input type="number" id="neoLip" value="1.0" step="0.5" oninput="window.runNeoCalorie(${wt})" style="padding:4px; font-size:12px; width:100%; box-sizing:border-box;">
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                            <div>
+                                <label style="font-size:10px;">Sodium Na+ (mEq/kg/d):</label>
+                                <input type="number" id="neoNa" value="3.0" step="0.5" oninput="window.runNeoCalorie(${wt})" style="padding:4px; font-size:12px; width:100%; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size:10px;">Potassium K+ (mEq/kg/d):</label>
+                                <input type="number" id="neoK" value="2.0" step="0.5" oninput="window.runNeoCalorie(${wt})" style="padding:4px; font-size:12px; width:100%; box-sizing:border-box;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="neoCalRes" style="margin-top:8px;"></div>
                 `
             },
             {
@@ -5022,27 +5523,379 @@
                     var safe=nm.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
                     html += '<div class="card" style="margin-top:10px;"><div class="drug-name" style="font-size:15px;">'+nm+' <button class="action-btn" style="background:#e53e3e; float:right; padding:3px 8px; font-size:11px;" onclick="removeFromTx(\''+safe+'\')">✕</button></div>'+drug.calc(w,a,u)+'</div>';
                 });
-                html += '<div style="display:flex; gap:8px; margin-top:14px;"><button class="copy-all-btn" style="background:#3182ce;" onclick="printTx()">🖨️ Print / PDF</button><button class="action-btn" style="background:#e53e3e;" onclick="clearTx()">🗑️ Clear</button></div>';
+                html += '<div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;"><button class="copy-all-btn" style="background:#3182ce; flex:1;" onclick="downloadPdfTx()">📄 Download PDF</button><button class="copy-all-btn" style="background:#2b6cb0; flex:1;" onclick="printTx()">🖨️ Print</button><button class="action-btn" style="background:#e53e3e;" onclick="clearTx()">🗑️ Clear</button></div>';
             }
             html += '</div>';
             d.innerHTML=html;
         }
-        function printTx(){
+
+        function downloadPdfTx(){
+            printTx(true); // Prepare printArea
+            var element = document.getElementById('printArea');
+            if(!element) return;
+            element.style.display = 'block';
+            var opt = {
+              margin:       0.4,
+              filename:     'Treatment_Sheet_'+(window._txPatient||'Patient')+'.pdf',
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2, useCORS: true },
+              jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            if(window.html2pdf){
+                html2pdf().set(opt).from(element).save().then(function(){
+                    element.style.display = 'none';
+                });
+            } else {
+                alert('PDF generator loading... Please try again in a moment or use Print.');
+                element.style.display = 'none';
+            }
+        }
+
+        function printTx(prepOnly){
             var w=document.getElementById('weight').value, a=document.getElementById('age').value, u=document.getElementById('ageUnit').value;
             var wt=val('weight'), av=val('age');
             var pname=window._txPatient||'';
-            var h='<div style="font-family:sans-serif; padding:12px; color:#000;">';
-            h+='<h2 style="text-align:center; margin:0 0 4px;">Treatment Sheet</h2>';
-            h+='<div style="font-size:13px; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:10px;"><b>Patient:</b> '+(pname||'________________')+' &nbsp;&nbsp; <b>Weight:</b> '+(w||'____')+' kg &nbsp;&nbsp; <b>Age:</b> '+(a?(a+' '+u):'____')+' &nbsp;&nbsp; <b>Date:</b> '+new Date().toLocaleDateString('en-GB')+'</div>';
+            var h='<div style="font-family:sans-serif; padding:15px; color:#000; background:#fff;">';
+            h+='<h2 style="text-align:center; margin:0 0 4px; color:#2b6cb0;">Treatment Sheet</h2>';
+            h+='<div style="font-size:13px; border-bottom:2px solid #2b6cb0; padding-bottom:8px; margin-bottom:12px;"><b>Patient:</b> '+(pname||'________________')+' &nbsp;&nbsp; <b>Weight:</b> '+(w||'____')+' kg &nbsp;&nbsp; <b>Age:</b> '+(a?(a+' '+u):'____')+' &nbsp;&nbsp; <b>Date:</b> '+new Date().toLocaleDateString('en-GB')+'</div>';
             if(txSheet.length===0){ h+='<p>No drugs added.</p>'; }
             txSheet.forEach(function(nm,i){
                 var drug=drugs.find(function(x){return x.name===nm;}); if(!drug) return;
                 var tmp=document.createElement('div'); tmp.innerHTML=drug.calc(wt,av,u);
-                h+='<div style="border:1px solid #888; border-radius:6px; padding:8px; margin-bottom:8px;"><b>'+(i+1)+'. '+nm+'</b><div style="font-size:13px; margin-top:4px; white-space:pre-wrap;">'+tmp.innerText.trim()+'</div></div>';
+                h+='<div style="border:1px solid #cbd5e0; border-radius:6px; padding:10px; margin-bottom:10px; background:#fff; page-break-inside:avoid;"><b>'+(i+1)+'. '+nm+'</b><div style="font-size:13px; margin-top:4px; white-space:pre-wrap; color:#2d3748;">'+tmp.innerText.trim()+'</div></div>';
             });
-            h+='<div style="font-size:11px; margin-top:12px; color:#555;">⚠️ Educational support only. Verify clinically. Developed by Dr. Harsh Mali.</div></div>';
-            var pa=document.getElementById('printArea'); if(pa){ pa.innerHTML=h; window.print(); }
+            h+='<div style="font-size:11px; margin-top:15px; color:#718096; border-top:1px solid #e2e8f0; padding-top:8px;">⚠️ Educational support only. Verify clinically against your unit protocol. Developed by Dr. Harsh Mali.</div></div>';
+            
+            var pa=document.getElementById('printArea'); 
+            if(pa){ pa.innerHTML=h; }
+
+            if(prepOnly) return;
+
+            // Try opening print preview window for 100% Android/Mobile compatibility
+            try {
+                var pWin = window.open('', '_blank', 'width=800,height=600');
+                if (pWin) {
+                    pWin.document.write('<html><head><title>Treatment Sheet - '+(pname||'Patient')+'</title><style>body{font-family:sans-serif;margin:0;padding:10px;} @media print{body{padding:0;}}</style></head><body>' + h + '<script>window.onload=function(){window.print();}<\\/script></body></html>');
+                    pWin.document.close();
+                    return;
+                }
+            } catch(e){}
+
+            // Fallback to window.print()
+            window.print();
         }
+    // ===================== INFUSION CALCULATOR =====================
+    var _infData = [
+      // A. INOTROPES & VASOPRESSORS
+      {n:'Dopamine', cat:'Inotropes', amp:'200mg/5mL (40mg/mL)', dMin:2, dMax:20, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:40, notes:'Renal dose 2-5, Cardiac 5-10, Vasopressor >10'},
+      {n:'Dobutamine', cat:'Inotropes', amp:'250mg/20mL (12.5mg/mL)', dMin:2, dMax:20, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:12.5, notes:'Pure inotrope, no renal dose effect'},
+      {n:'Adrenaline (Epinephrine)', cat:'Inotropes', amp:'1mg/1mL (1:1000)', dMin:0.01, dMax:1, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:1, notes:'Low dose β effect; High dose α effect'},
+      {n:'Noradrenaline', cat:'Inotropes', amp:'2mg/2mL (1mg/mL)', dMin:0.05, dMax:2, dUnit:'mcg/kg/min', dil:'D5W only', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:1, notes:'Pure vasopressor (α1 agonist)'},
+      {n:'Milrinone', cat:'Inotropes', amp:'10mg/10mL (1mg/mL)', dMin:0.25, dMax:0.75, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:1, notes:'PDE3 inhibitor. Optional load: 50mcg/kg over 15min'},
+      {n:'Vasopressin', cat:'Inotropes', amp:'20 units/1mL', dMin:0.0002, dMax:0.002, dUnit:'units/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.0001 units/kg/min', ampConc:20, notes:'Refractory septic shock', isUnits:true},
+      {n:'PGE1 (Alprostadil)', cat:'Inotropes', amp:'500mcg/1mL', dMin:0.01, dMax:0.1, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:0.5, notes:'Maintain ductus arteriosus. Reduce to 0.01 once effective. ⚠️ Apnea risk'},
+      {n:'Phenylephrine', cat:'Inotropes', amp:'10mg/1mL', dMin:0.1, dMax:0.5, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:10, notes:'Pure α1 agonist'},
+      {n:'Isoprenaline', cat:'Inotropes', amp:'1mg/5mL (0.2mg/mL)', dMin:0.05, dMax:2, dUnit:'mcg/kg/min', dil:'D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:0.2, notes:'β1 + β2 agonist. Complete heart block'},
+
+      // B. SEDATION & ANALGESIA
+      {n:'Morphine', cat:'Sedation', amp:'15mg/1mL', dMin:5, dMax:40, dUnit:'mcg/kg/hr', dil:'D5W / NS', factor50:'wt', factor25:'wt/2', rateAt1:'20 mcg/kg/hr', ampConc:15, notes:'Neonate: 5-20 mcg/kg/hr; Child: 10-40 mcg/kg/hr', isMorphine:true},
+      {n:'Fentanyl', cat:'Sedation', amp:'100mcg/2mL (50mcg/mL)', dMin:0.5, dMax:5, dUnit:'mcg/kg/hr', dil:'D5W / NS', factor50:50, factor25:25, rateAt1:'1 mcg/kg/hr', ampConc:0.05, notes:'Bolus: 1-2 mcg/kg IV', isFentanyl:true},
+      {n:'Midazolam', cat:'Sedation', amp:'15mg/3mL (5mg/mL)', dMin:0.5, dMax:6, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:5, notes:'Bolus: 50-100 mcg/kg IV'},
+      {n:'Ketamine', cat:'Sedation', amp:'500mg/10mL (50mg/mL)', dMin:5, dMax:20, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:50, notes:'Bolus: 1-2 mg/kg IV. Dissociative anesthesia'},
+      {n:'Dexmedetomidine', cat:'Sedation', amp:'200mcg/2mL (100mcg/mL)', dMin:0.2, dMax:0.7, dUnit:'mcg/kg/hr', dil:'NS only', factor50:25, factor25:12.5, rateAt1:'0.5 mcg/kg/hr', ampConc:0.1, notes:'Optional load: 0.5-1 mcg/kg over 10min', isDex:true},
+
+      // C. ANTIEPILEPTICS
+      {n:'Midazolam (Status)', cat:'Antiepileptic', amp:'5mg/mL', dMin:1, dMax:18, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:5, notes:'Bolus: 0.15 mg/kg IV. Refractory status epilepticus'},
+      {n:'Lignocaine (Lidocaine)', cat:'Antiepileptic', amp:'2% = 20mg/mL', dMin:2, dMax:6, dUnit:'mg/kg/hr', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mg/kg/hr', ampConc:20, notes:'Load: 2mg/kg IV over 10min. Neonatal refractory seizures. ⚠️ Not mcg!', isMgUnit:true},
+      {n:'Thiopentone', cat:'Antiepileptic', amp:'500mg/vial → 25mg/mL', dMin:1, dMax:5, dUnit:'mg/kg/hr', dil:'NS', factor50:3, factor25:1.5, rateAt1:'1 mg/kg/hr', ampConc:25, notes:'Refractory status. EEG monitoring required', isMgUnit:true},
+
+      // D. CARDIOVASCULAR
+      {n:'Amiodarone', cat:'Cardiac', amp:'150mg/3mL (50mg/mL)', dMin:5, dMax:15, dUnit:'mcg/kg/min', dil:'D5W only (non-PVC)', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:50, notes:'Load: 5mg/kg over 20-60min. VT/VF/SVT'},
+      {n:'Esmolol', cat:'Cardiac', amp:'100mg/10mL (10mg/mL)', dMin:100, dMax:500, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:10, notes:'Load: 500mcg/kg over 1min. SVT, hypertensive emergency', isEsmolol:true},
+      {n:'Labetalol', cat:'Cardiac', amp:'100mg/20mL (5mg/mL)', dMin:0.25, dMax:3, dUnit:'mg/kg/hr', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mg/kg/hr', ampConc:5, notes:'Hypertensive emergency. α + β blocker', isMgUnit:true},
+      {n:'Nicardipine', cat:'Cardiac', amp:'10mg/10mL (1mg/mL)', dMin:0.5, dMax:4, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:1, notes:'Hypertensive emergency. Ca channel blocker'},
+      {n:'GTN (Nitroglycerin)', cat:'Cardiac', amp:'50mg/10mL (5mg/mL)', dMin:0.5, dMax:5, dUnit:'mcg/kg/min', dil:'D5W only (non-PVC)', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:5, notes:'Afterload reduction, cardiac surgery'},
+      {n:'Sodium Nitroprusside', cat:'Cardiac', amp:'50mg/vial (10mg/mL)', dMin:0.3, dMax:5, dUnit:'mcg/kg/min', dil:'D5W only ⚠️Light protect', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:10, notes:'Wrap in aluminium foil. Cyanide toxicity risk >48hr'},
+      {n:'Levosimendan', cat:'Cardiac', amp:'12.5mg/5mL (2.5mg/mL)', dMin:0.05, dMax:0.2, dUnit:'mcg/kg/min', dil:'D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:2.5, notes:'Calcium sensitizer. Optional load: 6-12 mcg/kg over 10min'},
+
+      // E. METABOLIC & ELECTROLYTES
+      {n:'Insulin (Regular)', cat:'Metabolic', amp:'100 units/mL', dMin:0.01, dMax:0.1, dUnit:'units/kg/hr', dil:'NS (flush syringe!)', factor50:'special', factor25:'special', rateAt1:'special', ampConc:100, notes:'DKA: 0.05-0.1 u/kg/hr (NO bolus in peds). Flush syringe with insulin+NS first.', isInsulin:true},
+      {n:'Calcium Gluconate 10%', cat:'Metabolic', amp:'10mL (100mg/mL = 9.3mg/mL elemental Ca)', dMin:1, dMax:2, dUnit:'mL/kg bolus', dil:'D5W / NS', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:100, notes:'Bolus over 10-30min on cardiac monitor. Maintenance: 5-8 mL/kg/day. ⚠️ Never mix with NaHCO₃', isDirect:true},
+      {n:'MgSO₄ 50%', cat:'Metabolic', amp:'2mL (500mg/mL)', dMin:25, dMax:50, dUnit:'mg/kg/dose', dil:'D5W / NS', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:500, notes:'Dilute to 10% before use. Give over 20-30min. Max single: 2g', isDirect:true},
+      {n:'KCl', cat:'Metabolic', amp:'15% = 2mEq/mL', dMin:0.25, dMax:1, dUnit:'mEq/kg/hr', dil:'NS / D5W', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:2, notes:'⚠️ NEVER bolus. Max peripheral: 40 mEq/L. Max central: 80 mEq/L. Cardiac monitor', isDirect:true},
+      {n:'NaHCO₃ 8.4%', cat:'Metabolic', amp:'1 mEq/mL', dMin:1, dMax:2, dUnit:'mEq/kg', dil:'D5W / Sterile Water', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:1, notes:'Dilute 1:1 (to 0.5 mEq/mL) for neonates. Give over 30-60min', isDirect:true},
+      {n:'Hypertonic Saline 3%', cat:'Metabolic', amp:'Ready solution', dMin:2, dMax:5, dUnit:'mL/kg (seizures)', dil:'—', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:0.513, notes:'Give over 10-20min for seizures. Maintenance: 0.1-1 mL/kg/hr. Target Na rise ≤10-12 mEq/24h', isDirect:true},
+
+      // F. RESPIRATORY
+      {n:'Aminophylline', cat:'Respiratory', amp:'250mg/10mL (25mg/mL)', dMin:0.5, dMax:0.9, dUnit:'mg/kg/hr', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mg/kg/hr', ampConc:25, notes:'Load: 5-6 mg/kg over 20-30min. Neonate: 1-2 mg/kg q8-12h. Therapeutic: 5-15 mcg/mL', isMgUnit:true},
+      {n:'Caffeine Citrate', cat:'Respiratory', amp:'60mg/3mL (20mg/mL)', dMin:5, dMax:10, dUnit:'mg/kg/day', dil:'D5W / NS', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:20, notes:'Load: 20 mg/kg IV over 30min. Apnea of prematurity. Can give undiluted', isDirect:true},
+      {n:'IV Salbutamol', cat:'Respiratory', amp:'0.5mg/mL (5mL)', dMin:1, dMax:5, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:0.5, notes:'Load: 5-15 mcg/kg IV over 10min. Severe acute asthma'},
+
+      // G. NEUROMUSCULAR BLOCKERS
+      {n:'Vecuronium', cat:'NMB', amp:'4mg/vial → 1mg/mL', dMin:0.05, dMax:0.1, dUnit:'mg/kg/hr', dil:'NS / D5W', factor50:2.5, factor25:1.25, rateAt1:'0.05 mg/kg/hr', ampConc:1, notes:'Bolus: 0.1 mg/kg. Non-depolarizing', isNMB:true},
+      {n:'Atracurium', cat:'NMB', amp:'25mg/2.5mL (10mg/mL)', dMin:5, dMax:15, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:10, notes:'Bolus: 0.3-0.5 mg/kg. Hofmann elimination'},
+      {n:'Cisatracurium', cat:'NMB', amp:'10mg/5mL (2mg/mL)', dMin:1, dMax:3, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:2, notes:'Bolus: 0.1-0.15 mg/kg. Organ-independent'},
+      {n:'Rocuronium', cat:'NMB', amp:'50mg/5mL (10mg/mL)', dMin:5, dMax:12, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:10, notes:'Bolus: 0.6-1.2 mg/kg. RSI alternative'},
+
+      // H. ANTICOAGULANT
+      {n:'Heparin (UFH)', cat:'Anticoagulant', amp:'5000 units/mL', dMin:10, dMax:25, dUnit:'units/kg/hr', dil:'NS', factor50:50, factor25:25, rateAt1:'1 unit/kg/hr', ampConc:5000, notes:'Load: 75 units/kg IV over 10min. Target aPTT 60-85s', isHeparin:true},
+
+      // I. DIURETIC
+      {n:'Furosemide', cat:'Diuretic', amp:'20mg/2mL (10mg/mL)', dMin:0.1, dMax:0.4, dUnit:'mg/kg/hr', dil:'NS / D5W', factor50:20, factor25:10, rateAt1:'0.4 mg/kg/hr', ampConc:10, notes:'Bolus: 1-2 mg/kg IV. Neonate: 0.5-1 mg/kg. Light sensitive', isFuro:true},
+
+      // J. MISCELLANEOUS
+      {n:'Octreotide', cat:'Misc', amp:'100mcg/mL or 500mcg/mL', dMin:1, dMax:10, dUnit:'mcg/kg/hr', dil:'NS / D5W', factor50:50, factor25:25, rateAt1:'1 mcg/kg/hr', ampConc:0.1, notes:'Chylothorax, GI bleed, Hyperinsulinism', isOctreotide:true},
+      {n:'Glucagon', cat:'Misc', amp:'1mg/vial (1mg/mL)', dMin:20, dMax:200, dUnit:'mcg/kg/hr', dil:'D5W', factor50:'wt', factor25:'wt/2', rateAt1:'20 mcg/kg/hr', ampConc:1, notes:'Refractory hypoglycemia (HI), Beta-blocker OD. Max 1mg/hr', isMorphine:true},
+      {n:'N-Acetylcysteine (NAC)', cat:'Misc', amp:'200mg/mL', dMin:150, dMax:300, dUnit:'mg/kg total (3 bags)', dil:'D5W', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:200, notes:'Paracetamol OD: Bag1=150mg/kg/1hr, Bag2=50mg/kg/4hr, Bag3=100mg/kg/16hr. ≤20kg: D5W 3,7,14 mL/kg. 21-40kg: 100,250,500mL. >40kg: 200,500,1000mL', isDirect:true, isNAC:true},
+      {n:'Tranexamic Acid', cat:'Misc', amp:'500mg/5mL (100mg/mL)', dMin:5, dMax:10, dUnit:'mg/kg/hr', dil:'NS / D5W', factor50:250, factor25:125, rateAt1:'5 mg/kg/hr', ampConc:100, notes:'Load: 10mg/kg over 20min. Active hemorrhage', isTXA:true},
+      {n:'Hydrocortisone', cat:'Misc', amp:'100mg/vial → 50mg/mL', dMin:0.15, dMax:2, dUnit:'mg/kg/hr', dil:'NS / D5W', factor50:7.5, factor25:3.75, rateAt1:'0.15 mg/kg/hr', ampConc:50, notes:'Bolus: 1-2 mg/kg. Refractory shock, Adrenal crisis. 100mg/m²/day ÷ q6h', isHC:true},
+      {n:'Phentolamine', cat:'Misc', amp:'10mg/vial', dMin:1, dMax:5, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:10, notes:'Hypertensive emergency, Catecholamine excess, Extravasation antidote'}
+    ];
+
+    var _infCatNames = {
+      'Inotropes':'🔴 Inotropes & Vasopressors',
+      'Sedation':'🟡 Sedation & Analgesia',
+      'Antiepileptic':'🟢 Antiepileptics',
+      'Cardiac':'🔵 Cardiovascular',
+      'Metabolic':'🟣 Metabolic & Electrolytes',
+      'Respiratory':'🟠 Respiratory',
+      'NMB':'⚪ Neuromuscular Blockers',
+      'Anticoagulant':'🔶 Anticoagulant',
+      'Diuretic':'🔷 Diuretic',
+      'Misc':'🟤 Miscellaneous'
+    };
+
+    function openInfusions(){
+        pushHashIfNeed();
+        document.getElementById('mainMenu').style.display='none';
+        if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display='none';
+        document.getElementById('categoryView').style.display='none';
+        var sp=document.getElementById('suggestionsPage'); if(sp) sp.style.display='none';
+        document.getElementById('infusionPage').style.display='block';
+        renderInfusionList();
+    }
+
+    function renderInfusionList(){
+        var q=(document.getElementById('infSearch')||{}).value||'';
+        q=q.toLowerCase().trim();
+        var fc=document.getElementById('infCatFilter');
+        var catF=fc?fc.value:'';
+        var html='';
+        var cats=['Inotropes','Sedation','Antiepileptic','Cardiac','Metabolic','Respiratory','NMB','Anticoagulant','Diuretic','Misc'];
+        cats.forEach(function(cat){
+            if(catF && catF!==cat) return;
+            var items=_infData.filter(function(d){ return d.cat===cat && (!q || d.n.toLowerCase().indexOf(q)>=0 || (d.notes||'').toLowerCase().indexOf(q)>=0); });
+            if(items.length===0) return;
+            html+='<div style="margin-top:12px;"><div style="font-weight:800; font-size:14px; color:var(--text-main); padding:6px 0; border-bottom:2px solid var(--border);">'+(_infCatNames[cat]||cat)+' ('+items.length+')</div>';
+            items.forEach(function(d,i){
+                html+='<div class="inf-item" onclick="selectInfDrug('+_infData.indexOf(d)+')">';
+                html+='<div style="font-weight:700; font-size:13px; color:var(--text-main);">'+d.n+'</div>';
+                html+='<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">'+d.dMin+' – '+d.dMax+' '+d.dUnit+' · '+d.amp+'</div>';
+                if(d.notes) html+='<div style="font-size:11px; color:#2b6cb0; margin-top:4px; background:#ebf8ff; padding:3px 6px; border-radius:4px;">🎯 <b>Purpose:</b> '+d.notes+'</div>';
+                html+='</div>';
+            });
+            html+='</div>';
+        });
+        if(!html) html='<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No medicines found.</p>';
+        document.getElementById('infList').innerHTML=html;
+    }
+
+    function selectInfDrug(idx){
+        var d=_infData[idx];
+        var w=parseFloat(document.getElementById('weight').value)||0;
+        if(w<=0){ alert('⚠️ Please enter patient weight first!'); return; }
+
+        var html='<div style="padding:10px;">';
+        html+='<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
+        html+='<div style="font-weight:900; font-size:16px; color:var(--primary);">💉 '+d.n+'</div>';
+        html+='<button onclick="document.getElementById(\'infDetail\').style.display=\'none\'; document.getElementById(\'infListWrap\').style.display=\'block\';" style="background:var(--bg-card); border:1px solid var(--border); border-radius:6px; padding:6px 12px; cursor:pointer; font-weight:bold; color:var(--text-main);">✕ Close</button>';
+        html+='</div>';
+        if(d.notes) html+='<div style="background:#eef6ff; border-left:4px solid #3182ce; padding:8px 10px; margin:8px 0; border-radius:6px; font-size:12px; color:#1a365d; line-height:1.5;">🎯 <b>Clinical Purpose / Indications (શા માટે વપરાય છે):</b><br><b>'+d.notes+'</b></div>';
+        html+='<div class="inf-info-row"><span>📦 Ampoule:</span><span>'+d.amp+'</span></div>';
+        html+='<div class="inf-info-row"><span>💧 Diluent:</span><span>'+d.dil+'</span></div>';
+        html+='<div class="inf-info-row"><span>📊 Dose Range:</span><span><b>'+d.dMin+' – '+d.dMax+' '+d.dUnit+'</b></span></div>';
+        html+='<div class="inf-info-row"><span>⚖️ Patient Weight:</span><span><b>'+w+' kg</b></span></div>';
+
+        // Direct dose medicines (electrolytes, etc)
+        if(d.isDirect){
+            html+='<div class="inf-calc-card">';
+            html+='<div class="inf-calc-title">📋 Direct Dose Calculation</div>';
+            if(d.isNAC){
+                var b1=150*w, b2=50*w, b3=100*w;
+                var b1ml=b1/d.ampConc, b2ml=b2/d.ampConc, b3ml=b3/d.ampConc;
+                var v1,v2,v3;
+                if(w<=20){ v1=3*w; v2=7*w; v3=14*w; }
+                else if(w<=40){ v1=100; v2=250; v3=500; }
+                else{ v1=200; v2=500; v3=1000; }
+                html+='<table class="inf-table"><tr><th>Bag</th><th>Dose</th><th>Drug (mL)</th><th>D5W (mL)</th><th>Duration</th></tr>';
+                html+='<tr><td><b>Bag 1</b></td><td>'+b1.toFixed(1)+' mg</td><td>'+b1ml.toFixed(2)+' mL</td><td>'+v1+' mL</td><td>1 hour</td></tr>';
+                html+='<tr><td><b>Bag 2</b></td><td>'+b2.toFixed(1)+' mg</td><td>'+b2ml.toFixed(2)+' mL</td><td>'+v2+' mL</td><td>4 hours</td></tr>';
+                html+='<tr><td><b>Bag 3</b></td><td>'+b3.toFixed(1)+' mg</td><td>'+b3ml.toFixed(2)+' mL</td><td>'+v3+' mL</td><td>16 hours</td></tr>';
+                html+='<tr style="font-weight:bold; background:#ebf8ff;"><td>Total</td><td>'+(b1+b2+b3).toFixed(1)+' mg</td><td>'+(b1ml+b2ml+b3ml).toFixed(2)+' mL</td><td>—</td><td>21 hours</td></tr>';
+                html+='</table>';
+            } else {
+                html+='<table class="inf-table"><tr><th>Parameter</th><th>Value</th></tr>';
+                html+='<tr><td>Min Dose ('+d.dMin+' '+d.dUnit+')</td><td><b>'+(d.dMin*w).toFixed(2)+' '+(d.dUnit.indexOf('mEq')>=0?'mEq':'mg/mL')+'</b></td></tr>';
+                html+='<tr><td>Max Dose ('+d.dMax+' '+d.dUnit+')</td><td><b>'+(d.dMax*w).toFixed(2)+' '+(d.dUnit.indexOf('mEq')>=0?'mEq':'mg/mL')+'</b></td></tr>';
+                html+='</table>';
+                html+='<div style="font-size:12px; color:var(--text-muted); margin-top:6px;">⚠️ Dilute as per protocol. See notes above.</div>';
+            }
+            html+='</div>';
+        } else {
+            // Syringe-based continuous infusions
+            [50,25].forEach(function(vol){
+                var factor = vol===50 ? d.factor50 : d.factor25;
+                var drugMg, drugMcg, drawMl, dilMl, conc, rateText;
+
+                if(d.isInsulin){
+                    // Insulin special: 0.5 units/kg in 50mL → 1mL/hr = 0.01 u/kg/hr
+                    var unitsAdd = w * 0.5;
+                    if(vol===25) unitsAdd = w * 0.25;
+                    var drawVol = unitsAdd / 100;
+                    html+='<div class="inf-calc-card">';
+                    html+='<div class="inf-calc-title">💉 '+vol+' mL Syringe Preparation</div>';
+                    html+='<table class="inf-table">';
+                    html+='<tr><td>Add Insulin</td><td><b>'+unitsAdd.toFixed(2)+' units</b></td></tr>';
+                    html+='<tr><td>Draw from vial</td><td><b>'+drawVol.toFixed(3)+' mL</b></td></tr>';
+                    html+='<tr><td>Add NS to make</td><td><b>'+vol+' mL total</b></td></tr>';
+                    html+='<tr><td>Concentration</td><td><b>'+(unitsAdd/vol).toFixed(4)+' units/mL</b></td></tr>';
+                    html+='<tr style="background:#ebf8ff;"><td><b>1 mL/hr =</b></td><td><b>0.01 units/kg/hr</b></td></tr>';
+                    html+='</table>';
+                    // Rate table
+                    html+='<div class="inf-calc-title" style="margin-top:8px;">📊 Rate Table</div>';
+                    html+='<table class="inf-table"><tr><th>Dose (u/kg/hr)</th><th>Rate (mL/hr)</th></tr>';
+                    [0.01,0.02,0.03,0.05,0.07,0.1].forEach(function(dose){
+                        var rate=dose/0.01;
+                        html+='<tr><td>'+dose+'</td><td><b>'+rate.toFixed(1)+'</b></td></tr>';
+                    });
+                    html+='</table></div>';
+                    return;
+                }
+
+                if(d.isHeparin){
+                    var unitsAdd = factor * w;
+                    var drawVol = unitsAdd / d.ampConc;
+                    html+='<div class="inf-calc-card">';
+                    html+='<div class="inf-calc-title">💉 '+vol+' mL Syringe Preparation</div>';
+                    html+='<table class="inf-table">';
+                    html+='<tr><td>Add Heparin</td><td><b>'+unitsAdd.toFixed(1)+' units</b></td></tr>';
+                    html+='<tr><td>Draw from vial</td><td><b>'+drawVol.toFixed(3)+' mL</b></td></tr>';
+                    html+='<tr><td>Add NS to make</td><td><b>'+vol+' mL total</b></td></tr>';
+                    html+='<tr><td>Concentration</td><td><b>'+(unitsAdd/vol).toFixed(2)+' units/mL</b></td></tr>';
+                    html+='<tr style="background:#ebf8ff;"><td><b>1 mL/hr =</b></td><td><b>'+d.rateAt1+'</b></td></tr>';
+                    html+='</table>';
+                    html+='<div class="inf-calc-title" style="margin-top:8px;">📊 Rate Table</div>';
+                    html+='<table class="inf-table"><tr><th>Dose (u/kg/hr)</th><th>Rate (mL/hr)</th></tr>';
+                    for(var dose=d.dMin; dose<=d.dMax; dose+=5){
+                        var rate=dose;
+                        html+='<tr><td>'+dose+'</td><td><b>'+rate.toFixed(1)+'</b></td></tr>';
+                    }
+                    html+='</table></div>';
+                    return;
+                }
+
+                // Standard drugs
+                if(d.isMorphine){
+                    drugMg = (factor==='wt') ? w : w/2;
+                } else if(d.isFentanyl){
+                    drugMg = (factor * w) / 1000; // mcg to mg
+                } else if(d.isDex){
+                    drugMg = (factor * w) / 1000; // mcg to mg
+                } else if(d.isOctreotide){
+                    drugMg = (factor * w) / 1000;
+                } else if(d.isTXA){
+                    drugMg = factor * w / 1000;
+                } else if(d.isFuro){
+                    drugMg = factor * w / 1000;
+                } else {
+                    drugMg = factor * w;
+                }
+
+                var drugMgDisplay = drugMg;
+                var drugUnit = 'mg';
+                if(d.isFentanyl || d.isDex || d.isOctreotide){
+                    drugMgDisplay = drugMg * 1000;
+                    drugUnit = 'mcg';
+                }
+                if(d.isUnits){
+                    drugMgDisplay = drugMg;
+                    drugUnit = 'units';
+                }
+
+                drawMl = drugMg / d.ampConc;
+                dilMl = vol - drawMl;
+                if(dilMl < 0) dilMl = 0;
+                conc = (drugMg * 1000) / vol; // mcg/mL
+
+                html+='<div class="inf-calc-card">';
+                html+='<div class="inf-calc-title">💉 '+vol+' mL Syringe Preparation</div>';
+                html+='<table class="inf-table">';
+                html+='<tr><td>Drug to add</td><td><b>'+drugMgDisplay.toFixed(2)+' '+drugUnit+'</b></td></tr>';
+                html+='<tr><td>Draw from ampoule</td><td><b>'+drawMl.toFixed(3)+' mL</b></td></tr>';
+                html+='<tr><td>Add '+d.dil+' to make</td><td><b>'+vol+' mL</b> (add '+(dilMl>0?dilMl.toFixed(2):vol)+' mL diluent)</td></tr>';
+                if(d.isMgUnit){
+                    html+='<tr><td>Concentration</td><td><b>'+(drugMg/vol).toFixed(4)+' mg/mL</b></td></tr>';
+                } else if(d.isUnits){
+                    html+='<tr><td>Concentration</td><td><b>'+(drugMg/vol).toFixed(4)+' units/mL</b></td></tr>';
+                } else {
+                    html+='<tr><td>Concentration</td><td><b>'+conc.toFixed(2)+' mcg/mL</b> ('+(drugMg/vol).toFixed(4)+' mg/mL)</td></tr>';
+                }
+                html+='<tr style="background:#ebf8ff; font-weight:bold;"><td>1 mL/hr =</td><td>'+d.rateAt1+'</td></tr>';
+                html+='</table>';
+
+                // Rate table
+                html+='<div class="inf-calc-title" style="margin-top:8px;">📊 Rate Table ('+vol+' mL)</div>';
+                html+='<table class="inf-table"><tr><th>Dose ('+d.dUnit+')</th><th>Rate (mL/hr)</th></tr>';
+
+                var ratePerUnit = 1; // mL/hr per unit of rateAt1
+                var baseRate = parseFloat(d.rateAt1);
+                var steps=[];
+                var step=(d.dMax-d.dMin)/6;
+                if(step<=0) step=d.dMin;
+                for(var dose=d.dMin; dose<=d.dMax; dose+=step){
+                    dose=parseFloat(dose.toFixed(4));
+                    var rate=dose/baseRate;
+                    steps.push({d:dose, r:rate});
+                }
+                if(steps[steps.length-1].d < d.dMax){
+                    steps.push({d:d.dMax, r:d.dMax/baseRate});
+                }
+                steps.forEach(function(s){
+                    var highlight = '';
+                    html+='<tr'+highlight+'><td>'+s.d.toFixed(s.d<1?2:(s.d<10?1:0))+'</td><td><b>'+s.r.toFixed(1)+'</b></td></tr>';
+                });
+                html+='</table></div>';
+            });
+        }
+
+        html+='</div>';
+        document.getElementById('infDetail').innerHTML=html;
+        document.getElementById('infListWrap').style.display='none';
+        document.getElementById('infDetail').style.display='block';
+    }
+
     </script>
+
+    <style>
+    /* Infusion Calculator Styles */
+    #infusionPage { display:none; padding-top:5px; }
+    .inf-search-bar { display:flex; gap:6px; margin-bottom:10px; }
+    .inf-search-bar input { flex:1; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; background:var(--bg-card); color:var(--text-main); }
+    .inf-search-bar select { padding:8px 6px; border:1px solid var(--border); border-radius:6px; font-size:12px; background:var(--bg-card); color:var(--text-main); max-width:140px; }
+    .inf-item { padding:10px; margin:4px 0; background:var(--bg-card); border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all 0.15s; }
+    .inf-item:hover, .inf-item:active { border-color:var(--primary); background:rgba(43,108,176,0.05); transform:scale(0.99); }
+    .inf-info-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed var(--border); font-size:13px; }
+    .inf-info-row span:first-child { color:var(--text-muted); }
+    .inf-info-row span:last-child { color:var(--text-main); font-weight:600; }
+    .inf-calc-card { background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:10px; margin:10px 0; }
+    .inf-calc-title { font-weight:800; font-size:14px; color:var(--primary); margin-bottom:6px; }
+    .inf-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .inf-table th { background:var(--primary); color:#fff; padding:6px 8px; text-align:left; font-size:11px; }
+    .inf-table td { padding:5px 8px; border-bottom:1px solid var(--border); }
+    .inf-table tr:nth-child(even) { background:rgba(0,0,0,0.02); }
+    .dark-mode .inf-table tr:nth-child(even) { background:rgba(255,255,255,0.03); }
+    .inf-back-btn { background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:8px 16px; cursor:pointer; font-weight:bold; font-size:13px; color:var(--text-main); }
+    .inf-back-btn:active { transform:scale(0.97); }
+    </style>
 </body>
 </html>
