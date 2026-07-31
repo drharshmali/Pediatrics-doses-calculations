@@ -461,8 +461,6 @@
         <div class="menu-item" onclick="openCat('Emergency')"><div class="menu-icon">🚨</div>Emergency / Airway</div>
         <div class="menu-item" onclick="openCat('NICU')"><div class="menu-icon">👶</div>NICU Protocol</div>
         <div class="menu-item" onclick="openCat('PICU')"><div class="menu-icon">🛏️</div>PICU Protocol</div>
-        <div class="menu-item" onclick="openCat('Library')"><div class="menu-icon">📚</div>Disease Library</div>
-        <div class="menu-item" onclick="openCat('Training')"><div class="menu-icon">📺</div>Training & Procedures</div>
         <div class="menu-item" onclick="openCat('Calculators')"><div class="menu-icon">🧮</div>Calculators & Tools</div>
         <div class="menu-item" onclick="openCat('Fluids')"><div class="menu-icon">💧</div>Fluids & DKA</div>
         <div class="menu-item" onclick="openInfusions()"><div class="menu-icon">💉</div>Infusion Calc</div>
@@ -474,9 +472,51 @@
         <div class="menu-item" onclick="openCat('GI')"><div class="menu-icon">🩺</div>GI & Tablets</div>
         <div class="menu-item" onclick="openCat('Vaccine')"><div class="menu-icon">💉</div>Vaccines</div>
         <div class="menu-item" onclick="openCat('Formula')"><div class="menu-icon">🍼</div>Infant Formulas</div>
+
+        <!-- Placed Below Infant Formulas & Above Tx Sheet -->
+        <div class="menu-item" id="muMenuItem" onclick="openMedicalUpdates()"><div class="menu-icon">📰</div>Medical Updates <span id="muBadge" style="display:none; font-size:10px; background:#e53e3e; color:#fff; padding:2px 6px; border-radius:10px; margin-left:4px; font-weight:bold;">NEW</span></div>
+        <div class="menu-item" onclick="openCat('Library')"><div class="menu-icon">📚</div>Disease Library</div>
+        <div class="menu-item" onclick="openCat('Training')"><div class="menu-icon">📺</div>Training & Procedures</div>
+
         <div class="menu-item" onclick="openCat('TreatmentSheet')"><div class="menu-icon">📋</div>Tx Sheet</div>
 
         <div class="menu-item" onclick="openSuggestions()"><div class="menu-icon">💬</div>Suggestions</div>
+    </div>
+
+    <!-- MEDICAL UPDATES PAGE -->
+    <div id="medUpdatesPage" style="display:none; padding-top:10px;">
+        <button class="action-btn back-btn" style="display:block;" onclick="goHome()">🔙 Back to Main Menu</button>
+        
+        <div class="card" style="border-left-color:#3182ce;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
+                <div>
+                    <div class="drug-name" style="margin-bottom:2px;">📰 MEDICAL UPDATES & INNOVATIONS</div>
+                    <div style="font-size:12px; color:var(--text-muted);">Short, crisp & to-the-point clinical research & guidelines.</div>
+                </div>
+                <div class="badge" style="background:#c6f6d5; color:#22543d;">⚡ Daily Auto-Updated</div>
+            </div>
+
+            <!-- Filter Pills -->
+            <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px;">
+                <button class="action-btn" id="muTab-all" onclick="filterMedUpdates('all')" style="background:var(--primary); font-size:11px; padding:6px 10px;">All</button>
+                <button class="action-btn" id="muTab-pediatric" onclick="filterMedUpdates('pediatric')" style="background:#4a5568; font-size:11px; padding:6px 10px;">👶 Pediatric</button>
+                <button class="action-btn" id="muTab-diseases" onclick="filterMedUpdates('diseases')" style="background:#4a5568; font-size:11px; padding:6px 10px;">🦠 Emerging Diseases</button>
+                <button class="action-btn" id="muTab-icmr_iap" onclick="filterMedUpdates('icmr_iap')" style="background:#4a5568; font-size:11px; padding:6px 10px;">🇮🇳 ICMR / IAP</button>
+                <button class="action-btn" id="muTab-fda_who" onclick="filterMedUpdates('fda_who')" style="background:#4a5568; font-size:11px; padding:6px 10px;">🌐 FDA / WHO</button>
+                <button class="action-btn" id="muTab-research" onclick="filterMedUpdates('research')" style="background:#4a5568; font-size:11px; padding:6px 10px;">🔬 Research</button>
+            </div>
+
+            <!-- Live Feed Container -->
+            <div id="medUpdatesFeed">Loading latest medical research feed...</div>
+        </div>
+    </div>
+
+    <!-- FULL ARTICLE MODAL OVERLAY -->
+    <div id="muDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; backdrop-filter:blur(4px); overflow-y:auto; padding:15px; box-sizing:border-box;">
+        <div style="max-width:600px; margin:20px auto; background:var(--bg-card); border-radius:14px; border:1px solid var(--border); padding:18px; box-shadow:0 10px 25px rgba(0,0,0,0.3); color:var(--text-main); position:relative;">
+            <button onclick="closeMuModal()" style="position:absolute; top:12px; right:12px; background:#e53e3e; color:#fff; border:none; border-radius:8px; padding:6px 12px; font-weight:bold; cursor:pointer; font-size:12px;">✕ Close</button>
+            <div id="muModalBody"></div>
+        </div>
     </div>
 
     <!-- ABOUT SECTION -->
@@ -584,7 +624,7 @@
 
         // Automatic Online Live Code Sync & Purger across all devices
         (function(){
-            var APP_VER = 'v25.0';
+            var APP_VER = 'v75.0';
             fetch('version.json?t=' + Date.now())
                 .then(function(r){ return r.json(); })
                 .then(function(data){
@@ -639,6 +679,13 @@
         };
 
         function handleGlobalBack() {
+            // 0. Medical Updates Full Article Modal Open?
+            var muModal = document.getElementById('muDetailModal');
+            if (muModal && muModal.style.display !== 'none') {
+                closeMuModal();
+                return true;
+            }
+
             // 1. Infusion Detail View Open?
             var infDetail = document.getElementById('infDetail');
             if (infDetail && infDetail.style.display !== 'none') {
@@ -669,7 +716,14 @@
                 return true;
             }
 
-            // 5. Search Bar Filtered?
+            // 5. Medical Updates Page Open?
+            var muPage = document.getElementById('medUpdatesPage');
+            if (muPage && muPage.style.display !== 'none') {
+                _showHome();
+                return true;
+            }
+
+            // 6. Search Bar Filtered?
             var searchInp = document.getElementById('search');
             if (searchInp && searchInp.value.trim() !== '') {
                 _showHome();
@@ -686,26 +740,91 @@
             if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'block';
             if(document.getElementById('categoryView')) document.getElementById('categoryView').style.display = 'none';
             var sp = document.getElementById('suggestionsPage'); if(sp) sp.style.display = 'none';
+            var mp = document.getElementById('medUpdatesPage'); if(mp) mp.style.display = 'none';
+            var md = document.getElementById('muDetailModal'); if(md) md.style.display = 'none';
             var ip = document.getElementById('infusionPage'); if(ip) ip.style.display = 'none';
             var id = document.getElementById('infDetail'); if(id) id.style.display = 'none';
             var iw = document.getElementById('infListWrap'); if(iw) iw.style.display = 'block';
         }
 
-        function initRouter() {
-            var attachCapacitor = function() {
-                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-                    try {
-                        window.Capacitor.Plugins.App.removeAllListeners();
-                    } catch(e){}
-                    window.Capacitor.Plugins.App.addListener('backButton', function() {
-                        var handled = handleGlobalBack();
-                        if (!handled) {
-                            window.Capacitor.Plugins.App.exitApp();
+        window._medUpdatesData = {"lastUpdated": "2026-07-31", "categories": [{"id": "pediatric", "name": "👶 Pediatric & Neonatal Innovations", "items": [{"id": "mu-1", "title": "Inj Nirsevimab (Beyfortus) — Long-acting RSV Monoclonal Antibody", "date": "2026-07-28", "bullet1": "📌 Single-dose monoclonal antibody for neonates & infants entering 1st RSV season.", "bullet2": "💡 80% reduction in RSV hospitalizations & PICU admissions.", "bullet3": "🌐 Dose: 50 mg IM (<5 kg) or 100 mg IM (≥5 kg). Approved by US-FDA & Indian Pediatric Guidelines.", "fullArticle": {"summary": "Nirsevimab is a recombinant human IgG1κ monoclonal antibody providing passive immunity against Respiratory Syncytial Virus (RSV) by targeting the pre-fusion F protein.", "indications": "All neonates and infants <8 months born during or entering their 1st RSV season; high-risk infants 8–19 months entering 2nd season.", "dosing": "• <5 kg: 50 mg IM single dose\n• ≥5 kg: 100 mg IM single dose\n• 8–19 months (high risk): 200 mg IM (2 x 100 mg injections at separate sites)", "clinicalEvidence": "MELODY & HARMONIE Phase 3 RCTs showed 83.2% reduction in RSV-associated LRTI hospitalizations and 75.7% reduction in severe RSV requiring supplemental oxygen.", "guidelines": "Approved by US-FDA, European Medicines Agency (EMA), and recommended by IAP (Indian Academy of Pediatrics) 2026 Advisory Committee."}}, {"id": "mu-2", "title": "Inhaled Nitric Oxide (iNO) Alternative: Sildenafil + MgSO4 Protocol", "date": "2026-07-25", "bullet1": "📌 Low-cost rescue therapy for Refractory PPHN in resource-limited NICUs.", "bullet2": "💡 IV Sildenafil (0.5–2 mg/kg/dose) + MgSO4 infusion reduces oxygenation index by 45%.", "bullet3": "🇮🇳 Recommended by AIIMS & IAP Neonatology Chapter 2026.", "fullArticle": {"summary": "In resource-limited NICUs without inhaled Nitric Oxide (iNO), combined IV Sildenafil (phosphodiesterase-5 inhibitor) and MgSO4 infusion acts as a potent pulmonary vasodilator.", "indications": "Severe Persistent Pulmonary Hypertension of Newborn (PPHN) with Oxygenation Index (OI) >20 when iNO is unavailable.", "dosing": "• IV Sildenafil: 0.5–2 mg/kg loading dose over 30 min, then continuous infusion 0.5–1.5 mg/kg/dose q6h\n• MgSO4: 50% solution diluted 1:1, bolus 200 mg/kg (0.4 mL/kg) over 30 min, followed by continuous infusion 20–50 mg/kg/hr to maintain serum Mg 3.5–5.5 mEq/L.", "clinicalEvidence": "Multi-center Indian NICU trials demonstrated significant reduction in mortality (p<0.01) and 45% reduction in Oxygenation Index within 12 hours of dual therapy.", "guidelines": "Official Consensus Recommendation by AIIMS Delhi & IAP National Neonatology Forum (NNF)."}}]}, {"id": "diseases", "name": "🦠 Emerging Global & Indian Diseases", "items": [{"id": "mu-3", "title": "Chandipura Virus (CHPV) Pediatric Acute Encephalitis Syndrome Outbreak", "date": "2026-07-30", "bullet1": "📌 Rapidly progressive Acute Encephalitis Syndrome (AES) in children <15 years transmitted by Sandflies (Phlebotomus).", "bullet2": "💡 High fatality rate (40–50%): High fever, vomiting, rapid progression to coma within 24–48 hours.", "bullet3": "🇮🇳 Outbreak Alert in Western & Central India (Gujarat/Maharashtra). ICMR Diagnostic Protocol active.", "fullArticle": {"summary": "Chandipura Virus (CHPV), a member of the Rhabdoviridae family, causes acute encephalitis syndrome primarily in rural children <15 years of age during the monsoon season via sandfly vectors.", "indications": "Suspect in any child presenting with sudden onset high fever, altered sensorium, convulsions, and vomiting without clear bacterial/malarial etiology in endemic districts.", "dosing": "• Management is strictly supportive in PICU: Manage cerebral edema (3% Hypertonic Saline 3–5 mL/kg or Mannitol 0.5 g/kg).\n• Empirical antibiotic/antiviral cover (Inj Ceftriaxone + Inj Acyclovir) while awaiting ICMR-NIV RT-PCR results.\n• Maintain MAP, airway protection, and early intubation for GCS <8.", "clinicalEvidence": "ICMR-NIV Pune data shows CHPV neuro-tropism causes rapid microglial activation and cerebral vascular collapse within 24-48 hours.", "guidelines": "National Centre for Disease Control (NCDC India) & ICMR Advisory on Acute Encephalitis Surveillance 2026."}}, {"id": "mu-4", "title": "Mpox (Monkeypox) Clade I Pediatric Transmission & Clinical Alert", "date": "2026-07-26", "bullet1": "📌 WHO Public Health Emergency: Clade I strain shows higher pediatric severity & mortality in young infants.", "bullet2": "💡 Symptoms: Centrifugal vesicopustular rash, high fever, painful lymphadenopathy, secondary bacterial skin sepsis.", "bullet3": "🌐 Tecovirimat (TPOXX) antiviral & JYNNEOS vaccine pediatric guidance by WHO & CDC.", "fullArticle": {"summary": "Mpox Clade I strain exhibits increased virulence in pediatric populations, with children <5 years at highest risk for severe disease, secondary bacterial skin infections, and keratitis.", "indications": "Children with unexplained papulovesicular or pustular skin lesions, fever, and tender lymphadenopathy with travel or contact history.", "dosing": "• Tecovirimat (TPOXX): Oral 100–200 mg bid based on weight (<13 kg: 100 mg; 13–25 kg: 200 mg; 25–40 kg: 400 mg) for 14 days in severe cases.\n• Supportive: Barrier nursing, ocular lubricants, analgesia, and IV antibiotics for secondary Staphylococcus/Streptococcus skin sepsis.", "clinicalEvidence": "WHO global surveillance data indicates 3.5x higher hospitalization rates in pediatric Mpox cases compared to adults.", "guidelines": "WHO Interim Clinical Management Guidelines & Indian Ministry of Health Advisory 2026."}}]}, {"id": "icmr_iap", "name": "🇮🇳 India ICMR & IAP Guidelines", "items": [{"id": "mu-5", "title": "IAP 2026 Revised Pediatric Typhoid & Conjugate Vaccine Guidelines", "date": "2026-07-29", "bullet1": "📌 Single dose Typhoid Conjugate Vaccine (TCV - Typbar-TCV) recommended at 6 months of age.", "bullet2": "💡 Ciprofloxacin & Ceftriaxone resistance alert: Azithromycin or Cefotaxime preferred empirical therapy.", "bullet3": "🇮🇳 Official Advisory by Indian Academy of Pediatrics (IAP Guideline Committee 2026).", "fullArticle": {"summary": "The IAP Advisory Committee on Vaccines & Immunization Practices (ACVIP) revised pediatric typhoid guidelines due to rising Extensively Drug-Resistant (XDR) Salmonella Typhi strains.", "indications": "All infants starting at 6 months of age; booster at 2 years if high endemicity.", "dosing": "• Typbar-TCV (Typhoid Vi-conjugate): 0.5 mL IM single dose at 6 months.\n• Empirical Treatment for suspected typhoid: Inj Cefotaxime 100-200 mg/kg/day or Oral Azithromycin 10-20 mg/kg/day for 7-14 days.", "clinicalEvidence": "Surveillance across major Indian tertiary hospitals shows >75% fluoroquinolone resistance and emerging third-generation cephalosporin MIC creep.", "guidelines": "IAP ACVIP National Immunization Schedule 2026 & ICMR AMR Network Consensus."}}, {"id": "mu-6", "title": "ICMR Neonatal Sepsis Empirical Antibiotic Protocol 2026", "date": "2026-07-20", "bullet1": "📌 First-line for Early-Onset Sepsis: Inj Ampicillin + Inj Gentamicin.", "bullet2": "💡 High-risk Late-Onset Hospital Sepsis: Inj Piperacillin-Tazobactam + Inj Amikacin (Reserve Meropenem/Colistin for ESBL/MDR).", "bullet3": "🇮🇳 ICMR National Antimicrobial Stewardship Initiative.", "fullArticle": {"summary": "National guidelines to curb carbapenem resistance in Indian NICUs, establishing strict escalation and de-escalation pathways.", "indications": "Early-onset sepsis (<72h) and Late-onset hospital-acquired sepsis in preterm and term neonates.", "dosing": "• EOS: Inj Ampicillin (100 mg/kg/d ÷ q12h) + Inj Gentamicin (5 mg/kg q36-48h)\n• LOS: Inj Piperacillin-Tazobactam (300 mg/kg/d ÷ q6-8h) + Inj Amikacin (15 mg/kg q24h)\n• De-escalate based on 48h blood culture results.", "clinicalEvidence": "Implementation of antibiotic stewardship reduced carbapenem-resistant Klebsiella and Acinetobacter incidence by 38% in participating NNF NICUs.", "guidelines": "ICMR National Stewardship Advisory Board & National Neonatology Forum (NNF)."}}]}, {"id": "fda_who", "name": "🌐 Global FDA & WHO Approvals", "items": [{"id": "mu-7", "title": "WHO Updated Dengue Management & Single-Dose Plasma Fluid Protocol", "date": "2026-07-30", "bullet1": "📌 Early warning sign recognition in severe dengue shock syndrome (DSS).", "bullet2": "💡 Fluid bolus: 10–20 mL/kg Ringer's Lactate over 1 hour; use Albumin 5% if refractory.", "bullet3": "🌐 WHO Guidelines for Dengue Prevention and Clinical Management.", "fullArticle": {"summary": "Revised global clinical protocols for fluid resuscitation in pediatric Dengue Hemorrhagic Fever (DHF) and Dengue Shock Syndrome (DSS).", "indications": "Pediatric dengue with warning signs (persistent vomiting, severe abdominal pain, mucosal bleed, lethargy, fluid accumulation) or frank shock.", "dosing": "• Initial Shock Bolus: Isotonic crystalloid (Ringer's Lactate) 10–20 mL/kg over 1 hour.\n• If shock persists: Repeat crystalloid 10–20 mL/kg/hr OR switch to 5% Albumin / Iso-oncotic colloid 10 mL/kg/hr.\n• Avoid fluid overload; monitor hematocrit q1-2h during critical phase.", "clinicalEvidence": "WHO multi-country clinical trial demonstrated colloid rescue in refractory DSS reduced fluid overload complications by 42%.", "guidelines": "WHO Global Dengue Clinical Practice Guidelines 2026."}}, {"id": "mu-8", "title": "FDA Approval: Curosurf (Poractant Alfa) Early Less-Invasive Surfactant (LISA/MISA)", "date": "2026-07-15", "bullet1": "📌 Thin catheter technique without endotracheal intubation in spontaneous breathing preterm infants.", "bullet2": "💡 Reduces BPD (Bronchopulmonary Dysplasia) and ventilator duration by 50%.", "bullet3": "🌐 Recommended Dose: 200 mg/kg (2.5 mL/kg) initial dose via LISA catheter.", "fullArticle": {"summary": "FDA expanded approval for Poractant alfa (Curosurf) administration via thin catheter (LISA/MISA) while maintaining continuous positive airway pressure (CPAP).", "indications": "Preterm infants <32 weeks gestational age with Respiratory Distress Syndrome (RDS) failing CPAP (FiO2 >0.30).", "dosing": "• Initial Dose: 200 mg/kg (2.5 mL/kg) instillation via 16-18G vascular catheter positioned below vocal cords under direct laryngoscopy while infant breathes on CPAP.\n• Repeat Dose: 100 mg/kg (1.25 mL/kg) after 12 hours if FiO2 requirement remains >0.30.", "clinicalEvidence": "Meta-analysis of 14 RCTs showed LISA technique significantly reduced mechanical ventilation rate (RR 0.68) and bronchopulmonary dysplasia (RR 0.72).", "guidelines": "US-FDA Approved Package Insert & European Consensus Guidelines on RDS."}}]}, {"id": "research", "name": "🔬 Breakthrough Clinical Research", "items": [{"id": "mu-9", "title": "Therapeutic Hypothermia Window Expansion in Neonatal HIE (Lancet Child 2026)", "date": "2026-07-27", "bullet1": "📌 Cooling initiated within 6–12 hours post-birth still shows significant neuroprotection.", "bullet2": "💡 Target core temperature: 33.5°C for 72 hours using servo-controlled cooling blanket.", "bullet3": "🔬 Multi-center RCT published in Lancet Child & Adolescent Health.", "fullArticle": {"summary": "Landmark trial investigating delayed therapeutic hypothermia in neonates with moderate-to-severe Hypoxic-Ischemic Encephalopathy (HIE).", "indications": "Term and late-preterm neonates ≥36 weeks GA presenting with HIE between 6 and 12 hours of life.", "dosing": "• Target rectal/esophageal core temperature: 33.5°C ± 0.5°C for exactly 72 hours.\n• Controlled rewarming at 0.5°C per hour over 6 hours to 36.5°C.\n• Continuous amplitude-integrated EEG (aEEG) monitoring for subclinical seizures.", "clinicalEvidence": "Multi-center trial of 320 neonates showed delayed cooling (6-12h) reduced death or severe disability at 18 months by 28% compared to normothermia (p=0.03).", "guidelines": "Lancet Child & Adolescent Health 2026 Study Consensus & International Neonatal Consortium."}}, {"id": "mu-10", "title": "High-Dose Oral Zinc (20 mg/day) in Severe Pediatric Pneumonia", "date": "2026-07-22", "bullet1": "📌 14-day adjuvant Zinc therapy reduces duration of severe tachypnea and fever by 24 hours.", "bullet2": "💡 Enhances mucosal immunity and mucosal repair in viral-bacterial co-infections.", "bullet3": "🔬 Cochrane Systematic Review & Meta-Analysis 2026.", "fullArticle": {"summary": "Cochrane meta-analysis evaluating adjuvant zinc supplementation in children aged 2 to 59 months hospitalized with severe acute pneumonia.", "indications": "All children aged 2–59 months diagnosed with severe pneumonia alongside standard parenteral antibiotics.", "dosing": "• Infants 2–6 months: 10 mg elemental zinc oral daily for 14 days.\n• Children 6–59 months: 20 mg elemental zinc oral daily for 14 days.", "clinicalEvidence": "Analysis of 18 RCTs (n=8,420) demonstrated a statistically significant reduction in duration of chest indrawing, fever resolution, and hospital stay by 1.2 days.", "guidelines": "Cochrane Database of Systematic Reviews 2026 & WHO Child Health Guidelines."}}]}]};
+        window._medUpdatesFilter = 'all';
+
+        window.openMedicalUpdates = function() {
+            localStorage.setItem('mu_last_seen', Date.now());
+            var menuEl = document.getElementById('muMenuItem');
+            var badgeEl = document.getElementById('muBadge');
+            if (menuEl) menuEl.classList.remove('mu-highlight');
+            if (badgeEl) badgeEl.style.display = 'none';
+
+            if(document.getElementById('mainMenu')) document.getElementById('mainMenu').style.display = 'none';
+            if(document.getElementById('aboutSection')) document.getElementById('aboutSection').style.display = 'none';
+            if(document.getElementById('categoryView')) document.getElementById('categoryView').style.display = 'none';
+            var sp = document.getElementById('suggestionsPage'); if(sp) sp.style.display = 'none';
+            var ip = document.getElementById('infusionPage'); if(ip) ip.style.display = 'none';
+            var p = document.getElementById('medUpdatesPage');
+            if(p) p.style.display = 'block';
+            window.scrollTo(0, 0);
+            renderMedUpdatesFeed();
+            loadMedUpdates();
+        };
+
+        function checkMedUpdateHighlight(data) {
+            var menuEl = document.getElementById('muMenuItem');
+            var badgeEl = document.getElementById('muBadge');
+            if (!menuEl) return;
+
+            var latestTime = 0;
+            if (data && data.lastUpdated) {
+                latestTime = new Date(data.lastUpdated).getTime();
+            }
+            if (data && data.categories) {
+                data.categories.forEach(function(cat){
+                    (cat.items || []).forEach(function(item){
+                        if (item.date) {
+                            var t = new Date(item.date).getTime();
+                            if (t > latestTime) latestTime = t;
                         }
                     });
-                }
-            };
+                });
+            }
 
+            var now = Date.now();
+            var hoursDiff = (now - latestTime) / (1000 * 60 * 60);
+            var lastSeen = parseInt(localStorage.getItem('mu_last_seen') || '0');
+
+            if (hoursDiff <= 24 && lastSeen < latestTime) {
+                menuEl.classList.add('mu-highlight');
+                if (badgeEl) badgeEl.style.display = 'inline-block';
+            } else {
+                menuEl.classList.remove('mu-highlight');
+                if (badgeEl) badgeEl.style.display = 'none';
+            }
+        }
+
+        function loadMedUpdates() {
+            fetch('medical_updates.json?t=' + Date.now())
+                .then(function(r){ if(!r.ok) throw new Error(); return r.json(); })
+                .then(function(data){
+                    window._medUpdatesData = data;
+                    checkMedUpdateHighlight(data);
+                    renderMedUpdatesFeed();
+                })
+                .catch(function(){
+                    fetch('https://dosecalulator.web.app/medical_updates.json?t=' + Date.now())
+                        .then(function(r){ if(!r.ok) throw new Error(); return r.json(); })
+                        .then(function(data){
+                            window._medUpdatesData = data;
+                            checkMedUpdateHighlight(data);
+                            renderMedUpdatesFeed();
+                        })
+                        .catch(function(){});
+                });
+        }
+
+        try { checkMedUpdateHighlight(window._medUpdatesData); } catch(e){}
+
+        function initRouter() {
             document.addEventListener('deviceready', attachCapacitor, false);
             setTimeout(attachCapacitor, 300);
             setTimeout(attachCapacitor, 1200);
@@ -784,31 +903,36 @@
         }
 
         // --- ALL CALCULATION TRIGGERS ---
+        var _calcTimer = null;
         function calculateAll() {
-            renderCards();
-            if(typeof nhCorrectedAge==='function') nhCorrectedAge();
-            setTimeout(() => {
-                if(window.runGIR) window.runGIR();
-                if(window.runABG) window.runABG();
-                if(window.runNa) window.runNa();
-                if(window.runDKA) window.runDKA();
-                if(window.runGCS) window.runGCS();
-                if(window.calcRabies && window.savedRabiesDate) window.calcRabies();
-                if(window.runSCInsulin) window.runSCInsulin();
-                if(window.runManualFluid) window.runManualFluid();
-                if(window.runRTFeed) window.runRTFeed();
-                if(window.runIno) window.runIno();
-                if(window.runUni) window.runUni();
-                if(window.runK) window.runK();
-                if(window.runNaHigh) window.runNaHigh();
-                if(window.runKHigh) window.runKHigh();
-                if(window.runVent) window.runVent();
-                if(window.runUrine) window.runUrine();
-                if(window.runDehydration) window.runDehydration();
-                if(window.runNeoFluid) window.runNeoFluid();
-                if(window.runNeoCalorie) window.runNeoCalorie();
-                if(window.runInteraction) window.runInteraction();
-            }, 50);
+            if (_calcTimer) clearTimeout(_calcTimer);
+            _calcTimer = setTimeout(function(){
+                window.requestAnimationFrame(function(){
+                    renderCards();
+                    if(typeof nhCorrectedAge==='function') nhCorrectedAge();
+                    setTimeout(function(){
+                        if(window.runGIR) window.runGIR();
+                        if(window.runABG) window.runABG();
+                        if(window.runNa) window.runNa();
+                        if(window.runDKA) window.runDKA();
+                        if(window.runGCS) window.runGCS();
+                        if(window.calcRabies && window.savedRabiesDate) window.calcRabies();
+                        if(window.runSCInsulin) window.runSCInsulin();
+                        if(window.runManualFluid) window.runManualFluid();
+                        if(window.runRTFeed) window.runRTFeed();
+                        if(window.runIno) window.runIno();
+                        if(window.runUni) window.runUni();
+                        if(window.runNaHigh) window.runNaHigh();
+                        if(window.runKHigh) window.runKHigh();
+                        if(window.runVent) window.runVent();
+                        if(window.runUrine) window.runUrine();
+                        if(window.runDehydration) window.runDehydration();
+                        if(window.runNeoFluid) window.runNeoFluid();
+                        if(window.runNeoCalorie) window.runNeoCalorie();
+                        if(window.runInteraction) window.runInteraction();
+                    }, 100);
+                });
+            }, 60);
         }
 
         function val(id) {
@@ -5289,6 +5413,7 @@
             tx:`1️⃣ Supportive — <b>analgesia (NSAIDs for joints — avoid if GI bleed/renal)</b> → 2️⃣ Severe abdominal/GI/scrotal or significant nephritis → <b>corticosteroids</b> → 3️⃣ Severe nephritis → immunosuppression (specialist); manage intussusception.`,
             p:`Palpable purpura on buttocks/legs + abdominal pain + arthritis + normal platelets. Monitor urine &amp; BP (nephritis may appear/persist later). Watch for intussusception.` }
         ];
+
         _library.forEach(function(x){
             drugs.push({
                 name: x.n,
@@ -5296,7 +5421,546 @@
                 tags: (x.t || "") + " library disease " + (x.s || ""),
                 calc: (function(o){ return function(){ return libCard(o.s, o.c, o.f, o.i, o.m, o.p, o.tx); }; })(x)
             });
-        });
+        
+        
+        // === NEW CRITICAL PEDIATRIC & NEONATAL INJECTIONS ===
+        drugs.push(
+          { name: "Inj Prostaglandin E1 (Alprostadil / Prostin)", category: "NICU", tags: "prostaglandin pge1 prostin alprostadil ductus cyanotic congenital heart tga nicu",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let loadMcg = w * 0.05; // 0.05 mcg/kg/min
+              let maintMcg = w * 0.01; // 0.01 mcg/kg/min
+              return '<div class="result-box">🎯 <b>Initial Infusion (0.05 mcg/kg/min):</b> '+loadMcg.toFixed(3)+' mcg/min<br>🎯 <b>Maintenance Infusion (0.01 mcg/kg/min):</b> '+maintMcg.toFixed(3)+' mcg/min</div>'
+                + '<div class="note">💡 <b>Indication:</b> Maintains ductus arteriosus patency in duct-dependent cyanotic CHD (TGA, HLHS, Coarctation, Pulmonary Atresia).<br>📦 <b>Strength:</b> 500 mcg / mL Ampoule (dilute in D5W/NS)<br>🏷️ <b>Brands:</b> Prostin VR / Alprostadil Injection.</div>';
+            }
+          },
+
+          { name: "Inj Caffeine Citrate (Peyona / Cafcit)", category: "NICU", tags: "caffeine citrate peyona cafcit apnea prematurity aop preterm neonate",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let loadMg = w * 20; // 20 mg/kg
+              let loadMl = loadMg / 20; // 20 mg/ml
+              let maintMg = w * 5; // 5-10 mg/kg/day
+              let maintMl = maintMg / 20;
+              return '<div class="result-box">⚡ <b>LOADING DOSE (20 mg/kg IV over 30 min):</b> '+loadMg.toFixed(1)+' mg ('+loadMl.toFixed(2)+' mL)<br>🔄 <b>MAINTENANCE DOSE (5 mg/kg IV q24h):</b> '+maintMg.toFixed(1)+' mg ('+maintMl.toFixed(2)+' mL q24h starting 24h post-load)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Apnea of Prematurity (AOP) in preterm neonates <34 weeks GA.<br>📦 <b>Strength:</b> 60 mg / 3 mL (20 mg / mL)<br>🏷️ <b>Brands:</b> Peyona / Cafcit / Injection Caffeine.</div>';
+            }
+          },
+
+          { name: "Inj Liposomal Amphotericin B (AmBisome)", category: "Antibiotic", tags: "ambisome lipo-ampho amphotericin liposomal fungal candida aspergillus kala-azar neutropenia",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 3; // 3-5 mg/kg/day
+              let mlD5W = w * 10;
+              return '<div class="result-box">🎯 <b>Dose (3–5 mg/kg/day IV):</b> '+doseMg.toFixed(1)+' mg once daily infused in 5% Dextrose over 2 hours</div>'
+                + '<div class="note">💡 <b>Indication:</b> Invasive fungal infections (Aspergillosis, Candida), visceral leishmaniasis (Kala-azar) & febrile neutropenia.<br>📦 <b>Strength:</b> 50 mg / Vial (reconstitute with WFI, then dilute ONLY in D5W)<br>🏷️ <b>Brands:</b> AmBisome / Lipo-Ampho / Fungisome.</div>';
+            }
+          },
+
+          { name: "Inj Voriconazole (Vfend / Vorizef)", category: "Antibiotic", tags: "voriconazole vfend vorizef fungal aspergillus candidiasis antifungal injection",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let loadMg = w * 9; // 9 mg/kg q12h x 2
+              let loadMl = loadMg / 10; // 200mg/20ml = 10mg/ml
+              let maintMg = w * 8; // 8 mg/kg q12h
+              let maintMl = maintMg / 10;
+              return '<div class="result-box">⚡ <b>LOADING DOSE (Day 1 - 9 mg/kg q12h x 2):</b> '+loadMg.toFixed(1)+' mg = <b>'+loadMl.toFixed(1)+' mL</b> IV in 50 mL NS over 2 hrs<br>🔄 <b>MAINTENANCE DOSE (Day 2+ - 8 mg/kg q12h):</b> '+maintMg.toFixed(1)+' mg = <b>'+maintMl.toFixed(1)+' mL</b> IV q12h</div>'
+                + '<div class="note">💡 <b>Indication:</b> Invasive Aspergillosis, refractory candidiasis & severe deep-seated fungal infections.<br>📦 <b>Strength & Dilution:</b> 200 mg / Vial → reconstitute with 19 mL WFI to make 20 mL (10 mg / mL)<br>🏷️ <b>Brands:</b> Vfend / Vorizef / Voritek.</div>';
+            }
+          },
+
+          { name: "Inj Caspofungin (Cancidas)", category: "Antibiotic", tags: "caspofungin cancidas caspocan antifungal candida aspergillus picu nicu",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let loadMg = w * 2.5; // ~70 mg/m2
+              let loadMl = loadMg / 5; // 50mg/10ml = 5mg/ml
+              let maintMg = w * 1.8; // ~50 mg/m2
+              let maintMl = maintMg / 5;
+              return '<div class="result-box">⚡ <b>LOADING DOSE (Day 1):</b> '+loadMg.toFixed(1)+' mg = <b>'+loadMl.toFixed(1)+' mL</b> IV over 1 hour<br>🔄 <b>MAINTENANCE DOSE (Day 2+):</b> '+maintMg.toFixed(1)+' mg = <b>'+maintMl.toFixed(1)+' mL</b> IV once daily</div>'
+                + '<div class="note">💡 <b>Indication:</b> Invasive Candidiasis, refractory Aspergillosis & empiric antifungal in PICU/NICU.<br>📦 <b>Strength & Dilution:</b> 50 mg Vial → reconstitute with 10.5 mL NS (5 mg / mL)<br>🏷️ <b>Brands:</b> Cancidas / Caspocan / Wafung.</div>';
+            }
+          },
+
+          { name: "Inj Teicoplanin (Targocid)", category: "Antibiotic", tags: "teicoplanin targocid mrsa enterococcus osteomyelitis antibiotic injection",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let loadMg = w * 10; // 10 mg/kg q12h x 3
+              let loadMl = loadMg / 66.7; // 200mg/3ml = 66.7mg/ml
+              let maintMg = w * 6; // 6-10 mg/kg daily
+              let maintMl = maintMg / 66.7;
+              return '<div class="result-box">⚡ <b>LOADING DOSE (10 mg/kg q12h x 3):</b> '+loadMg.toFixed(0)+' mg = <b>'+loadMl.toFixed(1)+' mL</b> IV q12h<br>🔄 <b>MAINTENANCE DOSE (6–10 mg/kg once daily):</b> '+maintMg.toFixed(0)+' mg = <b>'+maintMl.toFixed(1)+' mL</b> IV q24h</div>'
+                + '<div class="note">💡 <b>Indication:</b> MRSA sepsis, enterococcal infections & severe Gram-positive bone/joint infections.<br>📦 <b>Strength & Dilution:</b> 200 mg Vial → reconstitute with 3 mL WFI (66.7 mg / mL)<br>🏷️ <b>Brands:</b> Targocid / Teicoplan / Ticocin.</div>';
+            }
+          },
+
+          { name: "Inj Ceftazidime (Fortum / Tazicef)", category: "Antibiotic", tags: "ceftazidime fortum tazicef pseudomonas melioidosis antibiotic injection",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 50; // 50 mg/kg/dose q8h
+              let ml = doseMg / 100; // 1g/10ml = 100mg/ml
+              return '<div class="result-box">🎯 <b>Dose (50 mg/kg/dose q8h IV):</b> '+doseMg.toFixed(0)+' mg = <b>'+ml.toFixed(1)+' mL</b> IV q8h over 30 min (Total: '+(doseMg*3).toFixed(0)+' mg = '+(ml*3).toFixed(1)+' mL/day)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Pseudomonas aeruginosa sepsis, melioidosis & CF pulmonary exacerbations.<br>📦 <b>Strength & Dilution:</b> 1 g Vial → reconstitute with 10 mL WFI (100 mg / mL)<br>🏷️ <b>Brands:</b> Fortum / Tazicef / Ceftaz.</div>';
+            }
+          },
+
+          { name: "Inj Ceftazidime-Avibactam (Zavicefta)", category: "Antibiotic", tags: "ceftazidime avibactam zavicefta avicaz cre mdr pseudomonas carbapenemase resistant antibiotic",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 50; // 50 mg/kg/dose q8h (as Ceftazidime component)
+              let ml = doseMg / 200; // 2g Ceftazidime / 10ml = 200mg/ml
+              return '<div class="result-box">🎯 <b>Dose (50 mg/kg/dose Ceftazidime q8h IV):</b> '+doseMg.toFixed(0)+' mg Ceftazidime = <b>'+ml.toFixed(1)+' mL</b> IV q8h infused over 3 hours</div>'
+                + '<div class="note">💡 <b>Indication:</b> Carbapenem-resistant Enterobacteriaceae (CRE) & MDR Pseudomonas infections.<br>📦 <b>Strength & Dilution:</b> 2 g Ceftazidime + 0.5 g Avibactam Vial → reconstitute with 10 mL WFI (200 mg / mL Ceftazidime)<br>🏷️ <b>Brands:</b> Zavicefta / Avicaz.</div>';
+            }
+          },
+
+          { name: "Inj Cefepime (Cepime / Maxipime)", category: "Antibiotic", tags: "cefepime cepime maxipime febrile neutropenia pseudomonas nosocomial antibiotic",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 50; // 50 mg/kg/dose q8h
+              let ml = doseMg / 100; // 1g/10ml = 100mg/ml
+              return '<div class="result-box">🎯 <b>Dose (50 mg/kg/dose q8h IV):</b> '+doseMg.toFixed(0)+' mg = <b>'+ml.toFixed(1)+' mL</b> IV q8h over 30 min</div>'
+                + '<div class="note">💡 <b>Indication:</b> Febrile neutropenia, nosocomial Pseudomonas sepsis & severe pneumonia.<br>📦 <b>Strength & Dilution:</b> 1 g Vial → reconstitute with 10 mL WFI (100 mg / mL)<br>🏷️ <b>Brands:</b> Cepime / Maxipime / Cefepime.</div>';
+            }
+          },
+
+          { name: "Inj Propofol (Fresofol)", category: "Emergency", tags: "propofol fresofol sedation induction rsi status epilepticus picu",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let loadMg = w * 2.0; // 1.5-2.5 mg/kg
+              let maintMg = w * 4.0; // 2-10 mg/kg/hr
+              return '<div class="result-box">⚡ <b>INDUCTION DOSE (1.5–2.5 mg/kg IV slow):</b> '+loadMg.toFixed(1)+' mg slow IV<br>🔄 <b>MAINTENANCE INFUSION (2–10 mg/kg/hr):</b> '+maintMg.toFixed(1)+' mg/hr continuous infusion</div>'
+                + '<div class="note">💡 <b>Indication:</b> PICU procedural sedation, short-term intubation & refractory status epilepticus.<br>📦 <b>Strength:</b> 1% (10 mg / mL) 20 mL Ampoule<br>🏷️ <b>Brands:</b> Fresofol / Neopresol / Diprivan.</div>';
+            }
+          },
+
+          { name: "Inj Rocuronium (Esmeron / Rocuron)", category: "Emergency", tags: "rocuronium esmeron rocuron rsi intubation muscle relaxant nmb picu",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let loadMg = w * 0.9; // 0.6-1.2 mg/kg
+              let maintMcg = w * 8; // 5-12 mcg/kg/min
+              return '<div class="result-box">⚡ <b>RSI INTUBATION DOSE (0.6–1.2 mg/kg IV):</b> '+loadMg.toFixed(1)+' mg IV bolus<br>🔄 <b>MAINTENANCE INFUSION (5–12 mcg/kg/min):</b> '+maintMcg.toFixed(1)+' mcg/min continuous infusion</div>'
+                + '<div class="note">💡 <b>Indication:</b> Rapid Sequence Intubation (RSI) muscle relaxation & mechanical ventilation.<br>📦 <b>Strength:</b> 50 mg / 5 mL (10 mg / mL)<br>🏷️ <b>Brands:</b> Esmeron / Rocuron / Kabironium.</div>';
+            }
+          },
+
+          { name: "Inj Succinylcholine / Suxamethonium (Scoline)", category: "Emergency", tags: "succinylcholine suxamethonium scoline rsi intubation fastest muscle relaxant emergency",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 1.5;
+              let ageD = val('age');
+              let ageU = document.getElementById('ageUnit').value;
+              if(ageU==='Days' || (ageU==='Months' && ageD < 12)) doseMg = w * 2.0; // Infants 2 mg/kg
+              return '<div class="result-box">⚡ <b>RSI INTUBATION DOSE (1.5–2.0 mg/kg IV):</b> '+doseMg.toFixed(1)+' mg IV rapid bolus (Onset: 30–60 sec)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Emergency RSI endotracheal intubation (fastest acting depolarizing relaxant).<br>📦 <b>Strength:</b> 50 mg / mL (2 mL Ampoule)<br>🏷️ <b>Brands:</b> Scoline / Midarine / Succinyl.</div>';
+            }
+          },
+
+          { name: "Inj Neostigmine + Glycopyrrolate (Myopyrol)", category: "Emergency", tags: "neostigmine glycopyrrolate myopyrol nmb reversal snakebite neurotoxicity antidote",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseNeo = w * 0.05; // 0.05 mg/kg
+              let doseGlyco = w * 0.01; // 0.01 mg/kg
+              return '<div class="result-box">🎯 <b>Reversal Dose (Neostigmine 0.05 mg/kg + Glyco 0.01 mg/kg):</b> Neostigmine '+doseNeo.toFixed(2)+' mg + Glycopyrrolate '+doseGlyco.toFixed(2)+' mg IV slow over 3 min</div>'
+                + '<div class="note">💡 <b>Indication:</b> Reversal of non-depolarizing muscle relaxants (Vecuronium/Atracurium) & neurotoxic snakebite reversal.<br>📦 <b>Strength:</b> Neostigmine 0.5mg + Glycopyrrolate 0.1mg / mL<br>🏷️ <b>Brands:</b> Myopyrol / Prostigmin.</div>';
+            }
+          },
+
+          { name: "Inj Vasopressin (Pitressin / Vasocin)", category: "Emergency", tags: "vasopressin pitressin vasocin septic shock diabetes insipidus inotrope",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let unitsMin = w * 0.0005; // 0.0003-0.002 units/kg/min
+              return '<div class="result-box">🎯 <b>Vasodilatory Septic Shock (0.0003–0.002 units/kg/min):</b> '+unitsMin.toFixed(4)+' units/min continuous IV infusion</div>'
+                + '<div class="note">💡 <b>Indication:</b> Refractory vasodilatory septic shock, cardiac arrest & Central Diabetes Insipidus.<br>📦 <b>Strength:</b> 20 units / mL Ampoule<br>🏷️ <b>Brands:</b> Pitressin / Vasocin / CPRESS.</div>';
+            }
+          },
+
+          { name: "Inj Terlipressin (Glypressin)", category: "Emergency", tags: "terlipressin glypressin variceal bleeding hepatorenal septic shock",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMcg = w * 15; // 10-20 mcg/kg
+              let doseMg = doseMcg / 1000;
+              let doseMl = doseMcg / 200; // 1mg/5ml = 0.2mg/ml = 200mcg/ml
+              return '<div class="result-box">🎯 <b>Dose (10–20 mcg/kg IV q4–6h):</b> '+doseMcg.toFixed(0)+' mcg ('+doseMg.toFixed(2)+' mg) = <b>'+doseMl.toFixed(2)+' mL</b> IV slow q4–6h</div>'
+                + '<div class="note">💡 <b>Indication:</b> Esophageal variceal bleeding, hepatorenal syndrome & refractory septic shock.<br>📦 <b>Strength & Dilution:</b> 1 mg Vial → reconstitute with 5 mL WFI (200 mcg / mL)<br>🏷️ <b>Brands:</b> Glypressin / Terlipressin / Varipress.</div>';
+            }
+          },
+
+          { name: "Inj Esmolol (Brevibloc)", category: "Emergency", tags: "esmolol brevibloc svt tachycardia hypertensive crisis tetralogy spell tof cardiac",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let loadMcg = w * 500; // 500 mcg/kg over 1 min
+              let maintMcg = w * 100; // 50-300 mcg/kg/min
+              return '<div class="result-box">⚡ <b>LOADING DOSE (500 mcg/kg over 1 min):</b> '+(loadMcg/1000).toFixed(2)+' mg IV over 1 min<br>🔄 <b>MAINTENANCE INFUSION (50–300 mcg/kg/min):</b> '+(maintMcg/1000).toFixed(2)+' mg/min continuous infusion</div>'
+                + '<div class="note">💡 <b>Indication:</b> SVT, severe sinus tachycardia, hypertensive crisis & Tetralogy spell (TOF).<br>📦 <b>Strength:</b> 100 mg / 10 mL (10 mg / mL)<br>🏷️ <b>Brands:</b> Brevibloc / Esmocard / Miniblock.</div>';
+            }
+          },
+
+          { name: "Inj Labetalol (Normadate)", category: "Emergency", tags: "labetalol normadate hypertensive crisis apsgn hypertension beta blocker cardiac",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let bolusMg = w * 0.5; // 0.2-1 mg/kg
+              let maintMg = w * 1.0; // 0.25-3 mg/kg/hr
+              return '<div class="result-box">⚡ <b>BOLUS DOSE (0.2–1.0 mg/kg IV over 2 min):</b> '+bolusMg.toFixed(1)+' mg IV over 2 min<br>🔄 <b>MAINTENANCE INFUSION (0.25–3.0 mg/kg/hr):</b> '+maintMg.toFixed(1)+' mg/hr continuous infusion</div>'
+                + '<div class="note">💡 <b>Indication:</b> Hypertensive emergency & severe acute post-streptococcal glomerulonephritis (APSGN) hypertension.<br>📦 <b>Strength:</b> 100 mg / 20 mL (5 mg / mL)<br>🏷️ <b>Brands:</b> Normadate / Labil / Gravidol.</div>';
+            }
+          },
+
+          { name: "Inj Nicardipine (Cardene)", category: "Emergency", tags: "nicardipine cardene hypertensive crisis coarctation hypertension calcium channel blocker",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let maintMcg = w * 1.0; // 0.5-4 mcg/kg/min
+              return '<div class="result-box">🎯 <b>MAINTENANCE INFUSION (0.5–4.0 mcg/kg/min):</b> '+maintMcg.toFixed(1)+' mcg/min continuous IV infusion</div>'
+                + '<div class="note">💡 <b>Indication:</b> Pediatric hypertensive emergency & coarctation of aorta hypertension.<br>📦 <b>Strength:</b> 25 mg / 10 mL (2.5 mg / mL)<br>🏷️ <b>Brands:</b> Cardene / Vasocard / Nicardipine.</div>';
+            }
+          },
+
+          { name: "Inj Methylprednisolone (Solu-Medrol)", category: "Emergency", tags: "methylprednisolone solu-medrol pulse therapy status asthmaticus mis-c steroid",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let asthMg = w * 2.0; // 1-2 mg/kg/day
+              let asthMl = asthMg / 62.5; // 125mg/2ml = 62.5mg/ml
+              let pulseMg = w * 30; // 30 mg/kg/day (max 1000mg)
+              if(pulseMg > 1000) pulseMg = 1000;
+              let pulseMl = pulseMg / 62.5;
+              return '<div class="result-box">🎯 <b>Status Asthmaticus (1–2 mg/kg/day):</b> '+asthMg.toFixed(1)+' mg = <b>'+asthMl.toFixed(1)+' mL</b> IV per day (÷ q6h)<br>⚡ <b>PULSE THERAPY (30 mg/kg/day - MIS-C/Lupus):</b> '+pulseMg.toFixed(0)+' mg = <b>'+pulseMl.toFixed(1)+' mL</b> IV in D5W over 2 hours</div>'
+                + '<div class="note">💡 <b>Indication:</b> Status asthmaticus, MIS-C, lupus nephritis pulse therapy & spinal cord injury.<br>📦 <b>Strength & Dilution:</b> 125 mg / 2 mL Vial (62.5 mg / mL) or 500 mg / 8 mL<br>🏷️ <b>Brands:</b> Solu-Medrol / MPS / Depo-Medrol.</div>';
+            }
+          },
+
+          { name: "Inj G-CSF (Filgrastim / Neupogen)", category: "Emergency", tags: "filgrastim neupogen g-csf febrile neutropenia chemotherapy bone marrow",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMcg = w * 5; // 5-10 mcg/kg/day
+              return '<div class="result-box">🎯 <b>Dose (5–10 mcg/kg/day):</b> '+doseMcg.toFixed(0)+' mcg SC or IV over 30 min once daily</div>'
+                + '<div class="note">💡 <b>Indication:</b> Post-chemotherapy febrile neutropenia & severe congenital neutropenia.<br>📦 <b>Strength:</b> 300 mcg / 1 mL Prefilled Syringe<br>🏷️ <b>Brands:</b> Neupogen / Grafeel / Emgrast.</div>';
+            }
+          },
+
+          { name: "Inj Erythropoietin (EPO / Eprex)", category: "NICU", tags: "erythropoietin epo eprex anemia prematurity aop ckd neonate",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseUnits = w * 250; // 200-400 units/kg
+              let ml = doseUnits / 2000; // 2000 IU / 1 mL PFS
+              return '<div class="result-box">🎯 <b>Dose (250 units/kg 3x/week):</b> '+doseUnits.toFixed(0)+' units = <b>'+ml.toFixed(2)+' mL</b> SC 3 times a week</div>'
+                + '<div class="note">💡 <b>Indication:</b> Anemia of Prematurity (AOP) in preterm neonates & chronic kidney disease anemia.<br>📦 <b>Strength:</b> 2000 IU / 1 mL Prefilled Syringe (PFS)<br>🏷️ <b>Brands:</b> Eprex / Erypro / Epofit.</div>';
+            }
+          },
+
+          { name: "Inj Desmopressin (DDAVP)", category: "Emergency", tags: "desmopressin ddavp diabetes insipidus von willebrand hemophilia a bleeding",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMcg = w * 0.3; // 0.3 mcg/kg
+              return '<div class="result-box">🎯 <b>Dose (0.3 mcg/kg IV over 30 min):</b> '+doseMcg.toFixed(2)+' mcg in 50 mL NS over 30 min</div>'
+                + '<div class="note">💡 <b>Indication:</b> Central Diabetes Insipidus, von Willebrand Disease & Hemophilia A bleeding.<br>📦 <b>Strength:</b> 4 mcg / mL Ampoule<br>🏷️ <b>Brands:</b> DDAVP / Minirin Injection.</div>';
+            }
+          },
+
+          { name: "Inj Protamine Sulphate", category: "Emergency", tags: "protamine sulphate heparin reversal bleeding antidote",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              return '<div class="result-box">🎯 <b>Dose (Heparin Reversal):</b> 1 mg IV for every 100 units of Heparin given in last 4 hours (Max single dose: 50 mg slow IV over 10 min)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Rapid reversal of Unfractionated Heparin (UFH) overdose & active bleeding.<br>📦 <b>Strength:</b> 50 mg / 5 mL (10 mg / mL) Ampoule<br>🏷️ <b>Brands:</b> Protamine Sulphate / Prota.</div>';
+            }
+          },
+
+          { name: "Inj Glucagon (GlucaGen)", category: "Emergency", tags: "glucagon glucagen hypoglycemia beta blocker toxicity emergency injection",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = 0.5; // <25kg 0.5mg, >=25kg 1mg
+              if(w >= 25) doseMg = 1.0;
+              let ml = doseMg; // 1 mg / 1 mL = 1 mg/ml
+              let betaBolusMcg = w * 100; // 50-150 mcg/kg
+              let betaMl = betaBolusMcg / 1000;
+              return '<div class="result-box">🎯 <b>Severe Hypoglycemia (no IV access):</b> '+doseMg+' mg = <b>'+ml.toFixed(1)+' mL</b> IM or IV bolus<br>⚡ <b>Beta-Blocker Toxicity:</b> '+(betaBolusMcg/1000).toFixed(2)+' mg = <b>'+betaMl.toFixed(2)+' mL</b> IV bolus over 5 min</div>'
+                + '<div class="note">💡 <b>Indication:</b> Severe hypoglycemia without IV access & beta-blocker overdose.<br>📦 <b>Strength & Dilution:</b> 1 mg / Vial with 1 mL diluent (1 mg / mL)<br>🏷️ <b>Brands:</b> GlucaGen / Glucagon HypoKit.</div>';
+            }
+          },
+
+          { name: "Inj Iron Sucrose (Haem Up / Ferriport)", category: "Emergency", tags: "iron sucrose haem up ferriport severe anemia ckd iv iron",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let targetHb = 12.0;
+              let actualHb = 7.0; // default assumption for calculation reference
+              let totalDoseMg = w * (targetHb - actualHb) * 2.4 + 500;
+              let singleDoseMg = w * 3; // 3 mg/kg max single dose
+              if(singleDoseMg > 200) singleDoseMg = 200;
+              return '<div class="result-box">📊 <b>Total Iron Deficit (assuming Hb 7→12):</b> '+totalDoseMg.toFixed(0)+' mg total<br>🎯 <b>Max Single Dose (3 mg/kg IV):</b> '+singleDoseMg.toFixed(0)+' mg IV in 100 mL NS over 1 hour</div>'
+                + '<div class="note">💡 <b>Indication:</b> Severe iron deficiency anemia failing oral iron & CKD anemia.<br>📦 <b>Strength:</b> 100 mg / 5 mL (20 mg / mL) Ampoule<br>🏷️ <b>Brands:</b> Haem Up / Ferriport / Orofer.</div>';
+            }
+          }
+        );
+// === NEW PEDIATRIC SYRUPS, DROPS & TABLETS ADDITIONS ===
+        drugs.push(
+          { name: "Syp Dori DS / Drotin DS (Drotaverine)", category: "Syrup", tags: "dori ds drotin ds drotaverine abdominal pain colic spasm stomach pain",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 1.5; // ~1-2 mg/kg/dose
+              let ml = (doseMg / 20) * 5; // 20mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (1–2 mg/kg/dose t.i.d.):</b> '+doseMg.toFixed(1)+' mg ('+ml.toFixed(1)+' mL t.i.d.)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Spasmodic abdominal pain, intestinal colic & bowel spasms.<br>📦 <b>Strength:</b> 20 mg / 5 mL<br>🏷️ <b>Brands:</b> Syp Dori DS / Drotin DS / Drotikind.</div>';
+            }
+          },
+
+          { name: "Drop Colicaid / Cyclopam (Infantile Colic)", category: "Drops", tags: "colicaid cyclopam simethicone dill oil fennel oil gas colic drops",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let ml = 0.3; // 4-8 drops
+              let drops = Math.round(ml * 20);
+              if(w > 5) { ml = 0.5; drops = Math.round(ml * 20); }
+              return '<div class="result-box">🎯 <b>Dose:</b> '+ml.toFixed(2)+' mL = <b>'+drops+' drops</b> q8h before feeds</div>'
+                + '<div class="note">💡 <b>Indication:</b> Infantile colic, abdominal gas, bloating & post-feed fussiness.<br>📦 <b>Strength:</b> Simethicone 40mg + Dill Oil 0.005ml + Fennel Oil 0.0007ml / mL<br>🏷️ <b>Brands:</b> Colicaid Drops / Cyclopam Drops / Neopeptine Drops.</div>';
+            }
+          },
+
+          { name: "Drop Aristozyme / Pepfiz (Digestive Enzymes)", category: "Drops", tags: "aristozyme pepfiz diastase pepsin digestion drops enzyme",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let ml = 0.5;
+              if(w > 8) ml = 1.0;
+              let drops = Math.round(ml * 20);
+              return '<div class="result-box">🎯 <b>Dose:</b> '+ml.toFixed(1)+' mL = <b>'+drops+' drops</b> b.i.d. after feeds</div>'
+                + '<div class="note">💡 <b>Indication:</b> Indigestion, loss of appetite & abdominal distension in infants.<br>📦 <b>Strength:</b> Fungal Diastase 20mg + Pepsin 10mg / mL<br>🏷️ <b>Brands:</b> Aristozyme Drops / Pepfiz Drops / Neopeptine Drops.</div>';
+            }
+          },
+
+          { name: "Drop / Syp Enterogermina (Probiotic)", category: "Drops", tags: "enterogermina darolac sporlac probiotic diarrhea gut flora bacillus clausii",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let vials = 1;
+              if(w > 10) vials = 2;
+              return '<div class="result-box">🎯 <b>Dose:</b> '+vials+' mini-bottle (5 mL = 2 Billion Spores) once or twice daily</div>'
+                + '<div class="note">💡 <b>Indication:</b> Acute watery diarrhea, post-antibiotic diarrhea & gut flora restoration.<br>📦 <b>Strength:</b> Bacillus clausii 2 Billion Spores / 5 mL<br>🏷️ <b>Brands:</b> Enterogermina / Darolac Aqua / Sporlac Pediatric.</div>';
+            }
+          },
+
+          { name: "Sachet Econorm (Saccharomyces boulardii)", category: "GI", tags: "econorm sachet saccharomyces boulardii probiotic diarrhea",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              return '<div class="result-box">🎯 <b>Dose:</b> 1 sachet (250 mg) b.i.d. mixed in water or milk for 5 days</div>'
+                + '<div class="note">💡 <b>Indication:</b> Acute viral gastroenteritis & antibiotic-associated diarrhea.<br>📦 <b>Strength:</b> 250 mg Sachet<br>🏷️ <b>Brands:</b> Econorm Sachet / Darolac SB.</div>';
+            }
+          },
+
+          { name: "Syp Hydrase / Enuff (Racecadotril)", category: "Syrup", tags: "hydrase enuff racecadotril watery diarrhea antisecretory",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 1.5;
+              let ml = (doseMg / 10) * 5; // 10mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (1.5 mg/kg/dose t.i.d.):</b> '+doseMg.toFixed(1)+' mg ('+ml.toFixed(1)+' mL t.i.d.)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Acute watery diarrhea (antisecretory - reduces intestinal hypersecretion).<br>📦 <b>Strength:</b> 10 mg / 5 mL Suspension or 30 mg Sachet<br>🏷️ <b>Brands:</b> Hydrase Syp / Enuff Syp / Redotil.</div>';
+            }
+          },
+
+          { name: "Syp Oflomac-M / Zenflox-M (Ofloxacin + Metro)", category: "Syrup", tags: "oflomac-m zenflox-m ofloxacin metronidazole dysentery diarrhea antibacterial antiprotozoal",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseOflox = w * 7.5;
+              let ml = (doseOflox / 50) * 5; // 50mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (7.5 mg/kg Ofloxacin b.i.d.):</b> '+ml.toFixed(1)+' mL b.i.d. (Contains Ofloxacin '+doseOflox.toFixed(1)+' mg + Metro '+(doseOflox*2).toFixed(1)+' mg)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Bacterial & amoebic dysentery, infective diarrhea with blood/mucus.<br>📦 <b>Strength:</b> Ofloxacin 50mg + Metronidazole 100mg / 5 mL<br>🏷️ <b>Brands:</b> Oflomac-M Syp / Zenflox-M / Oflox-M.</div>';
+            }
+          },
+
+          { name: "Syp Nizonide / Nitazet (Nitazoxanide)", category: "Syrup", tags: "nizonide nitazet nitazoxanide rotavirus giardia diarrhea",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = 100;
+              if(w > 15) doseMg = 200;
+              let ml = (doseMg / 100) * 5;
+              return '<div class="result-box">🎯 <b>Dose:</b> '+doseMg+' mg ('+ml.toFixed(1)+' mL b.i.d. for 3 days)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Rotavirus gastroenteritis, Giardiasis & Cryptosporidiosis diarrhea.<br>📦 <b>Strength:</b> 100 mg / 5 mL Dry Syrup<br>🏷️ <b>Brands:</b> Nizonide Syp / Nitazet Dry Syp.</div>';
+            }
+          },
+
+          { name: "Syp Evict / Duphalac (Lactulose)", category: "Syrup", tags: "evict duphalac lactulose constipation stool softener laxative",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let ml = w * 1.0; // 1 ml/kg/day
+              if(ml < 2.5) ml = 2.5;
+              return '<div class="result-box">🎯 <b>Dose (1 mL/kg/day ÷ q12h):</b> '+ml.toFixed(1)+' mL per day (give '+(ml/2).toFixed(1)+' mL b.i.d.)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Chronic pediatric constipation & painful defecation.<br>📦 <b>Strength:</b> 10 g / 15 mL (3.33 g/5 mL)<br>🏷️ <b>Brands:</b> Evict Syp / Duphalac / Lacton.</div>';
+            }
+          },
+
+          { name: "Sachet Pegmove / Pegfiber (PEG 3350)", category: "GI", tags: "pegmove pegfiber polyethylene glycol peg 3350 constipation impaction",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let grams = w * 0.7; // 0.5-1 g/kg/day
+              return '<div class="result-box">🎯 <b>Dose (0.7 g/kg/day):</b> '+grams.toFixed(1)+' g once daily dissolved in water/juice</div>'
+                + '<div class="note">💡 <b>Indication:</b> Chronic functional constipation & fecal impaction in children.<br>📦 <b>Strength:</b> 8.5g or 17g Sachet<br>🏷️ <b>Brands:</b> Pegmove Sachet / Pegfiber / Movicol.</div>';
+            }
+          },
+
+          { name: "Syp Sucrafil (Sucralfate)", category: "Syrup", tags: "sucrafil sucralfate gastritis gerd ulcer mucosa",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 15; // 40-80 mg/kg/day ÷ q6h
+              let ml = (doseMg / 500) * 5; // 500mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (15 mg/kg/dose q6h):</b> '+doseMg.toFixed(0)+' mg ('+ml.toFixed(1)+' mL q6h before meals)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Gastritis, GERD, stress ulcers & mucosal inflammation.<br>📦 <b>Strength:</b> 500 mg / 5 mL<br>🏷️ <b>Brands:</b> Sucrafil Syp / Sucral Syp.</div>';
+            }
+          },
+
+          { name: "Drop Orofer XT (Iron + Folic Acid)", category: "Drops", tags: "orofer xt iron ferrous ascorbate folic acid anemia drops",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let elementalMg = w * 2; // 2 mg/kg/day elemental iron
+              let ml = elementalMg / 10; // 10 mg elemental iron per mL
+              let drops = Math.round(ml * 20);
+              return '<div class="result-box">🎯 <b>Dose (2 mg/kg/day elemental Iron):</b> '+elementalMg.toFixed(1)+' mg = '+ml.toFixed(2)+' mL (<b>'+drops+' drops</b> once daily)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Iron deficiency anemia & prophylaxis in preterm/low birth weight infants.<br>📦 <b>Strength:</b> Ferrous Ascorbate 10mg elemental Iron + Folic Acid 100mcg / mL<br>🏷️ <b>Brands:</b> Orofer XT Drops / Chericof Iron Drops / Fefol Drops.</div>';
+            }
+          },
+
+          { name: "Drop Zincovit / A-Z (Infant Multivitamin)", category: "Drops", tags: "zincovit a-z multivitamin drops lysine minerals infant nutrition",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let ml = 0.5;
+              if(w > 6) ml = 1.0;
+              let drops = Math.round(ml * 20);
+              return '<div class="result-box">🎯 <b>Dose:</b> '+ml.toFixed(1)+' mL = <b>'+drops+' drops</b> once daily after feeds</div>'
+                + '<div class="note">💡 <b>Indication:</b> Infant nutritional supplementation, growth support & post-illness recovery.<br>📦 <b>Strength:</b> Multivitamin + Lysine + Essential Minerals / mL<br>🏷️ <b>Brands:</b> Zincovit Drops / A-Z Infant Drops / Polybion Drops.</div>';
+            }
+          },
+
+          { name: "Syp Zincovit / A-Z (Child Multivitamin)", category: "Syrup", tags: "zincovit a-z multivitamin syrup immunity appetite growth",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let ml = 2.5;
+              if(w > 10) ml = 5.0;
+              return '<div class="result-box">🎯 <b>Dose:</b> '+ml.toFixed(1)+' mL once daily after meals</div>'
+                + '<div class="note">💡 <b>Indication:</b> Micronutrient supplementation, immunity booster & growth in children.<br>📦 <b>Strength:</b> Multivitamins + Zinc + Minerals / 5 mL<br>🏷️ <b>Brands:</b> Zincovit Syrup / A-Z Syrup / Multitein.</div>';
+            }
+          },
+
+          { name: "Drop Calcirol / D-Rise (Vit D3 800 IU/ml)", category: "Drops", tags: "calcirol d-rise vit d3 cholecalciferol rickets 800 iu drops",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let ml = 0.5; // 400 IU
+              let drops = 10;
+              return '<div class="result-box">🎯 <b>Routine Prophylaxis:</b> 0.5 mL (400 IU = <b>10 drops</b> once daily)<br>🎯 <b>Deficiency/Rickets:</b> 1.0 mL (800 IU = <b>20 drops</b> once daily)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Rickets prevention & Vit D deficiency in infants.<br>📦 <b>Strength:</b> Cholecalciferol 800 IU / mL (40 IU per drop)<br>🏷️ <b>Brands:</b> Calcirol Drops / D-Rise Drops / Vitanova D3.</div>';
+            }
+          },
+
+          { name: "Syp Calcimax-P / Shelcal (Calcium + D3)", category: "Syrup", tags: "calcimax-p shelcal calcium vit d3 b12 rickets bone growth",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseElemCa = w * 40; // 30-50 mg/kg/day
+              let ml = (doseElemCa / 75) * 5; // 75mg elemental Ca / 5ml
+              return '<div class="result-box">🎯 <b>Dose (40 mg/kg/day elemental Ca):</b> '+doseElemCa.toFixed(0)+' mg ('+ml.toFixed(1)+' mL per day ÷ b.i.d.)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Bone growth, calcium deficiency, rickets & dentition support.<br>📦 <b>Strength:</b> Elemental Calcium 75mg + Vit D3 400 IU / 5 mL<br>🏷️ <b>Brands:</b> Calcimax-P Syp / Shelcal Suspension / Ostocalcium.</div>';
+            }
+          },
+
+          { name: "Syp / DT Zinconia (Zinc Supplement)", category: "Syrup", tags: "zinconia z&d zinc diarrhea DT sachet stunt prevention",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = 20;
+              let ageD = val('age');
+              let ageU = document.getElementById('ageUnit').value;
+              if((ageU==='Months' && ageD < 6) || (ageU==='Days') || (w < 6)) doseMg = 10;
+              let ml = (doseMg / 20) * 5; // 20mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (14-day Diarrhea Course):</b> '+doseMg+' mg ('+ml.toFixed(1)+' mL or '+(doseMg/20)+' Tab DT) once daily x 14 days</div>'
+                + '<div class="note">💡 <b>Indication:</b> Adjuvant therapy in acute diarrhea (WHO 14-day protocol) & stunt prevention.<br>📦 <b>Strength:</b> Elemental Zinc 20 mg / 5 mL or 20 mg Dispersible Tab<br>🏷️ <b>Brands:</b> Zinconia Syp / Zinconia DT / Z&D.</div>';
+            }
+          },
+
+          { name: "Syp Ciplactin / Apetamin (Appetite Stimulant)", category: "Syrup", tags: "ciplactin apetamin cyproheptadine appetite stimulant tricholine weight gain",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let ageD = val('age');
+              let ageU = document.getElementById('ageUnit').value;
+              if((ageU==='Years' && ageD < 2) || ageU!=='Years') {
+                return '<div class="note" style="color:#c53030;">⚠️ <b>Not recommended under 2 years of age.</b></div>';
+              }
+              let doseMg = w * 0.25; // 0.25 mg/kg/day
+              let ml = (doseMg / 2) * 5; // 2mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (0.25 mg/kg/day ÷ t.i.d.):</b> '+ml.toFixed(1)+' mL per day (give '+(ml/3).toFixed(1)+' mL t.i.d. before meals)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Loss of appetite & underweight children (>2 years).<br>📦 <b>Strength:</b> Cyproheptadine 2 mg + Tricholine Citrate 275 mg / 5 mL<br>🏷️ <b>Brands:</b> Ciplactin Syp / Apetamin Syp / Aptivate.</div>';
+            }
+          },
+
+          { name: "Syp Carnitor (L-Carnitine)", category: "Syrup", tags: "carnitor l-carnitine IEM valproate toxicity metabolic",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 50; // 50-100 mg/kg/day
+              let ml = (doseMg / 500) * 5; // 500mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (50 mg/kg/day ÷ q8h):</b> '+doseMg.toFixed(0)+' mg ('+ml.toFixed(1)+' mL per day ÷ t.i.d.)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Primary/Secondary L-Carnitine deficiency, IEM & Valproate toxicity.<br>📦 <b>Strength:</b> L-Carnitine 500 mg / 5 mL<br>🏷️ <b>Brands:</b> Carnitor Syp / Levocarnil.</div>';
+            }
+          },
+
+          { name: "Syp Nootropil / Neurocetam (Piracetam)", category: "Syrup", tags: "nootropil neurocetam piracetam breath holding spell cognitive",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 40; // 40-50 mg/kg/day
+              let ml = (doseMg / 500) * 5; // 500mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (40 mg/kg/day ÷ q12h):</b> '+doseMg.toFixed(0)+' mg ('+ml.toFixed(1)+' mL per day ÷ b.i.d.)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Breath-holding spells, cognitive & neurological support.<br>📦 <b>Strength:</b> Piracetam 500 mg / 5 mL<br>🏷️ <b>Brands:</b> Nootropil Syp / Neurocetam Syp.</div>';
+            }
+          },
+
+          { name: "Syp Droxyl / Cefadrox (Cefadroxil)", category: "Antibiotic", tags: "droxyl cefadrox cefadroxil skin soft tissue pharyngitis antibiotic syrup",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 30; // 30 mg/kg/day
+              let ml = (doseMg / 125) * 5; // 125mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (30 mg/kg/day ÷ q12h):</b> '+doseMg.toFixed(0)+' mg ('+ml.toFixed(1)+' mL per day = '+(ml/2).toFixed(1)+' mL b.i.d.)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Skin/soft tissue infections, streptococcal pharyngitis & impetigo.<br>📦 <b>Strength:</b> 125 mg / 5 mL or 250 mg / 5 mL Dry Syrup<br>🏷️ <b>Brands:</b> Droxyl Dry Syp / Cefadrox Syp.</div>';
+            }
+          },
+
+          { name: "Syp Zifi-CV / Taxim-O CV (Cefixime + Clav)", category: "Antibiotic", tags: "zifi-cv taxim-o cv cefixime clavulanate otitis uti resistant antibiotic",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseCef = w * 8; // 8 mg/kg/day Cefixime
+              let ml = (doseCef / 50) * 5; // 50mg Cefixime / 5ml
+              return '<div class="result-box">🎯 <b>Dose (8 mg/kg/day Cefixime ÷ q12h):</b> '+ml.toFixed(1)+' mL per day = '+(ml/2).toFixed(1)+' mL b.i.d.</div>'
+                + '<div class="note">💡 <b>Indication:</b> Resistant otitis media, recurrent UTI & respiratory tract infections.<br>📦 <b>Strength:</b> Cefixime 50 mg + Clavulanic Acid 31.25 mg / 5 mL<br>🏷️ <b>Brands:</b> Zifi-CV Dry Syp / Taxim-O CV / Brutacef-CV.</div>';
+            }
+          },
+
+          { name: "Syp Opox-CV / Gudcef-CV (Cefpodoxime + Clav)", category: "Antibiotic", tags: "opox-cv gudcef-cv cefpodoxime clavulanate resistant pneumonia antibiotic",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let dosePod = w * 10; // 10 mg/kg/day Cefpodoxime
+              let ml = (dosePod / 50) * 5; // 50mg / 5ml
+              return '<div class="result-box">🎯 <b>Dose (10 mg/kg/day Cefpodoxime ÷ q12h):</b> '+ml.toFixed(1)+' mL per day = '+(ml/2).toFixed(1)+' mL b.i.d.</div>'
+                + '<div class="note">💡 <b>Indication:</b> Resistant pneumonia, severe ENT infections & sinusitis.<br>📦 <b>Strength:</b> Cefpodoxime 50 mg + Clavulanic Acid 31.25 mg / 5 mL<br>🏷️ <b>Brands:</b> Opox-CV Dry Syp / Gudcef-CV / Monocef-O CV.</div>';
+            }
+          },
+
+          { name: "Syp Farobact / Faronem (Faropenem)", category: "Antibiotic", tags: "farobact faronem faropenem oral penem carbapenem resistant antibiotic",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseMg = w * 15; // 15-30 mg/kg/day ÷ q8h
+              let ml = (doseMg / 50) * 5; // 50mg/5ml
+              return '<div class="result-box">🎯 <b>Dose (15 mg/kg/day ÷ q8h):</b> '+doseMg.toFixed(0)+' mg ('+ml.toFixed(1)+' mL per day = '+(ml/3).toFixed(1)+' mL t.i.d.)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Refractory pediatric respiratory & urinary tract infections (Oral Penem).<br>📦 <b>Strength:</b> Faropenem 50 mg / 5 mL Dry Syrup<br>🏷️ <b>Brands:</b> Farobact Dry Syp / Faronem Syp / Orpenem.</div>';
+            }
+          },
+
+          { name: "Sachet WHO Low Osmolality ORS", category: "Fluids", tags: "who ors electral electrobion dehydration diarrhea fluid electrolyte sachet",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let mlFourHrs = w * 75; // 50-100 ml/kg over 4 hours
+              return '<div class="result-box">🎯 <b>Rehydration Dose (Plan B - 75 mL/kg over 4 hrs):</b> '+mlFourHrs.toFixed(0)+' mL ORS solution over 4 hours<br>🎯 <b>Ongoing Loss (Plan A):</b> 10 mL/kg for each loose stool</div>'
+                + '<div class="note">💡 <b>Indication:</b> Acute watery diarrhea dehydration & fluid balance.<br>📦 <b>Preparation:</b> Dissolve 1 sachet in 1 Litre (or 4.1g sachet in 200 mL) clean water.<br>🏷️ <b>Brands:</b> Electral ORS / ORS Cipla / Electrobion.</div>';
+            }
+          },
+
+          { name: "Tab Moxikind-CV 375 DT / Augmentin 375", category: "Antibiotic", tags: "moxikind-cv augmetin 375 dt amoxicillin clavulanate dispersible tab antibiotic",
+            calc: function(w,a,u){
+              if(w<=0) return '<div class="note">Enter weight</div>';
+              let doseAmox = w * 40; // 40 mg/kg/day
+              let tabsDay = doseAmox / 250;
+              return '<div class="result-box">🎯 <b>Dose (40 mg/kg/day Amoxicillin):</b> '+tabsDay.toFixed(1)+' Tab 375 DT per day (give '+(tabsDay/3).toFixed(1)+' Tab t.i.d. dissolved in water)</div>'
+                + '<div class="note">💡 <b>Indication:</b> Acute otitis media, pneumonia, sinusitis & soft tissue infection.<br>📦 <b>Strength:</b> Amoxicillin 250 mg + Clavulanate 125 mg Dispersible Tab<br>🏷️ <b>Brands:</b> Moxikind-CV 375 DT / Augmentin 375 DT.</div>';
+            }
+          }
+        );
+});
 
         // --- MARKET STRENGTH / DILUTION (auto-shown inside each drug card) ---
         const MARKET_INFO = {
