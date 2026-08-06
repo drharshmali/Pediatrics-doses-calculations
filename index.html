@@ -474,7 +474,7 @@
         <div class="menu-item" onclick="openCat('Formula')"><div class="menu-icon">🍼</div>Infant Formulas</div>
 
         <!-- Placed Below Infant Formulas & Above Tx Sheet -->
-        <div class="menu-item" id="muMenuItem" onclick="openMedicalUpdates()"><div class="menu-icon">📰</div>Medical Updates <span id="muBadge" style="display:none; font-size:10px; background:#e53e3e; color:#fff; padding:2px 6px; border-radius:10px; margin-left:4px; font-weight:bold;">NEW</span></div>
+        <div class="menu-item" id="muMenuItem" onclick="openMedicalUpdates()"><div class="menu-icon">📰</div>Latest Updates <span id="muBadge" style="display:none; font-size:10px; background:#e53e3e; color:#fff; padding:2px 6px; border-radius:10px; margin-left:4px; font-weight:bold;">NEW</span></div>
         <div class="menu-item" onclick="openCat('Library')"><div class="menu-icon">📚</div>Disease Library</div>
         <div class="menu-item" onclick="openCat('Training')"><div class="menu-icon">📺</div>Training & Procedures</div>
 
@@ -490,7 +490,7 @@
         <div class="card" style="border-left-color:#3182ce;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
                 <div>
-                    <div class="drug-name" style="margin-bottom:2px;">📰 MEDICAL UPDATES & INNOVATIONS</div>
+                    <div class="drug-name" style="margin-bottom:2px;">📰 LATEST UPDATES & INNOVATIONS</div>
                     <div style="font-size:12px; color:var(--text-muted);">Short, crisp & to-the-point clinical research & guidelines.</div>
                 </div>
                 <div class="badge" style="background:#c6f6d5; color:#22543d;">⚡ Daily Auto-Updated</div>
@@ -924,32 +924,30 @@
 
         try { checkMedUpdateHighlight(window._medUpdatesData); renderMedUpdatesFeed(); } catch(e){}
 
+        function attachCapacitor() {
+            // FIX: was referenced but never defined (threw "attachCapacitor is not defined" on load)
+            try {
+                var Cap = window.Capacitor;
+                if (Cap && Cap.Plugins && Cap.Plugins.App && !window._capBackWired) {
+                    window._capBackWired = true;
+                    Cap.Plugins.App.addListener('backButton', function () {
+                        if (!handleGlobalBack()) { try { Cap.Plugins.App.exitApp(); } catch (e) {} }
+                    });
+                }
+            } catch (e) {}
+        }
         function initRouter() {
             document.addEventListener('deviceready', attachCapacitor, false);
-            setTimeout(attachCapacitor, 300);
-            setTimeout(attachCapacitor, 1200);
-
-            if (!window.location.hash || window.location.hash === '') {
-                window.location.replace('#base');
-                setTimeout(() => {
-                    let a = document.createElement('a');
-                    a.href = '#home';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                }, 50);
-            }
+            setTimeout(attachCapacitor, 500);
+            // seed one history entry so the hardware/browser Back button navigates within the app instead of exiting
+            try { history.replaceState({ _home: 1 }, ''); } catch (e) {}
         }
         window.addEventListener('load', initRouter);
 
         function pushHashIfNeed() {
-            if (window.location.hash !== '#view') {
-                let a = document.createElement('a');
-                a.href = '#view';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
+            // FIX: use history.pushState (does NOT fire hashchange) so forward navigation/search no longer
+            // gets bounced back home by the hashchange→handleGlobalBack loop.
+            try { if (!history.state || !history.state._view) { history.pushState({ _view: 1 }, ''); } } catch (e) {}
         }
 
         window.addEventListener('hashchange', function(e) {
@@ -1772,12 +1770,12 @@
         } catch (e) { _suggDb = null; }
 
         // ==================== USER REGISTRATION / ROLES / ADMIN ====================
-        var NH_ADMIN_MOBILE = '9023403139';
+        var NH_ADMIN_MOBILES = ['9023403139','7359552716'];
         var NH_ADMIN_EMAIL  = 'maliharsh12345@gmail.com';
         var nhUser = null;
         window._nhCanLibrary = false;
 
-        function nhIsAdminCred(mobile, email){ return (mobile && mobile.indexOf(NH_ADMIN_MOBILE) >= 0) || (email && email.toLowerCase() === NH_ADMIN_EMAIL); }
+        function nhIsAdminCred(mobile, email){ return (mobile && NH_ADMIN_MOBILES.indexOf(mobile) >= 0) || (email && email.toLowerCase() === NH_ADMIN_EMAIL); }
         function nhLogout() {
             if(confirm('Are you sure you want to log out?')) {
                 try{ localStorage.removeItem('nhUser'); localStorage.removeItem('nhGuestUsed'); }catch(e){}
@@ -1806,17 +1804,23 @@
             if(name.length < 2){ err.style.color='#e53e3e'; err.textContent='Please enter your name.'; return; }
             if(mobile.length < 10){ err.style.color='#e53e3e'; err.textContent='Please enter a valid mobile number.'; return; }
             if(!desig){ err.style.color='#e53e3e'; err.textContent='Please select your designation.'; return; }
-            var role = nhIsAdminCred(mobile, email) ? 'admin' : desig;
+            var isAdmin = nhIsAdminCred(mobile, email);
+            var role = isAdmin ? 'admin' : desig;
+            var dev = nhDeviceId();
             err.style.color='var(--text-muted)'; err.textContent='Saving…';
             function finish(u){ nhUser=u; try{ localStorage.setItem('nhUser', JSON.stringify(u)); }catch(e){} nhApplyRole(); nhHideGate(); }
-            var base = { name:name, mobile:mobile, email:email, designation:desig, role:role, blocked:false, guest:false, lastActive:Date.now() };
+            function deny(){ err.style.color='#e53e3e'; err.textContent='⛔ Blocked by admin. Please contact the admin.'; }
+            var base = { name:name, mobile:mobile, email:email, designation:desig, role:role, blocked:false, guest:false, deviceId:dev, lastActive:Date.now() };
             if(_suggDb){
-                _suggDb.ref('users/'+mobile).once('value').then(function(snap){
-                    var ex = snap.val();
-                    if(ex && ex.blocked){ err.style.color='#e53e3e'; err.textContent='⛔ This number is blocked by admin.'; return; }
-                    var toSave = ex ? Object.assign({}, ex, { name:name, email:email, designation:desig, role:role, lastActive:Date.now() }) : Object.assign({ createdAt:Date.now() }, base);
-                    _suggDb.ref('users/'+mobile).set(toSave).catch(function(){});
-                    finish(toSave);
+                _suggDb.ref('blockedDevices/'+dev).once('value').then(function(ds){
+                    if(!isAdmin && ds.val()){ deny(); return; }   // this DEVICE is blocked → new number can't bypass
+                    _suggDb.ref('users/'+mobile).once('value').then(function(snap){
+                        var ex = snap.val();
+                        if(!isAdmin && ex && ex.blocked){ deny(); return; }
+                        var toSave = ex ? Object.assign({}, ex, { name:name, email:email, designation:desig, role:role, deviceId:dev, lastActive:Date.now() }) : Object.assign({ createdAt:Date.now() }, base);
+                        _suggDb.ref('users/'+mobile).set(toSave).catch(function(){});
+                        finish(toSave);
+                    }).catch(function(){ finish(Object.assign({ createdAt:Date.now() }, base)); });
                 }).catch(function(){ finish(Object.assign({ createdAt:Date.now() }, base)); });
             } else { finish(Object.assign({ createdAt:Date.now() }, base)); }
         }
@@ -1837,16 +1841,18 @@
 
         function nhAuthInit(){
             var saved=null; try{ saved=JSON.parse(localStorage.getItem('nhUser')||'null'); }catch(e){}
+            var dev=nhDeviceId(); var isAdmin = saved && saved.role==='admin';
             if(saved && saved.mobile){
                 nhUser=saved; nhApplyRole(); nhHideGate();
                 if(_suggDb){
-                    _suggDb.ref('users/'+saved.mobile).once('value').then(function(snap){
-                        var u=snap.val();
-                        if(u && u.blocked){
-                            try{ localStorage.removeItem('nhUser'); }catch(e){}
-                            nhShowGate();
-                            var f=document.getElementById('nhRegForm'); if(f) f.innerHTML='<div style="color:#e53e3e; font-weight:bold; font-size:15px; padding:14px 0;">⛔ Your access has been blocked by admin.</div>';
-                        } else if(u){ _suggDb.ref('users/'+saved.mobile+'/lastActive').set(Date.now()).catch(function(){}); }
+                    function lockOut(){ try{ localStorage.removeItem('nhUser'); }catch(e){} nhShowGate(); var f=document.getElementById('nhRegForm'); if(f) f.innerHTML='<div style="color:#e53e3e; font-weight:bold; font-size:15px; padding:14px 0;">⛔ Your access has been blocked by admin.</div>'; }
+                    _suggDb.ref('blockedDevices/'+dev).once('value').then(function(ds){
+                        if(!isAdmin && ds.val()){ lockOut(); return; }
+                        _suggDb.ref('users/'+saved.mobile).once('value').then(function(snap){
+                            var u=snap.val();
+                            if(!isAdmin && u && u.blocked){ lockOut(); }
+                            else if(u){ _suggDb.ref('users/'+saved.mobile+'/lastActive').set(Date.now()).catch(function(){}); }
+                        }).catch(function(){});
                     }).catch(function(){});
                 }
             } else { nhShowGate(); }
@@ -1888,7 +1894,7 @@
             if(stats){ var blk=users.filter(function(u){return u.blocked;}).length; stats.textContent='Total users: '+users.length+' · Blocked: '+blk; }
             if(!shown.length){ list.innerHTML='<div style="color:var(--text-muted);">No users yet.</div>'; return; }
             list.innerHTML=shown.map(function(u){
-                var when=u.lastActive?new Date(u.lastActive).toLocaleString('en-GB'):'—';
+                var when=u.lastActive?new Date(u.lastActive).toLocaleString('en-GB',{hour12:true}):'—';
                 var badge=u.role==='admin'?'#805ad5':(u.designation==='Nursing Staff'?'#dd6b20':'#3182ce');
                 var right=u.role==='admin'?'<span style="font-size:11px; color:#805ad5; font-weight:bold;">admin</span>':'<button class="action-btn" style="background:'+(u.blocked?'#38a169':'#e53e3e')+'; padding:6px 10px; font-size:12px;" onclick="nhToggleBlock(\''+_escSugg(u.mobile)+'\','+(u.blocked?'false':'true')+')">'+(u.blocked?'✓ Unblock':'⛔ Block')+'</button>';
                 return '<div style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:6px; '+(u.blocked?'opacity:0.55;':'')+'"><div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">'
@@ -1900,10 +1906,15 @@
         }
         function nhToggleBlock(mobile, block){
             if(!_suggDb || !mobile) return;
-            _suggDb.ref('users/'+mobile+'/blocked').set(block).then(function(){
-                for(var i=0;i<window._nhUsers.length;i++){ if(window._nhUsers[i].mobile===mobile){ window._nhUsers[i].blocked=block; } }
-                nhRenderUsers();
-            }).catch(function(){ alert('Failed — check DB rules.'); });
+            var u=null; for(var i=0;i<window._nhUsers.length;i++){ if(window._nhUsers[i].mobile===mobile){ u=window._nhUsers[i]; } }
+            _suggDb.ref('users/'+mobile+'/blocked').set(block).catch(function(){ alert('Failed — check DB rules.'); });
+            // permanently block/unblock the DEVICE too → blocked person can't login with another number on same phone
+            if(u && u.deviceId){
+                if(block){ _suggDb.ref('blockedDevices/'+u.deviceId).set(mobile).catch(function(){}); }
+                else { _suggDb.ref('blockedDevices/'+u.deviceId).remove().catch(function(){}); }
+            }
+            for(var j=0;j<window._nhUsers.length;j++){ if(window._nhUsers[j].mobile===mobile){ window._nhUsers[j].blocked=block; } }
+            nhRenderUsers();
         }
 
         // ---- ADMIN: MEDICINE CRUD (structured dose model → RTDB medicines/) ----
@@ -6139,6 +6150,8 @@
 
         // --- RENDER LOGIC ---
         function renderCards() {
+            // FIX: remove accidental duplicate drug entries (some new drugs were pushed inside _library.forEach → ×87)
+            if(!window._drugsDeduped){ window._drugsDeduped=true; var _seen=Object.create(null), _uniq=[]; for(var _i=0;_i<drugs.length;_i++){ var _n=drugs[_i]&&drugs[_i].name; if(_n&&_seen[_n])continue; if(_n)_seen[_n]=1; _uniq.push(drugs[_i]); } drugs.length=0; Array.prototype.push.apply(drugs,_uniq); }
             let w = val('weight'), a = val('age'), u = document.getElementById('ageUnit').value;
             let s = document.getElementById('search').value.toLowerCase();
             let d = document.getElementById('results');
