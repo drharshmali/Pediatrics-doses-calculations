@@ -650,12 +650,50 @@
         })();
 
         // YouTube iframe helper function using Direct Video IDs
+        // Facade: show a light thumbnail + play button; load the real iframe ONLY on tap → many videos never freeze the app, and only ONE player is live at a time.
+        function _ytInner(id, title){
+            return '<img loading="lazy" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg" alt="'+(title||'video')+'" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; opacity:0.92;" onerror="this.style.display=\'none\'">'
+                + '<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;"><div style="width:68px; height:48px; background:rgba(200,0,0,0.88); border-radius:12px; display:flex; align-items:center; justify-content:center;"><span style="color:#fff; font-size:26px; line-height:1;">▶</span></div></div>';
+        }
         const yt = (videoId, title) => {
-            return `<div class="video-container"><iframe src="https://www.youtube.com/embed/${videoId}" title="${title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
-                    <a class="yt-link" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">▶️ If it doesn't play here, open on YouTube</a>`;
+            return '<div class="video-container yt-facade" data-yt="'+videoId+'" data-title="'+(title||'')+'" role="button" tabindex="0" onclick="ytLoad(this)" style="cursor:pointer;">'+_ytInner(videoId, title)+'</div>'
+                + '<a class="yt-link" href="https://www.youtube.com/watch?v='+videoId+'" target="_blank" rel="noopener">▶️ If it doesn\'t play here, open on YouTube</a>';
         };
+        window.ytLoad = function(el){
+            var id = el && el.getAttribute && el.getAttribute('data-yt'); if(!id) return;
+            try{ document.querySelectorAll('.video-container.yt-live').forEach(function(w){ window.ytUnload(w); }); }catch(e){}   // stop any other playing video → only one live
+            el.classList.remove('yt-facade'); el.classList.add('yt-live'); el.removeAttribute('onclick'); el.style.cursor='default';
+            el.innerHTML = '<iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0&modestbranding=1&playsinline=1" title="video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
+        };
+        window.ytUnload = function(w){
+            var id = w && w.getAttribute && w.getAttribute('data-yt'); if(!id) return;   // revert a live player back to a tappable thumbnail (frees memory, stops audio)
+            w.classList.remove('yt-live'); w.classList.add('yt-facade'); w.setAttribute('onclick','ytLoad(this)'); w.style.cursor='pointer';
+            w.innerHTML = _ytInner(id, w.getAttribute('data-title'));
+        };
+        // when a procedure card is collapsed, stop its video (revert to thumbnail) — no background playback / hang
+        document.addEventListener('toggle', function(e){
+            var det = e.target;
+            if(det && det.tagName === 'DETAILS' && !det.open){
+                try{ det.querySelectorAll('.video-container.yt-live').forEach(function(w){ window.ytUnload(w); }); }catch(_){}
+            }
+        }, true);
+        // stop ALL playing videos (used on any navigation away — prevents background audio)
+        window.ytStopAll = function(){ try{ document.querySelectorAll('.video-container.yt-live').forEach(function(w){ window.ytUnload(w); }); }catch(_){} };
+        // tapping any menu tile / back button stops videos
+        document.addEventListener('click', function(e){ var t=e.target; if(t && t.closest && (t.closest('.menu-item') || t.closest('.back-btn') || t.closest('#btnBack') || t.closest('.action-btn'))){ window.ytStopAll(); } }, true);
         const ytSearch = (title) => {
             return `<a class="yt-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(title)}" target="_blank" rel="noopener" style="display:block; background:#c4302b; color:#fff; text-align:center; padding:12px; border-radius:8px; font-weight:bold; margin-top:10px; text-decoration:none; font-size:15px;">▶️ Watch on YouTube: ${title}</a>`;
+        };
+        // Compact procedure card: colored header (NICU=teal / PICU=purple) + indication/site/steps + guaranteed-working YouTube search button (no broken embeds).
+        const procCard = (kind, indication, site, steps, videoQuery, videoId) => {
+            const c = kind==='NICU' ? {bg:'#b2f5ea', fg:'#234e52', tag:'🍼 NICU PROCEDURE'} : {bg:'#e9d8fd', fg:'#553c9a', tag:'🧒 PICU PROCEDURE'};
+            return `<div class="badge" style="background:${c.bg}; color:${c.fg};">${c.tag}</div><br>`
+                + `<div class="note" style="color:var(--text-main);">`
+                + (indication ? `<b>Indication:</b> ${indication}<br>` : '')
+                + (site ? `<b>Site / Position:</b> ${site}<br>` : '')
+                + `<b>Steps:</b> ${steps}`
+                + `</div>`
+                + (videoId ? yt(videoId, videoQuery) : ytSearch(videoQuery));
         };
 
         function getPatientMode(age, ageUnit){
@@ -679,6 +717,7 @@
         };
 
         function handleGlobalBack() {
+            if(window.ytStopAll) window.ytStopAll();   // stop any playing video on back/home navigation
             // 0. Medical Updates Full Article Modal Open?
             var muModal = document.getElementById('muDetailModal');
             if (muModal && muModal.style.display !== 'none') {
@@ -767,6 +806,7 @@
             window.scrollTo(0, 0);
             renderMedUpdatesFeed();
             loadMedUpdates();
+            nhLoadUpdates(renderMedUpdatesFeed);   // load admin posts → auto-show latest for everyone
         };
 
         function checkMedUpdateHighlight(data) {
@@ -835,6 +875,20 @@
 
             var filter = window._medUpdatesFilter || 'all';
             var html = '';
+            var _live=(window._nhUpdates||[]).slice().sort(function(a,b){return (b.t||0)-(a.t||0);});
+            if(_live.length){
+                html += '<div style="margin-bottom:18px;"><div style="font-weight:bold; font-size:14px; color:#38a169; margin-bottom:8px; border-bottom:1.5px solid var(--border); padding-bottom:4px;">🆕 Latest Posts</div>';
+                _live.forEach(function(it){
+                    html += '<div class="card" style="margin-bottom:10px; padding:12px; border-left:4px solid #38a169; background:var(--bg-card);">'
+                      + '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;"><div style="font-weight:bold; font-size:13.5px; color:var(--text-main); flex:1; padding-right:8px;">'+_escSugg(it.title||'')+'</div>'+(it.date?'<div class="badge" style="font-size:10px; padding:2px 6px; white-space:nowrap;">📅 '+_escSugg(it.date)+'</div>':'')+'</div>'
+                      + (it.bullet1?'<div style="font-size:12px; margin-bottom:3px; color:var(--text-main);">'+_escSugg(it.bullet1)+'</div>':'')
+                      + (it.bullet2?'<div style="font-size:12px; margin-bottom:3px; color:var(--text-main);">'+_escSugg(it.bullet2)+'</div>':'')
+                      + (it.bullet3?'<div style="font-size:12px; margin-bottom:3px; color:var(--text-main);">'+_escSugg(it.bullet3)+'</div>':'')
+                      + ((nhUser&&nhUser.role==='admin'&&it.key)?'<button class="action-btn" onclick="nhDeleteUpdate(\''+it.key+'\')" style="background:#e53e3e; font-size:10px; padding:3px 8px; margin-top:4px;">🗑️ Delete</button>':'')
+                      + '</div>';
+                });
+                html += '</div>';
+            }
 
             data.categories.forEach(function(cat) {
                 if (filter !== 'all' && cat.id !== filter) return;
@@ -1810,19 +1864,23 @@
             err.style.color='var(--text-muted)'; err.textContent='Saving…';
             function finish(u){ nhUser=u; try{ localStorage.setItem('nhUser', JSON.stringify(u)); }catch(e){} nhApplyRole(); nhHideGate(); }
             function deny(){ err.style.color='#e53e3e'; err.textContent='⛔ Blocked by admin. Please contact the admin.'; }
-            var base = { name:name, mobile:mobile, email:email, designation:desig, role:role, blocked:false, guest:false, deviceId:dev, lastActive:Date.now() };
+            var base = { name:name, mobile:mobile, email:email, designation:desig, role:role, blocked:false, guest:false, deviceId:dev, lastActive:Date.now(), approved: isAdmin };
+            function pend(u){ try{ localStorage.setItem('nhUser', JSON.stringify(u)); }catch(e){} nhShowPending(mobile); }
             if(_suggDb){
-                _suggDb.ref('blockedDevices/'+dev).once('value').then(function(ds){
-                    if(!isAdmin && ds.val()){ deny(); return; }   // this DEVICE is blocked → new number can't bypass
+                function doRegister(){
                     _suggDb.ref('users/'+mobile).once('value').then(function(snap){
                         var ex = snap.val();
                         if(!isAdmin && ex && ex.blocked){ deny(); return; }
-                        var toSave = ex ? Object.assign({}, ex, { name:name, email:email, designation:desig, role:role, deviceId:dev, lastActive:Date.now() }) : Object.assign({ createdAt:Date.now() }, base);
+                        var okApproved = isAdmin || (ex && ex.approved !== false);   // grandfather existing users (undefined = approved); only explicit false = pending
+                        var toSave = ex ? Object.assign({}, ex, { name:name, email:email, designation:desig, role:role, deviceId:dev, lastActive:Date.now(), approved: okApproved }) : Object.assign({ createdAt:Date.now() }, base);
                         _suggDb.ref('users/'+mobile).set(toSave).catch(function(){});
-                        finish(toSave);
-                    }).catch(function(){ finish(Object.assign({ createdAt:Date.now() }, base)); });
-                }).catch(function(){ finish(Object.assign({ createdAt:Date.now() }, base)); });
-            } else { finish(Object.assign({ createdAt:Date.now() }, base)); }
+                        if(okApproved){ finish(toSave); } else { pend(toSave); }
+                    }).catch(function(){ if(isAdmin){ finish(Object.assign({ createdAt:Date.now() }, base)); } else { pend(Object.assign({ createdAt:Date.now() }, base)); } });
+                }
+                _suggDb.ref('blockedDevices/'+dev).once('value').then(function(ds){
+                    if(!isAdmin && ds.val()){ deny(); } else { doRegister(); }   // device blocked → deny; read failed → still register
+                }).catch(function(){ doRegister(); });
+            } else { if(isAdmin){ finish(Object.assign({ createdAt:Date.now() }, base)); } else { pend(Object.assign({ createdAt:Date.now() }, base)); } }
         }
 
         function nhGuest(){
@@ -1843,19 +1901,47 @@
             var saved=null; try{ saved=JSON.parse(localStorage.getItem('nhUser')||'null'); }catch(e){}
             var dev=nhDeviceId(); var isAdmin = saved && saved.role==='admin';
             if(saved && saved.mobile){
-                nhUser=saved; nhApplyRole(); nhHideGate();
-                if(_suggDb){
-                    function lockOut(){ try{ localStorage.removeItem('nhUser'); }catch(e){} nhShowGate(); var f=document.getElementById('nhRegForm'); if(f) f.innerHTML='<div style="color:#e53e3e; font-weight:bold; font-size:15px; padding:14px 0;">⛔ Your access has been blocked by admin.</div>'; }
-                    _suggDb.ref('blockedDevices/'+dev).once('value').then(function(ds){
-                        if(!isAdmin && ds.val()){ lockOut(); return; }
-                        _suggDb.ref('users/'+saved.mobile).once('value').then(function(snap){
-                            var u=snap.val();
-                            if(!isAdmin && u && u.blocked){ lockOut(); }
-                            else if(u){ _suggDb.ref('users/'+saved.mobile+'/lastActive').set(Date.now()).catch(function(){}); }
+                if(isAdmin || saved.approved !== false){
+                    nhUser=saved; nhApplyRole(); nhHideGate();
+                    if(_suggDb){
+                        _suggDb.ref('users/'+saved.mobile+'/lastActive').set(Date.now()).catch(function(){});   // update FIRST, independent of block-checks/rules
+                        function lockOut(){ try{ localStorage.removeItem('nhUser'); }catch(e){} nhShowGate(); var f=document.getElementById('nhRegForm'); if(f) f.innerHTML='<div style="color:#e53e3e; font-weight:bold; font-size:15px; padding:14px 0;">⛔ Your access has been blocked by admin.</div>'; }
+                        _suggDb.ref('users/'+saved.mobile).once('value').then(function(s){
+                            var u=s.val();
+                            if(!isAdmin && u && u.blocked){ lockOut(); return; }
+                            if(!isAdmin && u && u.approved===false){ try{ localStorage.removeItem('nhUser'); }catch(e){} nhShowPending(saved.mobile); return; }   // approval revoked → back to pending
+                            _suggDb.ref('blockedDevices/'+dev).once('value').then(function(ds){
+                                if(!isAdmin && ds.val()){ lockOut(); }
+                            }).catch(function(){});
                         }).catch(function(){});
-                    }).catch(function(){});
+                    }
+                } else {
+                    nhShowPending(saved.mobile);           // pending user → wait screen
+                    if(_suggDb){ nhCheckApproval(saved.mobile); }   // auto re-check on open → let in if admin approved meanwhile
                 }
             } else { nhShowGate(); }
+        }
+        function nhShowPending(mobile){
+            nhShowGate();
+            var f=document.getElementById('nhRegForm'); if(!f) return;
+            f.innerHTML='<div style="padding:6px 0;">'
+                +'<div style="font-size:40px; margin-bottom:4px;">⏳</div>'
+                +'<div style="font-weight:800; font-size:16px; color:#dd6b20; margin-bottom:6px;">Waiting for admin approval</div>'
+                +'<div style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">Your registration is submitted. Access opens once the admin approves you. Tap below to check, or reopen the app after approval.</div>'
+                +'<button class="copy-all-btn" style="margin:0;" onclick="nhCheckApproval(\''+mobile+'\')">🔄 Check approval</button>'
+                +'<div id="nhPendErr" style="font-size:12px; color:var(--text-muted); margin-top:8px; min-height:16px;"></div>'
+                +'</div>';
+        }
+        function nhCheckApproval(mobile){
+            var e=document.getElementById('nhPendErr'); if(e){ e.style.color='var(--text-muted)'; e.textContent='Checking…'; }
+            if(!_suggDb){ if(e){ e.style.color='#e53e3e'; e.textContent='No connection — try again when online.'; } return; }
+            _suggDb.ref('users/'+mobile).once('value').then(function(s){
+                var u=s.val();
+                if(!u){ if(e){ e.style.color='#e53e3e'; e.textContent='Not found — please register again.'; } return; }
+                if(u.blocked){ if(e){ e.style.color='#e53e3e'; e.textContent='⛔ Blocked by admin.'; } return; }
+                if(u.approved !== false){ nhUser=u; try{ localStorage.setItem('nhUser', JSON.stringify(u)); }catch(_){} nhApplyRole(); nhHideGate(); }
+                else if(e){ e.style.color='#dd6b20'; e.textContent='Still pending — please wait for admin approval.'; }
+            }).catch(function(){ if(e){ e.style.color='#e53e3e'; e.textContent='Check failed — try again.'; } });
         }
 
         // ---- ADMIN PANEL ----
@@ -1871,7 +1957,8 @@
                     +'<input type="text" id="nhAdminSearch" placeholder="Search name / mobile…" oninput="nhRenderUsers()" style="width:100%; padding:9px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin-bottom:10px; background:var(--bg-card); color:var(--text-main);">'
                     +'<div id="nhAdminStats" style="font-size:12px; color:var(--text-muted); margin-bottom:8px;"></div>'
                     +'<div id="nhUsersList" style="max-height:60vh; overflow:auto;">Loading…</div>'
-                    +'<button class="copy-all-btn" style="margin-top:10px;" onclick="nhOpenMeds()">💊 Manage Medicines (Add / Edit / Remove)</button></div>';
+                    +'<button class="copy-all-btn" style="margin-top:10px;" onclick="nhOpenPostUpdate()">📰 Post an Update (Latest Updates)</button>'
+                    +'<button class="copy-all-btn" style="margin-top:8px;" onclick="nhOpenMeds()">💊 Manage Medicines (Add / Edit / Remove)</button></div>';
                 document.body.appendChild(ov);
             }
             ov.style.display='flex'; nhLoadUsers();
@@ -1889,18 +1976,25 @@
         function nhRenderUsers(){
             var list=document.getElementById('nhUsersList'); var stats=document.getElementById('nhAdminStats');
             var q=(document.getElementById('nhAdminSearch').value||'').toLowerCase();
-            var users=window._nhUsers.slice().sort(function(a,b){ return (b.lastActive||0)-(a.lastActive||0); });
+            var users=window._nhUsers.slice().sort(function(a,b){ var ap=(a.approved===false&&a.role!=='admin')?1:0, bp=(b.approved===false&&b.role!=='admin')?1:0; if(ap!==bp) return bp-ap; return (b.lastActive||0)-(a.lastActive||0); });
             var shown=users.filter(function(u){ return !q || (u.name||'').toLowerCase().indexOf(q)>=0 || (u.mobile||'').indexOf(q)>=0; });
-            if(stats){ var blk=users.filter(function(u){return u.blocked;}).length; stats.textContent='Total users: '+users.length+' · Blocked: '+blk; }
+            if(stats){ var blk=users.filter(function(u){return u.blocked;}).length; var pnd=users.filter(function(u){return u.approved===false && u.role!=='admin';}).length; stats.textContent='Total: '+users.length+' · ⏳ Pending: '+pnd+' · ⛔ Blocked: '+blk; }
             if(!shown.length){ list.innerHTML='<div style="color:var(--text-muted);">No users yet.</div>'; return; }
             list.innerHTML=shown.map(function(u){
-                var when=u.lastActive?new Date(u.lastActive).toLocaleString('en-GB',{hour12:true}):'—';
+                var when='—', rel=''; if(u.lastActive){ var _df=Date.now()-u.lastActive; when=new Date(u.lastActive).toLocaleString('en-GB',{hour12:true}); rel=_df<300000?'🟢 online now':(_df<3600000?Math.round(_df/60000)+' min ago':(_df<86400000?Math.round(_df/3600000)+' h ago':Math.round(_df/86400000)+' d ago')); }
                 var badge=u.role==='admin'?'#805ad5':(u.designation==='Nursing Staff'?'#dd6b20':'#3182ce');
-                var right=u.role==='admin'?'<span style="font-size:11px; color:#805ad5; font-weight:bold;">admin</span>':'<button class="action-btn" style="background:'+(u.blocked?'#38a169':'#e53e3e')+'; padding:6px 10px; font-size:12px;" onclick="nhToggleBlock(\''+_escSugg(u.mobile)+'\','+(u.blocked?'false':'true')+')">'+(u.blocked?'✓ Unblock':'⛔ Block')+'</button>';
-                return '<div style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:6px; '+(u.blocked?'opacity:0.55;':'')+'"><div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">'
-                    +'<div style="min-width:0;"><b>'+_escSugg(u.name||'—')+'</b> <span style="background:'+badge+'; color:#fff; font-size:10px; padding:1px 6px; border-radius:6px;">'+_escSugg(u.designation||u.role||'')+'</span>'
+                var isPend=(u.approved===false && u.role!=='admin');
+                var right;
+                if(u.role==='admin'){ right='<span style="font-size:11px; color:#805ad5; font-weight:bold;">admin</span>'; }
+                else {
+                    var apprBtn = isPend ? '<button class="action-btn" style="background:#3182ce; padding:6px 10px; font-size:12px; margin-bottom:4px; display:block; width:100%;" onclick="nhApprove(\''+_escSugg(u.mobile)+'\')">✅ Approve</button>' : '';
+                    var blkBtn = '<button class="action-btn" style="background:'+(u.blocked?'#38a169':'#e53e3e')+'; padding:6px 10px; font-size:12px; display:block; width:100%;" onclick="nhToggleBlock(\''+_escSugg(u.mobile)+'\','+(u.blocked?'false':'true')+')">'+(u.blocked?'✓ Unblock':(isPend?'✕ Reject':'⛔ Block'))+'</button>';
+                    right = apprBtn + blkBtn;
+                }
+                return '<div style="border:'+(isPend?'2px solid #dd6b20':'1px solid var(--border)')+'; border-radius:8px; padding:8px 10px; margin-bottom:6px; '+(u.blocked?'opacity:0.55;':'')+'"><div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">'
+                    +'<div style="min-width:0;"><b>'+_escSugg(u.name||'—')+'</b> <span style="background:'+badge+'; color:#fff; font-size:10px; padding:1px 6px; border-radius:6px;">'+_escSugg(u.designation||u.role||'')+'</span>'+(isPend?' <span style="background:#dd6b20; color:#fff; font-size:10px; padding:1px 6px; border-radius:6px;">⏳ PENDING</span>':'')
                     +'<br><span style="font-size:12px; color:var(--text-muted);">📱 '+_escSugg(u.mobile||'—')+(u.email?' · '+_escSugg(u.email):'')+'</span>'
-                    +'<br><span style="font-size:11px; color:var(--text-muted);">last active: '+when+'</span></div>'
+                    +'<br><span style="font-size:11px; color:var(--text-muted);">opened: '+when+(rel?' · <b>'+rel+'</b>':'')+'</span></div>'
                     +'<div style="flex-shrink:0;">'+right+'</div></div></div>';
             }).join('');
         }
@@ -1915,6 +2009,52 @@
             }
             for(var j=0;j<window._nhUsers.length;j++){ if(window._nhUsers[j].mobile===mobile){ window._nhUsers[j].blocked=block; } }
             nhRenderUsers();
+        }
+        window.nhApprove = function(mobile){
+            if(!_suggDb || !mobile) return;
+            _suggDb.ref('users/'+mobile+'/approved').set(true).catch(function(){ alert('Failed — check DB rules.'); });
+            for(var j=0;j<window._nhUsers.length;j++){ if(window._nhUsers[j].mobile===mobile){ window._nhUsers[j].approved=true; } }
+            nhRenderUsers();
+        };
+
+        // ---- ADMIN: POST UPDATE (Latest Updates feed → RTDB updates/) ----
+        window._nhUpdates = [];
+        function nhLoadUpdates(cb){
+            if(!_suggDb){ if(cb)cb(); return; }
+            _suggDb.ref('updates').once('value').then(function(s){ var v=s.val()||{}; window._nhUpdates=Object.keys(v).map(function(k){ var o=v[k]||{}; o.key=k; return o; }); if(cb)cb(); }).catch(function(){ if(cb)cb(); });
+        }
+        function nhOpenPostUpdate(){
+            if(!nhUser || nhUser.role!=='admin') return;
+            var ov=document.getElementById('nhPostPanel');
+            if(!ov){ ov=document.createElement('div'); ov.id='nhPostPanel'; ov.style.cssText='position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100001; display:flex; align-items:flex-start; justify-content:center; padding:16px; overflow:auto;'; document.body.appendChild(ov); }
+            function I(id,ph){ return '<input id="'+id+'" placeholder="'+ph+'" style="width:100%; padding:9px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin-bottom:7px; background:var(--bg-card); color:var(--text-main);">'; }
+            ov.innerHTML='<div style="background:var(--bg-card); border-radius:14px; max-width:520px; width:100%; padding:18px; box-shadow:0 10px 40px rgba(0,0,0,0.3);">'
+                +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><div style="font-weight:800; font-size:17px; color:var(--primary-hover);">📰 Post an Update</div><button class="action-btn" style="background:#e53e3e; padding:6px 10px;" onclick="nhClosePost()">✕ Close</button></div>'
+                +I('nhPuTitle','Title (e.g. New RSV vaccine 2026)')+I('nhPuB1','Point 1')+I('nhPuB2','Point 2 (optional)')+I('nhPuB3','Point 3 (optional)')
+                +'<button class="copy-all-btn" style="margin:4px 0;" onclick="nhSavePost()">📤 Post (goes live to everyone)</button>'
+                +'<div id="nhPuMsg" style="font-size:12px; color:var(--text-muted); min-height:14px;"></div>'
+                +'<hr style="border-top:1px solid var(--border); margin:10px 0;"><div style="font-weight:700; margin-bottom:6px;">Posted updates</div><div id="nhPuList" style="max-height:38vh; overflow:auto;">Loading…</div></div>';
+            ov.style.display='flex'; nhLoadUpdates(nhRenderPostList);
+        }
+        function nhClosePost(){ var ov=document.getElementById('nhPostPanel'); if(ov) ov.style.display='none'; }
+        function nhRenderPostList(){
+            var l=document.getElementById('nhPuList'); if(!l) return;
+            var arr=(window._nhUpdates||[]).slice().sort(function(a,b){return (b.t||0)-(a.t||0);});
+            if(!arr.length){ l.innerHTML='<div style="color:var(--text-muted);">None yet.</div>'; return; }
+            l.innerHTML=arr.map(function(it){ return '<div style="border:1px solid var(--border); border-radius:8px; padding:6px 8px; margin-bottom:5px; display:flex; justify-content:space-between; gap:6px; align-items:center;"><div style="min-width:0;"><b>'+_escSugg(it.title||'—')+'</b><br><span style="font-size:11px; color:var(--text-muted);">'+_escSugg(it.date||'')+'</span></div><button class="action-btn" style="background:#e53e3e; padding:5px 8px; font-size:12px;" onclick="nhDeleteUpdate(\''+it.key+'\')">🗑️</button></div>'; }).join('');
+        }
+        function nhSavePost(){
+            var msg=document.getElementById('nhPuMsg'); var title=(document.getElementById('nhPuTitle').value||'').trim();
+            if(title.length<3){ msg.style.color='#e53e3e'; msg.textContent='Enter a title.'; return; }
+            if(!_suggDb){ msg.style.color='#e53e3e'; msg.textContent='Firebase not connected.'; return; }
+            var now=Date.now();
+            var o={ title:title, bullet1:(document.getElementById('nhPuB1').value||'').trim(), bullet2:(document.getElementById('nhPuB2').value||'').trim(), bullet3:(document.getElementById('nhPuB3').value||'').trim(), date:new Date(now).toLocaleDateString('en-GB'), t:now };
+            msg.style.color='var(--text-muted)'; msg.textContent='Posting…';
+            _suggDb.ref('updates').push().set(o).then(function(){ msg.style.color='#38a169'; msg.textContent='✅ Posted — live for everyone.'; ['nhPuTitle','nhPuB1','nhPuB2','nhPuB3'].forEach(function(id){var e=document.getElementById(id); if(e)e.value='';}); nhLoadUpdates(function(){ nhRenderPostList(); if(typeof renderMedUpdatesFeed==='function') renderMedUpdatesFeed(); }); }).catch(function(){ msg.style.color='#e53e3e'; msg.textContent='Failed — republish DB rules with "updates".'; });
+        }
+        function nhDeleteUpdate(key){
+            if(!_suggDb||!key) return; if(!confirm('Delete this update?')) return;
+            _suggDb.ref('updates/'+key).remove().then(function(){ nhLoadUpdates(function(){ if(typeof nhRenderPostList==='function') nhRenderPostList(); if(typeof renderMedUpdatesFeed==='function') renderMedUpdatesFeed(); }); }).catch(function(){ alert('Failed — check DB rules.'); });
         }
 
         // ---- ADMIN: MEDICINE CRUD (structured dose model → RTDB medicines/) ----
@@ -2256,6 +2396,138 @@
                 `
             },
 
+            // ===== NICU PROCEDURES (🍼) =====
+            { name: "🍼 NICU · Sepsis Prevention — સેપ્સિસ અટકાવવા (Complete Guide)", category: "Training", tags: "sepsis prevention infection control nicu hand hygiene precaution safety gujarati neonatal clabsi asepsis babhi rokva chep",
+              calc: () => `<div class="badge" style="background:#b2f5ea; color:#234e52;">🍼 NICU · SEPSIS PREVENTION — સેપ્સિસ (ચેપ) અટકાવવા</div><br>`
+                + yt('mPPW8YtV1zs', 'NICU Infection Control & Sepsis Prevention')
+                + `<div class="note" style="color:var(--text-main); line-height:1.8; text-align:left;">
+<div style="font-weight:800; color:var(--primary); margin:2px 0 8px; font-size:14px;">📋 સંપૂર્ણ Safety &amp; Precautions — Point to Point (ગુજરાતીમાં)</div>
+
+<b>1. 🖐️ હાથ ની સ્વચ્છતા (Hand Hygiene) — સૌથી અગત્યનું:</b><br>
+• બાળક/incubator ને અડતા <b>પહેલા અને પછી</b> હાથ ધુઓ (WHO 5 moments).<br>
+• Soap + પાણી થી 40–60 સેકંડ, અથવા alcohol hand-rub 20–30 સેકંડ.<br>
+• પહેલી વાર NICU માં આવો ત્યારે <b>કોણી સુધી 2 મિનિટ</b> scrub.<br>
+• વીંટી, ઘડિયાળ, બંગડી કાઢી નાખો · નખ ટૂંકા · nail-polish/artificial nails નહીં.<br>
+• Staff, માતા અને visitors — <b>બધા માટે ફરજિયાત</b>.<br><br>
+
+<b>2. 🧤 Aseptic Technique (દરેક procedure માં):</b><br>
+• Central line (UVC/UAC/PICC) → <b>full sterile barrier</b>: cap, mask, sterile gown+gloves, મોટો drape.<br>
+• Skin prep chlorhexidine/spirit થી → સૂકાવા દો પછી જ puncture.<br>
+• દરેક invasive procedure માટે sterile gloves.<br>
+• Injection/IV drug aseptic રીતે તૈયાર કરો · single-use · <b>multi-dose vial share ના કરો</b>.<br><br>
+
+<b>3. 💉 Central Line Care (CLABSI અટકાવવા):</b><br>
+• જરૂર ના હોય તો line <b>જલ્દી કાઢી નાખો</b> (રોજ review).<br>
+• Port/hub ને spirit swab થી scrub કરી ને જ અડવું ("scrub the hub").<br>
+• Line access ઓછામાં ઓછો · sterile dressing · ભીનું/ઢીલું થાય તો બદલો.<br><br>
+
+<b>4. 🍼 Feeding — માતાનું દૂધ:</b><br>
+• <b>Mother's own milk</b> આપો → sepsis &amp; NEC સામે રક્ષણ.<br>
+• Expression, storage, વાસણ સ્વચ્છ · વહેલું enteral feed · બિનજરૂરી formula ટાળો.<br><br>
+
+<b>5. 🧴 Skin &amp; Cord Care:</b><br>
+• Dry cord care (high-risk માં chlorhexidine) · preterm ની નાજુક skin ને injury/break ટાળો.<br><br>
+
+<b>6. 🏥 Environment &amp; Equipment:</b><br>
+• Incubator, warmer, weighing scale, monitor <b>રોજ સાફ/disinfect</b>.<br>
+• દરેક બાળક નું <b>અલગ</b> stethoscope/thermometer · shared equipment બે બાળક વચ્ચે disinfect.<br>
+• બે બાળક વચ્ચે <b>≥1 meter</b> અંતર · overcrowding નહીં · પૂરતો nurse:baby ratio (sick=1:1).<br><br>
+
+<b>7. 💊 Antibiotic Stewardship:</b><br>
+• બિનજરૂરી/લાંબા antibiotics ટાળો → resistance + fungal sepsis વધે.<br>
+• Culture negative + baby સારું → <b>48–72 કલાક માં antibiotics બંધ</b>.<br><br>
+
+<b>8. ⏱️ Invasive Device &amp; Handling ઓછું:</b><br>
+• Line, catheter, ETT જરૂર પૂરી થતા જ કાઢો · <b>minimal handling</b> (care cluster કરો).<br>
+• Ventilator care bundle · sterile suction (જરૂર હોય ત્યારે જ).<br><br>
+
+<b>9. 👥 Visitors &amp; Staff Health:</b><br>
+• બીમાર (શરદી/ઝાડા/skin infection) staff કે visitor ને entry નહીં.<br>
+• Visitors મર્યાદિત · gown + hand hygiene · staff રસીકરણ (Hep-B, flu).<br><br>
+
+<b>10. 🤰 Maternal / Perinatal:</b><br>
+• GBS screening + intrapartum antibiotics · PROM/chorioamnionitis નું management · clean delivery.<br><br>
+
+<b>11. 🦘 Kangaroo Mother Care (KMC):</b><br>
+• Skin-to-skin → infection &amp; mortality ઘટે, breastfeeding વધે.<br><br>
+
+<b>12. 🧫 Isolation / Cohorting:</b><br>
+• MRSA/MDR/colonized બાળક ને isolate/cohort · contact precautions · outbreak માં surveillance culture.<br><br>
+
+<b>13. 🩹 Standard Precautions:</b><br>
+• દરેક બાળક ને potentially infectious ગણો · blood/fluid સાથે PPE · sharps &amp; waste safety.<br><br>
+
+<b>14. 📊 Surveillance &amp; Blood Culture:</b><br>
+• Infection rate (CLABSI/VAP) monitor · hand-hygiene audit · <b>blood culture aseptic + પૂરતું volume</b> (1 ml) લો.<br><br>
+
+<b>15. 🍯 Other (evidence-based):</b><br>
+• Probiotics (protocol પ્રમાણે) → NEC/sepsis ઘટાડે · TPN duration ઓછો · ELBW માં antifungal prophylaxis (unit protocol).<br><br>
+
+<div style="background:#fed7d7; color:#9b2c2c; border:1px solid #feb2b2; border-radius:8px; padding:8px 10px;"><b>⚠️ Sepsis ના Warning Signs (વહેલા પકડો):</b> temperature instability, lethargy/સુસ્તી, poor feeding, apnea, ઝડપી શ્વાસ, abdominal distension, poor perfusion/CRT&gt;3s → તરત <b>sepsis workup + antibiotics</b>.</div>
+</div>` },
+            { name: "🍼 NICU · Umbilical Venous Catheter (UVC)", category: "Training", tags: "uvc umbilical venous catheter line nicu emergency vascular access procedure neonate resuscitation",
+              calc: () => procCard('NICU', 'Emergency vascular access — resuscitation drugs/fluids, exchange transfusion, sick preterm.', 'Umbilical vein: single, thin-walled, large, at ~12 o’clock. Baby supine, aseptic.', 'Prep + drape, loose purse-string tie at cord base → cut cord 1–2 cm above skin → identify vein → insert saline-flushed 3.5/5 Fr catheter → emergency: advance ~4–5 cm till free blood return; central: to (0.5×birth-length-cm)+1 → secure. ⚠️ Confirm tip (diaphragm/IVC junction) on X-ray before central use; avoid air embolism.', 'Umbilical venous catheter UVC insertion neonate', 'qUKkRXg11Hc') },
+            { name: "🍼 NICU · Umbilical Arterial Catheter (UAC)", category: "Training", tags: "uac umbilical arterial catheter line nicu blood pressure abg sampling procedure neonate",
+              calc: () => procCard('NICU', 'Continuous BP monitoring, frequent ABG sampling in sick/ventilated neonate.', 'Umbilical artery: 2 small thick-walled vessels, constricted, at ~4 & 8 o’clock.', 'Aseptic → dilate artery gently → insert flushed 3.5/5 Fr catheter → High position T6–T9 = (3×birth-wt-kg)+9 cm; Low position L3–L4 → secure. ⚠️ Watch for white/blue toes (vasospasm/thrombosis) → remove; confirm tip on X-ray.', 'Umbilical arterial catheter UAC insertion neonate', 'x_VwfdX_cqU') },
+            { name: "🍼 NICU · Surfactant Administration (INSURE / LISA)", category: "Training", tags: "surfactant insure lisa mist rds hmd preterm nicu procedure curosurf survanta",
+              calc: () => procCard('NICU', 'RDS / HMD in preterm (early rescue, ideally <2 h if FiO2 rising).', 'Via ETT (INSURE) or thin catheter during spont. breathing on CPAP (LISA/MIST).', 'Warm vial, draw dose (Poractant 100–200 mg/kg = 1.25–2.5 ml/kg; Beractant 100 mg/kg = 4 ml/kg) → confirm tube/catheter position → instill dose (as bolus or aliquots) → PPV/CPAP between → INSURE: extubate to CPAP after. ⚠️ Watch transient desat/brady; do not suction for ~1 h.', 'Surfactant administration LISA INSURE preterm neonate', 'CBVzzz5zkvE') },
+            { name: "🍼 NICU · Neonatal Endotracheal Intubation", category: "Training", tags: "neonatal intubation ett laryngoscope airway nicu procedure preterm ppv",
+              calc: () => procCard('NICU', 'Prolonged PPV, surfactant, ineffective bag-mask, diaphragmatic hernia.', 'Sniffing position, straight (Miller 0/1) blade.', 'Pre-oxygenate → Miller blade, lift epiglottis → ETT size: <1 kg=2.5, 1–2 kg=3.0, 2–3 kg=3.5, >3 kg=3.5–4.0 → depth (cm at lip) ≈ wt-kg+6 → confirm: chest rise, mist, CO2 detector, equal air entry, HR rise → secure. ⚠️ Attempt ≤30 s, re-oxygenate between tries.', 'Neonatal endotracheal intubation NRP', 'HByL731EEHM') },
+            { name: "🍼 NICU · Bag & Mask Ventilation (PPV)", category: "Training", tags: "bag mask ppv positive pressure ventilation nicu resuscitation apnea procedure neonate",
+              calc: () => procCard('NICU', 'HR <100 or apnea/gasping after warm-dry-stimulate (NRP).', 'Correct mask (covers mouth+nose, not eyes), sniffing position.', 'Open airway → tight mask seal → PPV 40–60/min with PIP ~20–25 (term) / 20 (preterm), PEEP 5, start FiO2 21% (term)/21–30% (preterm) → look for HR rise & chest rise → if not rising, do MR SOPA corrective steps. SpO2 targets rise over 10 min.', 'Neonatal bag mask ventilation PPV NRP', 'VYdFHRBpmPM') },
+            { name: "🍼 NICU · Exchange Transfusion", category: "Training", tags: "exchange transfusion neonatal jaundice hyperbilirubinemia kernicterus nicu procedure",
+              calc: () => procCard('NICU', 'Severe hyperbilirubinemia above exchange line, or rapidly rising / signs of ABE.', 'Via UVC (isovolumetric: UVC out + UAC/peripheral in). Double-volume = 2×80–85 ml/kg.', 'Warm compatible blood (reconstituted, Hct ~50%) → aliquots 5–10 ml (≤5 ml/kg) push-pull, ~3–5 min cycles → monitor HR/temp/glucose/Ca → send pre & post bilirubin, electrolytes. ⚠️ Watch hypocalcemia, hypoglycemia, thrombocytopenia, NEC.', 'Neonatal exchange transfusion procedure', 'f8sdSHGyWAQ') },
+            { name: "🍼 NICU · Phototherapy Setup", category: "Training", tags: "phototherapy jaundice hyperbilirubinemia bilirubin nicu procedure blue light",
+              calc: () => procCard('NICU', 'Neonatal hyperbilirubinemia at/above phototherapy threshold (per hour-specific nomogram).', 'Blue-green LED, distance ~30–50 cm (intensive: closer + more units).', 'Undress baby (diaper only), cover eyes with pads → max skin exposure → intensive = irradiance ≥30 µW/cm²/nm → continue feeds, monitor temp & hydration → check bilirubin 4–12 hourly → stop when below threshold. ⚠️ Eye protection, watch dehydration & temperature.', 'Neonatal phototherapy setup jaundice', 'UoNN5QknKCE') },
+            { name: "🍼 NICU · Orogastric / Nasogastric Tube", category: "Training", tags: "og ng tube orogastric nasogastric feeding decompression nicu procedure neonate ryles",
+              calc: () => procCard('NICU', 'Gavage feeding, gastric decompression (OG preferred in neonates — obligate nasal breathers).', 'Measure: nose/mouth → ear → midway xiphoid–umbilicus (NEMU).', 'Lubricate 5–8 Fr tube → pass gently to measured length → confirm: aspirate gastric content + pH <5.5 (X-ray if doubt) → secure. Avoid air-auscultation as sole check. ⚠️ Preterm: OG route.', 'Neonatal orogastric nasogastric tube insertion', 'Vww-G6oObTA') },
+            { name: "🍼 NICU · Heel Prick (Capillary Sampling)", category: "Training", tags: "heel prick capillary blood sampling glucose bilirubin newborn screening nicu procedure",
+              calc: () => procCard('NICU', 'Blood glucose, bilirubin, newborn metabolic screening, blood gas.', 'Medial or lateral plantar heel surface (avoid posterior/central heel & bone).', 'Warm heel → clean, dry → auto-lancet on medial/lateral heel → wipe first drop → collect free-flowing drops (don’t squeeze hard) → apply pressure after. ⚠️ Avoid deep punctures (osteomyelitis) & central heel.', 'Newborn heel prick capillary blood sampling', 'gmyZcutbdSY') },
+            { name: "🍼 NICU · Bubble CPAP Application", category: "Training", tags: "bubble cpap ncpap rds ttn preterm respiratory distress nicu procedure noninvasive",
+              calc: () => procCard('NICU', 'RDS, TTN, apnea of prematurity, post-extubation support (spontaneously breathing).', 'Correct-size short binasal prongs / mask, snug seal, no pressure on septum.', 'Set CPAP 5–6 cmH₂O (up to 7–8), flow 5–8 L/min, FiO2 to target SpO2 → secure prongs, orogastric tube to vent stomach → titrate PEEP/FiO2 → monitor WOB & gas. ⚠️ Prevent nasal-septum injury; watch abdominal distension & pneumothorax.', 'Bubble CPAP neonate setup NICU', 'rjmdNspYoy4') },
+            { name: "🍼 NICU · Kangaroo Mother Care (KMC)", category: "Training", tags: "kmc kangaroo mother care skin to skin preterm lbw nicu procedure thermoregulation",
+              calc: () => procCard('NICU', 'Stable LBW / preterm — thermoregulation, breastfeeding, bonding, reduced infection/mortality.', 'Continuous skin-to-skin, baby upright prone on mother’s bare chest.', 'Place diaper-only baby vertically between breasts, turn head to side (airway open) → cover with mother’s clothes/wrap + cap → aim for continuous / ≥ many hours/day → support breastfeeding → monitor temp & breathing. Fathers/family can also provide KMC.', 'Kangaroo mother care KMC preterm', 'XFH8IsYreE0') },
+            { name: "🍼 NICU · PICC Line Insertion", category: "Training", tags: "picc peripherally inserted central catheter long line nicu tpn procedure neonate",
+              calc: () => procCard('NICU', 'Prolonged IV access — TPN, prolonged antibiotics, when peripheral access is difficult.', 'Peripheral vein (basilic, saphenous, temporal) → tip to SVC/IVC (central).', 'Strict aseptic (max barrier) → measure length to central position → cannulate peripheral vein → thread 1–2 Fr silicone catheter to measured length → aspirate/flush → secure with transparent dressing. ⚠️ Confirm tip on X-ray before use; watch for infection, effusion, extravasation.', 'Neonatal PICC line insertion NICU', 'BgQOZDvm2FE') },
+
+            // ===== PICU PROCEDURES (🧒) =====
+            { name: "🧒 PICU · Endotracheal Intubation (RSI)", category: "Training", tags: "pediatric intubation rsi rapid sequence ett laryngoscope airway picu procedure",
+              calc: () => procCard('PICU', 'Airway protection, respiratory failure, GCS ≤8, shock, controlled ventilation.', 'Sniffing (older) / neutral (infant) position; cuffed ETT acceptable in children.', 'Prepare (SOAP-ME), pre-oxygenate → RSI: atropine (if <1 y/bradycardia) + sedative (ketamine/midazolam) + paralytic (rocuronium/sux) → ETT size: uncuffed (age/4)+4, cuffed (age/4)+3.5; depth = ETT×3 cm → confirm ETCO₂ + chest rise + bilateral air entry → secure. ⚠️ Have suction & backup airway ready.', 'Pediatric rapid sequence intubation RSI PICU', 'vKawJUalQkU') },
+            { name: "🧒 PICU · Intraosseous (IO) Access", category: "Training", tags: "intraosseous io access emergency vascular resuscitation picu procedure ez-io",
+              calc: () => procCard('PICU', 'Emergency access when IV fails within 90 s / 2 attempts in shock or arrest.', 'Proximal tibia (2 cm below & medial to tuberosity, flat anteromedial surface); alt distal femur/tibia, prox humerus.', 'Stabilise limb → insert IO needle (drill/manual) perpendicular till “give”/loss of resistance → remove stylet → confirm: stable needle + marrow aspirate + flushes freely → give fluids/drugs under pressure. ⚠️ Avoid fractured/infected bone; remove within 24 h.', 'Intraosseous IO access pediatric', 'PgXN2EVawYQ') },
+            { name: "🧒 PICU · Central Venous Catheter (CVC)", category: "Training", tags: "cvc central venous catheter line femoral internal jugular subclavian picu procedure seldinger",
+              calc: () => procCard('PICU', 'Vasopressors, TPN, CVP monitoring, poor peripheral access, hemodialysis.', 'Femoral (safest in kids), internal jugular, or subclavian — ultrasound-guided preferred.', 'Max sterile barrier → US-guide needle into vein (venous, non-pulsatile dark blood) → Seldinger: guidewire → nick skin → dilator → railroad catheter → aspirate/flush all lumens → secure + dressing. ⚠️ Confirm tip (CXR for IJ/subclavian) & exclude pneumothorax; watch arterial puncture, air embolism.', 'Pediatric central venous catheter insertion ultrasound', 'i1RiJ10z9ag') },
+            { name: "🧒 PICU · Arterial Line Insertion", category: "Training", tags: "arterial line a-line invasive blood pressure abg radial picu procedure monitoring",
+              calc: () => procCard('PICU', 'Continuous invasive BP, frequent ABG in shock / ventilated / titrating inotropes.', 'Radial (commonest; check collateral flow), also posterior tibial / dorsalis pedis / femoral.', 'Position + extend wrist → aseptic → palpate/US pulse → insert 22/24 G cannula at ~30° → flashback → lower angle, advance (± transfix) → connect flushed transducer, zero at mid-axilla → secure. ⚠️ Never inject drugs into an arterial line; watch distal ischemia.', 'Radial arterial line insertion pediatric', 'sZBEQwVcJ7A') },
+            { name: "🧒 PICU · Needle Thoracocentesis (Tension Pneumothorax)", category: "Training", tags: "needle thoracocentesis decompression tension pneumothorax emergency picu procedure",
+              calc: () => procCard('PICU', 'Life-threatening tension pneumothorax (hypotension, absent breath sounds, tracheal shift) — do NOT wait for X-ray.', '2nd ICS mid-clavicular line, OR 4th/5th ICS anterior axillary line (over top of rib).', 'Identify landmark → quick prep → insert large-bore cannula (14–18 G) just above the rib till air rush → remove needle, leave cannula open → immediate rush of air = relief → then place definitive chest tube. ⚠️ Temporising only; converts tension → simple pneumothorax.', 'Needle thoracocentesis tension pneumothorax decompression', 'YzVXGvcL8PQ') },
+            { name: "🧒 PICU · Urinary (Foley) Catheterization", category: "Training", tags: "foley urinary catheter bladder catheterization urine output picu procedure",
+              calc: () => procCard('PICU', 'Strict urine-output monitoring in shock/critical illness, acute retention, unstable child.', 'Urethra; size Fr ≈ (age/2)+8, or 5–6 Fr infant, 8 Fr toddler, 10–12 Fr older child.', 'Aseptic → clean meatus → lubricate catheter → insert gently till urine flows, then a little further → inflate balloon with sterile water → connect closed drainage → secure. ⚠️ Never force; inflate balloon only after urine seen; smallest suitable size.', 'Pediatric urinary catheter foley insertion', '0SDy0j6X0WE') },
+            { name: "🧒 PICU · Nasogastric Tube Insertion", category: "Training", tags: "ng tube nasogastric ryles decompression feeding picu procedure child",
+              calc: () => procCard('PICU', 'Gastric decompression (ileus, obstruction), gavage feeding, gastric lavage.', 'Measure NEX: nose → earlobe → xiphisternum.', 'Choose size (child 8–10 Fr, older 12–14 Fr) → lubricate → pass along floor of nose, ask to swallow → advance to measured length → confirm: aspirate pH <5.5 (X-ray if critical/uncertain) → secure. ⚠️ Stop if coughing/cyanosis (airway); confirm before feeding.', 'Nasogastric tube insertion child', 'fwvVdw3tzg0') },
+            { name: "🧒 PICU · Defibrillation / Cardioversion", category: "Training", tags: "defibrillation cardioversion vf pulseless vt svt shock picu procedure pals energy",
+              calc: () => procCard('PICU', 'Defib: VF / pulseless VT. Synchronized cardioversion: unstable SVT/VT with pulse.', 'Pediatric pads/paddles (<10 kg or <1 y), anterolateral placement.', 'Defibrillation (unsync): 2 J/kg → 4 J/kg → up to 10 J/kg, CPR between shocks. Cardioversion (SYNC on): 0.5–1 J/kg → 2 J/kg; sedate if conscious. Ensure “all clear”, O2 away. ⚠️ Sync mode must be re-selected after each synchronized shock.', 'Pediatric defibrillation cardioversion PALS', '8MZuMlzMyRg') },
+            { name: "🧒 PICU · Bag-Valve-Mask Ventilation", category: "Training", tags: "bvm bag valve mask ventilation ambu resuscitation picu procedure apnea",
+              calc: () => procCard('PICU', 'Apnea, inadequate breathing, pre-oxygenation before intubation.', 'Correct mask size (bridge of nose to cleft of chin), E-C clamp grip.', 'Open airway (head-tilt/chin-lift or jaw-thrust) → tight seal, E-C hand → squeeze bag to visible chest rise only → rate ~20–30/min (infant), 12–20 (child), 1 breath q2–3 s → attach O2 + reservoir → add PEEP/airway adjunct if needed. ⚠️ Avoid over-ventilation & gastric insufflation.', 'Pediatric bag valve mask ventilation', 'n633414uaP8') },
+            { name: "🧒 PICU · Nebulization Technique", category: "Training", tags: "nebulization nebulizer salbutamol asthma bronchiolitis picu procedure inhalation",
+              calc: () => procCard('PICU', 'Acute asthma/wheeze, bronchiolitis, croup (adrenaline), delivering inhaled drugs.', 'Tight-fitting mask (or mouthpiece in older child), upright position.', 'Put drug + NS (fill 4–5 ml) in chamber → O2/air flow 6–8 L/min till misting → tidal breathing ~5–10 min till chamber empty → back-to-back for severe asthma → reassess RR/SpO2/air entry. ⚠️ Use O2 as driver in hypoxia; watch tachycardia/tremor with salbutamol.', 'Nebulizer technique children asthma', '9ezTnY00rI4') },
+            { name: "🧒 PICU · Pericardiocentesis", category: "Training", tags: "pericardiocentesis cardiac tamponade effusion emergency picu procedure subxiphoid",
+              calc: () => procCard('PICU', 'Cardiac tamponade (hypotension, muffled sounds, distended neck veins, pulsus paradoxus).', 'Subxiphoid, aiming toward left shoulder; ultrasound / ECG guidance strongly preferred.', 'Aseptic → needle 45° below xiphoid toward left shoulder, aspirate as you advance → fluid/blood return = pericardial space → US-confirm → thread pigtail catheter over wire for ongoing drainage → monitor ECG. ⚠️ Emergency, high-risk (coronary/ventricle injury) — US guidance whenever possible.', 'Pericardiocentesis ultrasound guided technique', 'T6Z9DvPPmXg') },
+            { name: "🧒 PICU · Abdominal Paracentesis", category: "Training", tags: "paracentesis ascitic tap ascites abdominal picu procedure diagnostic therapeutic",
+              calc: () => procCard('PICU', 'Diagnostic (SBP, new ascites) or therapeutic (tense ascites, respiratory compromise).', 'Left iliac fossa (lateral to rectus), or infra-umbilical midline; US-guided, avoid scars/vessels/bladder.', 'Empty bladder → aseptic + LA → Z-track insert needle/cannula till peritoneal fluid → send fluid (cell count, culture, protein/albumin) → therapeutic: drain slowly, give albumin for large-volume taps → remove & dress. ⚠️ Avoid bowel/vessels; watch hypotension after large drains.', 'Abdominal paracentesis ascitic tap technique', 'dx1t0wVhOb0') },
+
+            // ===== BASIC BEDSIDE PROCEDURES =====
+            { name: "🧒 PICU · Venipuncture / Blood Sampling", category: "Training", tags: "venipuncture blood draw sampling phlebotomy vein basic procedure picu",
+              calc: () => procCard('PICU', 'Blood for lab tests, cultures.', 'Dorsum of hand, antecubital, or saphenous; tourniquet 5–7 cm above.', 'Clean with spirit → tourniquet → tense skin, insert needle/butterfly ~15–30° bevel up → flashback → collect (cultures first, avoid squeezing) → release tourniquet → withdraw + press. ⚠️ Smallest suitable needle in kids; heel-prick for tiny neonates.', 'Venipuncture blood sampling technique', 'LU81WXNeW7s') },
+            { name: "🧒 PICU · IM & SC Injection", category: "Training", tags: "intramuscular subcutaneous injection im sc vaccine basic procedure technique",
+              calc: () => procCard('PICU', 'Vaccines, drugs (IM = fast, SC = slow absorption).', 'IM: vastus lateralis (infant), deltoid (older). SC: outer upper arm / thigh, pinch skin.', 'Clean → IM: stretch skin, 90° dart, aspirate not needed for vaccines, inject → SC: pinch fold, 45° (or 90° with short needle), inject slowly → withdraw + press. Max IM volume: infant 0.5–1 ml, child 1–2 ml.', 'Intramuscular subcutaneous injection technique', 'mHeETNVXeoY') },
+            { name: "🧒 PICU · Arterial Blood Gas (ABG) Sampling", category: "Training", tags: "abg arterial blood gas radial puncture sampling basic procedure",
+              calc: () => procCard('PICU', 'pH, pCO2, pO2, HCO3, lactate in respiratory/metabolic illness.', 'Radial artery (do Allen test first); alt brachial/femoral. Wrist extended ~30°.', 'Heparinised syringe → palpate pulsatile point → insert 45° (radial) bevel up toward pulse → pulsatile self-filling flashback → collect ~0.5–1 ml → withdraw + firm press ≥5 min → expel air, cap, mix, analyse quickly. ⚠️ Never inject; press longer if coagulopathy.', 'Arterial blood gas ABG radial sampling', 'MSdama_0LXc') },
+            { name: "🍼 NICU · Oxygen Delivery (Prongs / Mask / Hood)", category: "Training", tags: "oxygen delivery nasal prongs cannula face mask hood o2 basic procedure neonate",
+              calc: () => procCard('NICU', 'Hypoxia / respiratory distress — titrate to target SpO2.', 'Nasal prongs, face mask, or oxygen hood (neonate).', 'Prongs: 0.5–2 L/min (~24–40% FiO2) · Simple mask: 6–10 L/min (~40–60%) · Non-rebreather: 10–15 L/min (~60–95%) · Hood: 5–10 L/min, humidified. Titrate to SpO2 (preterm 90–95%, avoid hyperoxia). Humidify, secure, watch nasal/skin injury.', 'Oxygen delivery nasal cannula mask technique', '-8FYMm6rmVg') },
+            { name: "🍼 NICU · Airway Suctioning (ETT / Oral)", category: "Training", tags: "suctioning endotracheal ett oral nasal airway secretions basic procedure suction",
+              calc: () => procCard('NICU', 'Clear secretions blocking airway / ETT (only when needed, not routine).', 'Oral/nasopharyngeal or via ETT. Catheter size ≈ 2× ETT size (Fr).', 'Pre-oxygenate → sterile catheter, insert WITHOUT suction to just beyond ETT tip → apply suction while withdrawing with rotation, ≤5–10 s → re-oxygenate → repeat if needed. Suction pressure: neonate 80–100, child 100–120 mmHg. ⚠️ Watch brady/desat; don’t over-insert.', 'Endotracheal tube suctioning technique', 'IftM_1TNaWE') },
+
             // VACCINES
             {
                 name: "Rabies Vaccine & RIG (Dog Bite)",
@@ -2396,8 +2668,8 @@
                         <b>MgSO4 50%:</b> 500 mg/ml; dilute before use<br>
                         <b>Amiodarone:</b> 50 mg/ml; dilute in D5W only, over 20-60 min<br>
                         <b>Adrenaline:</b> 1 mg/ml (1:1000) · arrest 0.1 mg/ml (1:10000); infusion (wt×0.3 mg) in 50 ml<br>
-                        <b>Noradrenaline:</b> 1 mg/ml (2 mg/2 ml); infusion (wt×0.3 mg) in 50 ml NS/D5<br>
-                        <b>Dopamine / Dobutamine:</b> 50 mg/ml; (wt×30 mg) in 50 ml = 1 ml/hr → 10 mcg/kg/min<br>
+                        <b>Noradrenaline:</b> 2 mg/ml (4 mg/2 ml); infusion (wt×0.3 mg) in 50 ml NS/D5<br>
+                        <b>Dopamine</b> 40 mg/ml · <b>Dobutamine</b> 12.5–50 mg/ml; (wt×30 mg) in 50 ml = 1 ml/hr → 10 mcg/kg/min (range 2–20)<br>
                         <b>Milrinone:</b> 1 mg/ml (10 mg/10 ml); (wt×1.5 mg) in 50 ml D5W<br>
                         <b>Mucomix (NAC):</b> 200 mg/ml; dilute in D5W, over 1 hr<br>
                         <span style="color:var(--text-muted);">Ready: Atropine (0.6 mg/ml) · Adenosine (3 mg/ml) · Lidocaine (20 mg/ml) · Lasix (10 mg/ml) · Dexona (4 mg/ml) · Vitamin K (10 mg/ml) · Trenexa (100 mg/ml) · Avil (22.75 mg/ml) · Clexane (100 mg/ml) · Sildenafil (0.8 mg/ml) · Octreotide (100 mcg/ml) · Glycopyrrolate (0.2 mg/ml) · Robivax (100 mg/ml) · Febrinil (150 mg/ml).</span>
@@ -2465,7 +2737,7 @@
 
                     <div class="badge" style="background:#fed7d7; color:#9b2c2c;">EMERGENCY / CARDIAC (amps)</div>
                     <div class="note" style="color:var(--text-main); line-height:1.7;">
-                        <b>Adrenaline:</b> 1 mg/ml (1 ml) · <b>Noradrenaline:</b> 2 mg/2 ml · <b>Atropine:</b> 0.6 mg/ml · <b>Adenosine:</b> 6 mg/2 ml<br>
+                        <b>Adrenaline:</b> 1 mg/ml (1 ml) · <b>Noradrenaline:</b> 4 mg/2 ml (2 mg/ml) · <b>Atropine:</b> 0.6 mg/ml · <b>Adenosine:</b> 6 mg/2 ml<br>
                         <b>Ca Gluconate 10%:</b> 1 g/10 ml · <b>NaHCO3:</b> 7.5% 25 ml · 8.4% 10 ml<br>
                         <b>Dopamine:</b> 200 mg/5 ml · <b>Dobutamine:</b> 250 mg/5 ml · <b>Milrinone:</b> 10 mg/10 ml<br>
                         <b>MgSO4:</b> 50% 2 ml (1 g) · <b>Amiodarone:</b> 150 mg/3 ml · <b>Lignocaine 2%:</b> 30 ml vial<br>
@@ -3213,12 +3485,15 @@
                 category: "Emergency",
                 tags: "adrenaline epinephrine arrest anaphylaxis inotrope cpr",
                 calc: (wt) => `
-                    <div class="badge">INFUSION (0.1 mcg/kg/min)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.3).toFixed(2)} mg in 50ml NS/D5 @ 1 ml/hr</div>
+                    <div class="badge">INFUSION · 0.05–1 mcg/kg/min (titrate)</div><br>
+                    <div class="highlight">Prepare: <b>${(wt*0.3).toFixed(2)} mg</b> (= ${(wt*0.3).toFixed(2)} ml of 1:1000) in 50 ml NS/D5</div>
+                    <div class="highlight"><b>1 ml/hr = 0.1 mcg/kg/min</b> → run 0.5–10 ml/hr for 0.05–1 mcg/kg/min</div>
+                    <div class="note" style="background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">⚠️ <b>0.3 mg/kg is the amount to ADD to the 50 ml syringe — NOT the dose, NOT a bolus.</b> Infusion dose = 0.05–1 mcg/kg/min. Central line preferred.</div>
                     <hr>
-                    <div class="badge">STAT DOSES</div><br>
-                    <div class="highlight">Arrest IV (1:10,000): ${(wt * 0.1).toFixed(2)} ml Stat</div>
-                    <div class="highlight">Anaphylaxis SC (1:1,000): ${(wt * 0.01).toFixed(2)} ml q15 min</div>
+                    <div class="badge">STAT DOSES (bolus)</div><br>
+                    <div class="highlight">Arrest IV (1:10,000 = 0.1 mg/ml): ${(wt * 0.1).toFixed(2)} ml = 0.01 mg/kg Stat</div>
+                    <div class="highlight">Anaphylaxis IM (1:1,000 = 1 mg/ml): ${(wt * 0.01).toFixed(2)} ml = 0.01 mg/kg (max 0.5 mg) q5–15 min</div>
+                    <div class="note">Anaphylaxis: IM anterolateral thigh (not SC). Max IM 0.5 mg/dose.</div>
                 `
             },
             {
@@ -3226,9 +3501,11 @@
                 category: "Emergency",
                 tags: "noradrenaline norad norepinephrine vasopressor inotrope shock",
                 calc: (wt) => `
-                    <div class="badge">INFUSION (0.1 mcg/kg/min)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.3).toFixed(2)} mg in 50ml NS/D5 @ 1 ml/hr</div>
-                    <div class="note">Strength: 2 mg/2 ml (1 mg/ml) ampoule. Vasopressor of choice for septic / distributive (warm) shock. Titrate to MAP. Central line preferred (extravasation risk).</div>
+                    <div class="badge">INFUSION · 0.05–2 mcg/kg/min (titrate to MAP)</div><br>
+                    <div class="highlight">Prepare: <b>${(wt*0.3).toFixed(2)} mg</b> (= ${(wt*0.15).toFixed(2)} ml of 2 mg/ml) in 50 ml NS/D5</div>
+                    <div class="highlight"><b>1 ml/hr = 0.1 mcg/kg/min</b> → run 0.5–20 ml/hr for 0.05–2 mcg/kg/min</div>
+                    <div class="note" style="background:#fed7d7; color:#9b2c2c; border-color:#feb2b2;">⚠️ <b>0.3 mg/kg is the amount to ADD to the 50 ml syringe — NOT the dose, NOT a bolus.</b> Actual dose = 0.05–2 mcg/kg/min (infusion). Never give as IV push.</div>
+                    <div class="note">Strength: 4 mg/2 ml (2 mg/ml) ampoule. Vasopressor of choice for septic / distributive (warm) shock. Central line preferred (extravasation risk).</div>
                 `
             },
             {
@@ -3279,9 +3556,10 @@
                 category: "Emergency",
                 tags: "dopamine inotrope",
                 calc: (wt) => `
-                    <div class="badge">INOTROPE (10 mcg/kg/min)</div><br>
-                    <div class="highlight">Mix ${((wt * 30) / 50).toFixed(2)} ml + ${(50 - ((wt * 30) / 50)).toFixed(2)} ml NS/D5 @ 1 ml/hr</div>
-                    <div class="note">Strength: 50 mg/ml (Wt × 30 mg in 50ml = 1 ml/hr gives ~10 mcg/kg/min).</div>
+                    <div class="badge">INOTROPE · 2–20 mcg/kg/min</div><br>
+                    <div class="highlight">Prepare: <b>${(wt*30).toFixed(0)} mg</b> in 50 ml NS/D5</div>
+                    <div class="highlight"><b>1 ml/hr = 10 mcg/kg/min</b> → run 0.2–2 ml/hr for 2–20 mcg/kg/min</div>
+                    <div class="note">Strength: 40 mg/ml (200 mg/5 ml) → draw ${(wt*30/40).toFixed(2)} ml. Renal 2–5 · cardiac 5–10 · vasopressor &gt;10. Full rate table in 💉 Infusion Calc.</div>
                 `
             },
             {
@@ -3289,9 +3567,10 @@
                 category: "Emergency",
                 tags: "dobutamine inotrope",
                 calc: (wt) => `
-                    <div class="badge">INOTROPE (10 mcg/kg/min)</div><br>
-                    <div class="highlight">Mix ${((wt * 30) / 50).toFixed(2)} ml + ${(50 - ((wt * 30) / 50)).toFixed(2)} ml NS/D5 @ 1 ml/hr</div>
-                    <div class="note">Strength: 50 mg/ml (Wt × 30 mg in 50ml = 1 ml/hr gives ~10 mcg/kg/min).</div>
+                    <div class="badge">INOTROPE · 2–20 mcg/kg/min</div><br>
+                    <div class="highlight">Prepare: <b>${(wt*30).toFixed(0)} mg</b> in 50 ml NS/D5</div>
+                    <div class="highlight"><b>1 ml/hr = 10 mcg/kg/min</b> → run 0.2–2 ml/hr for 2–20 mcg/kg/min</div>
+                    <div class="note">Strength varies: 50 mg/ml (250 mg/5 ml) or 12.5 mg/ml (250 mg/20 ml) — draw per your vial. Pure inotrope. Full rate table in 💉 Infusion Calc.</div>
                 `
             },
             {
@@ -3299,20 +3578,17 @@
                 category: "Emergency",
                 tags: "milrinone inotrope",
                 calc: (wt) => `
-                    <div class="badge">INOTROPE (0.5 mcg/kg/min)</div><br>
-                    <div class="highlight">Mix ${(wt * 1.5).toFixed(2)} mg in 50ml D5W @ 1ml/hr</div>
-                    <div class="note">Strength: 1 mg/ml (10 mg in 10 ml ampoule).</div>
+                    <div class="badge">INOTROPE · 0.25–0.75 mcg/kg/min</div><br>
+                    <div class="highlight">Prepare: <b>${(wt*1.5).toFixed(2)} mg</b> (= ${(wt*1.5).toFixed(2)} ml of 1 mg/ml) in 50 ml D5W</div>
+                    <div class="highlight"><b>1 ml/hr = 0.5 mcg/kg/min</b> → run 0.5–1.5 ml/hr for 0.25–0.75 mcg/kg/min</div>
+                    <div class="note">Strength: 1 mg/ml (10 mg/10 ml). Optional load 50 mcg/kg over 15 min. Full rate table in 💉 Infusion Calc.</div>
                 `
             },
             {
                 name: "Inj Magnesium Sulphate (MgSO4)",
                 category: "Emergency",
-                tags: "mgso4",
-                calc: (wt) => `
-                    <div class="badge">ANTICONVULSANT (25-50 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*50/500).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 500 mg/ml (50%).</div>
-                `
+                tags: "mgso4 magnesium sulphate asthma seizure eclampsia",
+                calc: (wt) => injPrepCard("Inj Magnesium Sulphate (MgSO4)", "ANTICONVULSANT / ASTHMA · MgSO4 (25–50 mg/kg/dose)")
             },
             {
                 name: "Inj Amiodarone",
@@ -3455,11 +3731,17 @@
                 name: "Inj Vitamin K (Kenadion)",
                 category: "Emergency",
                 tags: "kenadion bleeding",
-                calc: (wt) => `
+                calc: (wt) => {
+                    var dose = wt < 5 ? 0.5 : 1;   // mg
+                    return `
                     <div class="badge">COAGULANT</div><br>
-                    <div class="highlight">Dose: 1 mg IM (Neonate <5kg: 0.5 mg)</div>
-                    <div class="note">Strength: 10 mg/ml. Give ${(wt < 5 ? 0.05 : 0.1)} ml.</div>
-                `
+                    <div class="highlight">Dose: ${dose} mg IM (Neonate &lt;5 kg / preterm: 0.5 mg · Term: 1 mg)</div>
+                    <div class="note" style="background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;"><b>Select concentration:</b><br>
+                    • <b>Neonatal 2 mg/ml</b> (1 mg / 0.5 ml amp) → give <b>${(dose/2).toFixed(2)} ml</b> ✅ easier to measure<br>
+                    • <b>Adult 10 mg/ml</b> (10 mg / 1 ml amp) → give <b>${(dose/10).toFixed(2)} ml</b></div>
+                    <div class="note">Birth prophylaxis: 1 mg IM (0.5 mg if &lt;1 kg). Prefer the 2 mg/ml neonatal amp for accuracy.</div>
+                `;
+                }
             },
             {
                 name: "Inj Febrinil / Paracetamol",
@@ -3507,9 +3789,9 @@
                 category: "Emergency",
                 tags: "avil allergy",
                 calc: (wt) => `
-                    <div class="badge">ANTIHISTAMINE (0.5-1 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt * 0.5).toFixed(2)} mg/day</div>
-                    <div class="note">Strength: 22.75 mg/ml. Volume: 0.25 to 2 ml IV Stat.</div>
+                    <div class="badge">ANTIHISTAMINE (0.5-1 mg/kg/dose)</div><br>
+                    <div class="highlight">Dose: ${(wt*0.5).toFixed(1)}–${(wt*1).toFixed(1)} mg = <b>${(wt*0.5/22.75).toFixed(2)}–${(wt*1/22.75).toFixed(2)} ml</b></div>
+                    <div class="note">Strength: 22.75 mg/ml (2 ml amp = 45.5 mg). IV / deep IM.</div>
                 `
             },
             {
@@ -3597,18 +3879,7 @@
                 name: "Inj Piperacillin & Tazobactam (Piptaz)",
                 category: "Antibiotic",
                 tags: "piperacillin tazobactam pipzo piptaz",
-                calc: (wt) => {
-                    let mg = wt * 100;
-                    let vial = mg <= 1125 ? "1.125g" : (mg <= 2250 ? "2.25g" : "4.5g");
-                    let dil = mg <= 1125 ? 10 : (mg <= 2250 ? 20 : 40);
-                    let vol = (mg / 112.5).toFixed(2);
-                    return `
-                        <div class="badge">ANTIBIOTIC (90-100 mg/kg/dose)</div><br>
-                        <div class="highlight">Dose: ${mg.toFixed(1)} mg TDS</div>
-                        <div class="highlight">Vol: ${vol} ml TDS</div>
-                        <div class="note">Auto-selected <b>${vial}</b> vial. Dilute in ${dil}ml SW (makes 112.5 mg/ml).</div>
-                    `;
-                }
+                calc: (wt) => injPrepCard("Inj Piperacillin & Tazobactam (Piptaz)", "ANTIBIOTIC · Pip-Tazo (90–100 mg/kg/dose)")
             },
             {
                 name: "Inj Septran (Cotrimoxazole)",
@@ -3625,56 +3896,31 @@
                 name: "Inj Amikacin",
                 category: "Antibiotic",
                 tags: "amikacin mikacin",
-                calc: (wt) => {
-                    let mg = wt * 15;
-                    let strength = mg <= 100 ? 100 : (mg <= 250 ? 250 : 500);
-                    let res = amikacinDose(wt, strength);
-                    return `
-                        <div class="badge">ANTIBIOTIC (15 mg/kg/day)</div><br>
-                        <div class="highlight">Dose: ${res.mg} mg OD | Vol: ${res.ml} ml OD</div>
-                        <div class="note">Auto-selected <b>${strength}mg/2ml</b> vial.</div>
-                    `;
-                }
+                calc: (wt) => injPrepCard("Inj Amikacin", "ANTIBIOTIC · Amikacin (15 mg/kg/day)")
             },
             {
                 name: "Inj Ceftriaxone (Monocef)",
                 category: "Antibiotic",
                 tags: "monocef",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50-75 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 100 mg/ml (1g/10ml).</div>
-                `
+                calc: (wt) => injPrepCard("Inj Ceftriaxone (Monocef)", "ANTIBIOTIC · Ceftriaxone (50 mg/kg/dose)")
             },
             {
                 name: "Inj Cefotaxime (Taxim)",
                 category: "Antibiotic",
                 tags: "taxim",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg TDS | Vol: ${(wt*0.5).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 100 mg/ml. Safe in Neonates.</div>
-                `
+                calc: (wt) => injPrepCard("Inj Cefotaxime (Taxim)", "ANTIBIOTIC · Cefotaxime (50 mg/kg/dose)")
             },
             {
                 name: "Inj Meropenem",
                 category: "Antibiotic",
                 tags: "meropenem",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (20-40 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*20).toFixed(1)} mg TDS | Vol: ${(wt*20/50).toFixed(2)} ml TDS</div>
-                    <div class="note">Dilute in ${(wt*20/10).toFixed(1)} ml NS (makes 10mg/ml), over 30 min.</div>
-                `
+                calc: (wt) => injPrepCard("Inj Meropenem", "ANTIBIOTIC · Meropenem (20–40 mg/kg/dose)")
             },
             {
                 name: "Inj Vancomycin",
                 category: "Antibiotic",
                 tags: "vancomycin",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS | Vol: ${(wt*15/50).toFixed(2)} ml TDS</div>
-                    <div class="note" style="color:#c53030;">⚠️ Must give SLOW IV over 60 mins. Dilute to < 5mg/ml (Add ${(wt*15/5).toFixed(1)} ml NS).</div>
-                `
+                calc: (wt) => injPrepCard("Inj Vancomycin", "ANTIBIOTIC · Vancomycin (15 mg/kg/dose)")
             },
             {
                 name: "Inj Levofloxacin (Loxof)",
@@ -3720,11 +3966,7 @@
                 name: "Inj Cefoperazone & Sulbactam (Zostum)",
                 category: "Antibiotic",
                 tags: "zostum cefoperazone",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD/TDS | Vol: ${(wt*0.5).toFixed(2)} ml BD/TDS</div>
-                    <div class="note">Strength: 100 mg/ml.</div>
-                `
+                calc: (wt) => injPrepCard("Inj Cefoperazone & Sulbactam (Zostum)", "ANTIBIOTIC · Cefoperazone-Sulbactam (50 mg/kg/dose)")
             },
             {
                 name: "Inj Fluconazole (Forcan)",
@@ -3751,21 +3993,13 @@
                 name: "Inj Acyclovir (Acivir)",
                 category: "Antibiotic",
                 tags: "acyclovir acivir antiviral",
-                calc: (wt) => `
-                    <div class="badge">ANTIVIRAL (10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*10/25).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 25 mg/ml. Dilute in 20ml NS.</div>
-                `
+                calc: (wt) => injPrepCard("Inj Acyclovir (Acivir)", "ANTIVIRAL · Acyclovir (10 mg/kg/dose)")
             },
             {
                 name: "Inj Artesunate (Falcigo)",
                 category: "Antibiotic",
                 tags: "falcigo artesunate malaria",
-                calc: (wt) => `
-                    <div class="badge">ANTIMALARIAL (3 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*3).toFixed(1)} mg | Vol: ${(wt*3/10).toFixed(2)} ml</div>
-                    <div class="note">@ 0, 12, 24 hrs then OD. Strength: 10 mg/ml (60mg+1ml bicarb+5ml NS).</div>
-                `
+                calc: (wt) => injPrepCard("Inj Artesunate (Falcigo)", "ANTIMALARIAL · Artesunate (3 mg/kg/dose)")
             },
             {
                 name: "Inj Colistin (Xylistin)",
@@ -3792,31 +4026,19 @@
                 name: "Inj Cefepime & Tazobactam (Magnex / Magnova)",
                 category: "Antibiotic",
                 tags: "magnex magnova cefepime",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg BD | Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 100 mg/ml (1g in 10ml).</div>
-                `
+                calc: (wt) => injPrepCard("Inj Cefepime & Tazobactam (Magnex / Magnova)", "ANTIBIOTIC · Cefepime-Tazobactam (50 mg/kg/dose)")
             },
             {
                 name: "Inj Linezolid (Linospan)",
                 category: "Antibiotic",
                 tags: "linezolid linospan",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS | Vol: ${(wt*5).toFixed(1)} ml TDS</div>
-                    <div class="note">Strength: 2 mg/ml.</div>
-                `
+                calc: (wt) => injPrepCard("Inj Linezolid (Linospan)", "ANTIBIOTIC · Linezolid (10 mg/kg/dose)")
             },
             {
                 name: "Inj Gentamycin",
                 category: "Antibiotic",
                 tags: "gentamicin",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (5-7.5 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg OD | Vol: ${(wt*5/40).toFixed(2)} ml OD</div>
-                    <div class="note">Strength: 40 mg/ml.</div>
-                `
+                calc: (wt) => injPrepCard("Inj Gentamycin", "ANTIBIOTIC · Gentamicin (5–7.5 mg/kg/day)")
             },
             {
                 name: "Inj Ofloxacin",
@@ -3842,31 +4064,19 @@
                 name: "Inj Ampiclox (Ampicillin+Cloxacillin)",
                 category: "Antibiotic",
                 tags: "ampiclox",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (50 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*50).toFixed(1)} mg QDS | Vol: ${(wt*0.5).toFixed(2)} ml QDS</div>
-                    <div class="note">Strength: 100 mg/ml.</div>
-                `
+                calc: (wt) => injPrepCard("Inj Ampiclox (Ampicillin+Cloxacillin)", "ANTIBIOTIC · Ampiclox (50 mg/kg/dose)")
             },
             {
                 name: "Inj Amoxycillin - Clavulanic Acid (Augmentin)",
                 category: "Antibiotic",
                 tags: "augmentin amoxycillin",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (30 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*30).toFixed(1)} mg TDS | Vol: ${(wt*0.5).toFixed(2)} ml TDS</div>
-                    <div class="note">Strength: 60 mg/ml (1.2g in 20ml).</div>
-                `
+                calc: (wt) => injPrepCard("Inj Amoxycillin - Clavulanic Acid (Augmentin)", "ANTIBIOTIC · Amoxy-Clav (30 mg/kg/dose)")
             },
             {
                 name: "Inj Netilmicin Sulphate",
                 category: "Antibiotic",
                 tags: "netilmicin",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (5-7.5 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg OD | Vol: ${(wt*5/25).toFixed(2)} ml OD</div>
-                    <div class="note">Strength: 25 mg/ml or 50 mg/ml (Check vial).</div>
-                `
+                calc: (wt) => injPrepCard("Inj Netilmicin Sulphate", "ANTIBIOTIC · Netilmicin (5–7.5 mg/kg/day)")
             },
 
             // NEURO
@@ -3875,6 +4085,7 @@
                 category: "Neuro",
                 tags: "midaz sedative seizure infusion midazolam",
                 calc: (wt) => {
+                    if(!(wt>0)) return '<div class="badge">SEDATIVE — BOLUS (0.1-0.2 mg/kg)</div><br><div class="note">Enter weight for bolus dose &amp; infusion recipe.</div>';
                     function prep(vol){
                         var idealMg = 0.06*wt*vol;                 // gives 1 ml/hr = 1 mcg/kg/min (rule of 6)
                         var mg = Math.min(idealMg, vol-5);          // cap so >=5 ml NS remains (1 mg/ml → mg = ml)
@@ -3997,23 +4208,13 @@
                 name: "Syp Zifi (Cefixime)",
                 category: "Syrup",
                 tags: "zifi cefixime antibiotic",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (8 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} mg BD</div>
-                    <div class="highlight">Vol (50mg/5ml): ${(wt*4*5/50).toFixed(2)} ml BD</div>
-                    <div class="highlight">Vol (100mg/5ml): ${(wt*4*5/100).toFixed(2)} ml BD</div>
-                `
+                calc: (wt) => oralPrepCard("Syp Zifi (Cefixime)", "ANTIBIOTIC · Cefixime (8 mg/kg/day)")
             },
             {
                 name: "Syp Opox (Cefpodoxime)",
                 category: "Syrup",
                 tags: "opox cefpodoxime antibiotic",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (10 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg BD</div>
-                    <div class="highlight">Vol (50mg/5ml): ${(wt*5*5/50).toFixed(2)} ml BD</div>
-                    <div class="highlight">Vol (100mg/5ml): ${(wt*5*5/100).toFixed(2)} ml BD</div>
-                `
+                calc: (wt) => oralPrepCard("Syp Opox (Cefpodoxime)", "ANTIBIOTIC · Cefpodoxime (10 mg/kg/day)")
             },
             {
                 name: "Syp Respicure LS / Ascoril LS",
@@ -4118,22 +4319,13 @@
                 name: "Syp Calpol / Sumol (Paracetamol)",
                 category: "Syrup",
                 tags: "calpol sumol pcm fever",
-                calc: (wt) => `
-                    <div class="badge">ANALGESIC (10-15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS/QDS</div>
-                    <div class="highlight">Vol (120mg/5ml): ${(wt*15*5/120).toFixed(2)} ml</div>
-                    <div class="highlight">Vol (250mg/5ml): ${(wt*15*5/250).toFixed(2)} ml</div>
-                `
+                calc: (wt) => oralPrepCard("Syp Calpol / Sumol (Paracetamol)", "ANALGESIC · Paracetamol (10–15 mg/kg/dose)")
             },
             {
                 name: "Syp Ibuprofen (Ibugesic)",
                 category: "Syrup",
                 tags: "ibuprofen fever pain",
-                calc: (wt) => `
-                    <div class="badge">NSAID (5-10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS</div>
-                    <div class="highlight">Vol (100mg/5ml): ${(wt*10*5/100).toFixed(2)} ml TDS</div>
-                `
+                calc: (wt) => oralPrepCard("Syp Ibuprofen (Ibugesic)", "NSAID · Ibuprofen (5–10 mg/kg/dose)")
             },
             {
                 name: "Syp Ibugesic PLUS",
@@ -4217,11 +4409,7 @@
                 name: "Syp Claribid (Clarithromycin)",
                 category: "Syrup",
                 tags: "claribid clarithromycin",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (7.5 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*7.5).toFixed(1)} mg BD | Vol: ${(wt*7.5*5/125).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 125 mg/5 ml.</div>
-                `
+                calc: (wt) => oralPrepCard("Syp Claribid (Clarithromycin)", "ANTIBIOTIC · Clarithromycin (7.5 mg/kg/dose BD)")
             },
             {
                 name: "Syp Calcimax-P",
@@ -4266,35 +4454,19 @@
                 name: "Syp Azithromycin (Azee / Azithral)",
                 category: "Syrup",
                 tags: "azithromycin azee azithral antibiotic macrolide",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (10 mg/kg/day OD ×3-5d)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(0)} mg OD</div>
-                    <div class="highlight">Vol (200mg/5ml): ${(wt*10*5/200).toFixed(2)} ml OD</div>
-                    <div class="note">Strength: 200 mg/5 ml (=40 mg/ml). (IAP)</div>
-                `
+                calc: (wt) => oralPrepCard("Syp Azithromycin (Azee / Azithral)", "ANTIBIOTIC · Azithromycin (10 mg/kg/day OD)")
             },
             {
                 name: "Syp Amoxicillin (Mox)",
                 category: "Syrup",
                 tags: "amoxicillin mox antibiotic",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (15 mg/kg/dose TDS · 25-45/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(0)} mg TDS</div>
-                    <div class="highlight">Vol (125mg/5ml): ${(wt*15*5/125).toFixed(2)} ml</div>
-                    <div class="highlight">Vol (250mg/5ml): ${(wt*15*5/250).toFixed(2)} ml</div>
-                    <div class="note">Strength: 125 or 250 mg/5 ml.</div>
-                `
+                calc: (wt) => oralPrepCard("Syp Amoxicillin (Mox)", "ANTIBIOTIC · Amoxicillin (15 mg/kg/dose TDS)")
             },
             {
                 name: "Syp Cefuroxime (Ceftum / Pulmocef)",
                 category: "Syrup",
                 tags: "cefuroxime ceftum pulmocef antibiotic",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (15 mg/kg/dose BD)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(0)} mg BD</div>
-                    <div class="highlight">Vol (125mg/5ml): ${(wt*15*5/125).toFixed(2)} ml BD</div>
-                    <div class="note">Strength: 125 mg/5 ml (=25 mg/ml).</div>
-                `
+                calc: (wt) => oralPrepCard("Syp Cefuroxime (Ceftum / Pulmocef)", "ANTIBIOTIC · Cefuroxime (15 mg/kg/dose BD)")
             },
             {
                 name: "Syp Cetirizine (Alerid / Cetzine)",
@@ -4399,12 +4571,7 @@
                 name: "Drop Zifi (Cefixime)",
                 category: "Drops",
                 tags: "zifi cefixime drop antibiotic",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (8 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} mg BD</div>
-                    <div class="highlight">Vol (25mg/ml): ${(wt*4/25).toFixed(2)} ml BD</div>
-                    <div class="highlight">Vol (50mg/ml): ${(wt*4/50).toFixed(2)} ml BD</div>
-                `
+                calc: (wt) => oralPrepCard("Drop Zifi (Cefixime)", "ANTIBIOTIC · Cefixime drops (8 mg/kg/day)")
             },
             {
                 name: "Drop Respicure LS",
@@ -4469,11 +4636,7 @@
                 name: "Sumol / Calpol Drops",
                 category: "Drops",
                 tags: "sumol calpol pcm drops fever",
-                calc: (wt) => `
-                    <div class="badge">ANALGESIC (15 mg/kg)</div><br>
-                    <div class="highlight">Give: ${(wt*3).toFixed(1)} drops TDS</div>
-                    <div class="note">Strength: 150 mg/ml (Approx 15 mg per 3 drops). Or give ${(wt*0.1).toFixed(2)} ml.</div>
-                `
+                calc: (wt) => oralPrepCard("Sumol / Calpol Drops", "ANALGESIC · Paracetamol drops (15 mg/kg/dose)")
             },
             {
                 name: "Z & D / Vitanova drops",
@@ -4567,21 +4730,13 @@
                 name: "Tab Calpol / Sumol (Paracetamol)",
                 category: "GI",
                 tags: "calpol sumol paracetamol pcm tab fever",
-                calc: (wt) => `
-                    <div class="badge">ANALGESIC (10-15 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*15).toFixed(1)} mg TDS/SOS</div>
-                    <div class="note">Available as 250mg / 500mg tab.</div>
-                `
+                calc: (wt) => oralPrepCard("Tab Calpol / Sumol (Paracetamol)", "ANALGESIC · Paracetamol tab (10–15 mg/kg/dose)")
             },
             {
                 name: "Tab Ibugesic (Ibuprofen)",
                 category: "GI",
                 tags: "ibugesic ibuprofen tab fever pain",
-                calc: (wt) => `
-                    <div class="badge">NSAID (5-10 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*10).toFixed(1)} mg TDS/SOS</div>
-                    <div class="note">Available as 200mg / 400mg tab.</div>
-                `
+                calc: (wt) => oralPrepCard("Tab Ibugesic (Ibuprofen)", "NSAID · Ibuprofen tab (5–10 mg/kg/dose)")
             },
             {
                 name: "Tab Meftal-P (Mefenamic Acid)",
@@ -4597,31 +4752,19 @@
                 name: "Tab Zifi (Cefixime)",
                 category: "GI",
                 tags: "zifi cefixime tab antibiotic",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (8 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*4).toFixed(1)} mg BD</div>
-                    <div class="note">Available as 100mg / 200mg tab.</div>
-                `
+                calc: (wt) => oralPrepCard("Tab Zifi (Cefixime)", "ANTIBIOTIC · Cefixime tab (8 mg/kg/day)")
             },
             {
                 name: "Tab Opox (Cefpodoxime)",
                 category: "GI",
                 tags: "opox cefpodoxime tab antibiotic",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (10 mg/kg/day)</div><br>
-                    <div class="highlight">Dose: ${(wt*5).toFixed(1)} mg BD</div>
-                    <div class="note">Available as 100mg / 200mg tab.</div>
-                `
+                calc: (wt) => oralPrepCard("Tab Opox (Cefpodoxime)", "ANTIBIOTIC · Cefpodoxime tab (10 mg/kg/day)")
             },
             {
                 name: "Tab Claribid (Clarithromycin)",
                 category: "GI",
                 tags: "claribid clarithromycin tab antibiotic",
-                calc: (wt) => `
-                    <div class="badge">ANTIBIOTIC (7.5 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*7.5).toFixed(1)} mg BD</div>
-                    <div class="note">Available as 250mg / 500mg tab.</div>
-                `
+                calc: (wt) => oralPrepCard("Tab Claribid (Clarithromycin)", "ANTIBIOTIC · Clarithromycin tab (7.5 mg/kg/dose BD)")
             },
             {
                 name: "Tab Septran (Cotrimoxazole)",
@@ -5605,13 +5748,7 @@
           },
 
           { name: "Inj Ceftazidime (Fortum / Tazicef)", category: "Antibiotic", tags: "ceftazidime fortum tazicef pseudomonas melioidosis antibiotic injection",
-            calc: function(w,a,u){
-              if(w<=0) return '<div class="note">Enter weight</div>';
-              let doseMg = w * 50; // 50 mg/kg/dose q8h
-              let ml = doseMg / 100; // 1g/10ml = 100mg/ml
-              return '<div class="result-box">🎯 <b>Dose (50 mg/kg/dose q8h IV):</b> '+doseMg.toFixed(0)+' mg = <b>'+ml.toFixed(1)+' mL</b> IV q8h over 30 min (Total: '+(doseMg*3).toFixed(0)+' mg = '+(ml*3).toFixed(1)+' mL/day)</div>'
-                + '<div class="note">💡 <b>Indication:</b> Pseudomonas aeruginosa sepsis, melioidosis & CF pulmonary exacerbations.<br>📦 <b>Strength & Dilution:</b> 1 g Vial → reconstitute with 10 mL WFI (100 mg / mL)<br>🏷️ <b>Brands:</b> Fortum / Tazicef / Ceftaz.</div>';
-            }
+            calc: (w) => injPrepCard("Inj Ceftazidime (Fortum / Tazicef)", "ANTIBIOTIC · Ceftazidime (50 mg/kg/dose q8h)")
           },
 
           { name: "Inj Ceftazidime-Avibactam (Zavicefta)", category: "Antibiotic", tags: "ceftazidime avibactam zavicefta avicaz cre mdr pseudomonas carbapenemase resistant antibiotic",
@@ -5625,13 +5762,7 @@
           },
 
           { name: "Inj Cefepime (Cepime / Maxipime)", category: "Antibiotic", tags: "cefepime cepime maxipime febrile neutropenia pseudomonas nosocomial antibiotic",
-            calc: function(w,a,u){
-              if(w<=0) return '<div class="note">Enter weight</div>';
-              let doseMg = w * 50; // 50 mg/kg/dose q8h
-              let ml = doseMg / 100; // 1g/10ml = 100mg/ml
-              return '<div class="result-box">🎯 <b>Dose (50 mg/kg/dose q8h IV):</b> '+doseMg.toFixed(0)+' mg = <b>'+ml.toFixed(1)+' mL</b> IV q8h over 30 min</div>'
-                + '<div class="note">💡 <b>Indication:</b> Febrile neutropenia, nosocomial Pseudomonas sepsis & severe pneumonia.<br>📦 <b>Strength & Dilution:</b> 1 g Vial → reconstitute with 10 mL WFI (100 mg / mL)<br>🏷️ <b>Brands:</b> Cepime / Maxipime / Cefepime.</div>';
-            }
+            calc: (w) => injPrepCard("Inj Cefepime (Cepime / Maxipime)", "ANTIBIOTIC · Cefepime (50 mg/kg/dose q8h)")
           },
 
           { name: "Inj Propofol (Fresofol)", category: "Emergency", tags: "propofol fresofol sedation induction rsi status epilepticus picu",
@@ -5734,7 +5865,7 @@
               if(pulseMg > 1000) pulseMg = 1000;
               let pulseMl = pulseMg / 62.5;
               return '<div class="result-box">🎯 <b>Status Asthmaticus (1–2 mg/kg/day):</b> '+asthMg.toFixed(1)+' mg = <b>'+asthMl.toFixed(1)+' mL</b> IV per day (÷ q6h)<br>⚡ <b>PULSE THERAPY (30 mg/kg/day - MIS-C/Lupus):</b> '+pulseMg.toFixed(0)+' mg = <b>'+pulseMl.toFixed(1)+' mL</b> IV in D5W over 2 hours</div>'
-                + '<div class="note">💡 <b>Indication:</b> Status asthmaticus, MIS-C, lupus nephritis pulse therapy & spinal cord injury.<br>📦 <b>Strength & Dilution:</b> 125 mg / 2 mL Vial (62.5 mg / mL) or 500 mg / 8 mL<br>🏷️ <b>Brands:</b> Solu-Medrol / MPS / Depo-Medrol.</div>';
+                + '<div class="note">💡 <b>Indication:</b> Status asthmaticus, MIS-C, lupus nephritis pulse therapy & spinal cord injury.<br>📦 <b>Strength & Dilution:</b> 40 mg Act-O-Vial = 40 mg/mL · 125 mg/2 mL & 500 mg/8 mL & 1 g/16 mL = 62.5 mg/mL (ml above uses 62.5).<br>🏷️ <b>Brands:</b> Solu-Medrol / MPS / Depo-Medrol.</div>';
             }
           },
 
@@ -6102,7 +6233,7 @@
             "Inj Septran (Cotrimoxazole)": "Amp 480mg/5ml (16 mg TMP/ml) · dilute 1ml in 15-25ml D5W",
             "Inj Linezolid (Linospan)": "IV 600mg/300ml bag (ready, 2 mg/ml) · Tab 600mg · Susp 100mg/5ml",
             "Inj Adrenaline (Epinephrine)": "1 mg/ml (1:1000) · arrest 1:10000 (0.1 mg/ml)",
-            "Inj Noradrenaline (Norad)": "2mg/2ml (1 mg/ml)",
+            "Inj Noradrenaline (Norad)": "4mg/2ml (2 mg/ml)",
             "Inj Atropine": "0.6 mg/ml amp",
             "Inj Adenosine": "6mg/2ml (3 mg/ml)",
             "Inj Calcium Gluconate (10%)": "10% 10ml (1g/10ml, 100 mg/ml); dilute 1:1",
@@ -6149,6 +6280,295 @@
         };
 
         // --- RENDER LOGIC ---
+        // ===== BATCH 2: Bilirubin, Growth, BP, Vaccine scheduler =====
+        window.runVaccineSched = function(){
+            var el=document.getElementById('vsDob'); var res=document.getElementById('vsRes'); if(!el||!res) return;
+            if(!el.value){ res.innerHTML='Enter Date of Birth → due dates.'; return; }
+            var dob=new Date(el.value); var today=new Date();
+            var sched=[['Birth',0,'BCG · OPV-0 · Hep B-1'],['6 weeks',42,'DTwP/DTaP-1 · IPV-1 · Hep B-2 · Hib-1 · Rota-1 · PCV-1'],['10 weeks',70,'DTwP-2 · IPV-2 · Hib-2 · Rota-2 · PCV-2'],['14 weeks',98,'DTwP-3 · IPV-3 · Hib-3 · Rota-3 · PCV-3'],['6 months',182,'OPV-1 · Hep B-3'],['9 months',273,'MMR-1 · OPV-2 · Vitamin A'],['12 months',365,'Hep A-1'],['15 months',456,'MMR-2 · Varicella-1 · PCV booster'],['16–18 months',548,'DTwP-B1 · IPV-B1 · Hib-B1'],['2 years',730,'Typhoid conjugate · Hep A-2 · Varicella-2'],['4–6 years',1825,'DTwP-B2 · OPV-3 · MMR-3'],['10–12 years',3650,'Tdap · HPV (2 doses)']];
+            var h='<div style="font-weight:bold; margin-bottom:4px;">📅 Due (born '+dob.toLocaleDateString('en-GB')+'):</div>';
+            sched.forEach(function(s){ var d=new Date(dob.getTime()+s[1]*86400000); var done=d<today; h+='<div style="border-top:1px solid var(--border); padding:4px 0; font-size:12px;">'+(done?'✅':'🔵')+' <b>'+d.toLocaleDateString('en-GB')+'</b> — '+s[0]+': '+s[2]+'</div>'; });
+            h+='<div class="note" style="font-size:11px;">IAP/National schedule (simplified) — verify with current IAP ACVIP.</div>'; res.innerHTML=h;
+        };
+        window.runBP = function(){
+            var res=document.getElementById('bpRes'); if(!res) return;
+            var s=val('bpSys'), d=val('bpDia'); var a=val('age'), u=(document.getElementById('ageUnit')||{}).value;
+            var y = u==='Years'?a:u==='Months'?a/12:a/365;
+            if(!(s>0)){ res.innerHTML='Enter measured BP → hypo / normal / HTN.'; return; }
+            var map = d>0 ? Math.round((s+2*d)/3) : null;
+            var out='Measured <b>'+s+(d>0?'/'+d:'')+'</b> · MAP <b>'+(map!=null?map+' mmHg':'(enter DBP)')+'</b> → ';
+            if(!(y>0)){ res.innerHTML=out+'enter age (top).'; return; }
+            if(y<1){ var ga=val('gaWeeks'); var lim=ga>0?ga:30;
+                if(map!=null){ out+= (map<lim||s<60) ? '🔴 <b>HYPOTENSION</b> (MAP &lt; '+lim+' / SBP&lt;60)' : '🟢 MAP adequate (≥ '+lim+')'; }
+                else out+= (s<60?'🔴 <b>Low SBP</b> (&lt;60)':'enter DBP for MAP');
+                res.innerHTML=out; return; }
+            var yr=Math.min(y,17); var sbpHypo=yr<=10?(70+2*yr):90; var sbp90=Math.round(98+2*yr), sbp95=Math.round(100+2*yr), mapMin=Math.round(40+1.5*yr);
+            var cls;
+            if(s<sbpHypo || (map!=null && map<mapMin)) cls='🔴 <b>HYPOTENSION</b> (SBP&lt;'+sbpHypo+' or MAP&lt;'+mapMin+')';
+            else if(s>=sbp95) cls='🟠 <b>HYPERTENSION</b> (SBP ≥ ~95th '+sbp95+')';
+            else if(s>=sbp90) cls='🟡 Elevated BP ('+sbp90+'–'+sbp95+')';
+            else cls='🟢 Normal';
+            res.innerHTML=out+cls;
+        };
+        drugs.push(
+          { name:"💛 Bilirubin Threshold (Phototherapy / Exchange)", category:"Calculators", tags:"bilirubin jaundice phototherapy exchange threshold nomogram tsb",
+            calc:function(w,a,u){
+              var ga=val('gaWeeks'); var hrs = u==='Days'?a*24 : (u==='Months'&&a<2)?a*720 : -1;
+              if(hrs<0) return '<div class="note">For neonatal jaundice, enter age in <b>Days</b>'+(ga>0?'':' (+ GA at birth)')+'.</div>';
+              var out='<div class="highlight">Age: <b>'+Math.round(hrs)+' h</b>'+(ga>0?' · GA '+ga+' wk':'')+'</div>';
+              if(hrs<24){ out+='<div class="note">⚠️ Jaundice &lt;24 h = ALWAYS pathological → measure TSB, treat per hour-specific nomogram.</div>'; }
+              else { var pt,ex; if(hrs<48){pt=15;ex=20;} else if(hrs<72){pt=18;ex=25;} else {pt=20;ex=25;}
+                var adj=(ga>0&&ga<37)?' <span style="font-size:11px;">(⬇ lower ~2–3 for 35–37 wk / risk; &lt;35 wk use GA-specific curve)</span>':'';
+                out+='<div class="result-box">Phototherapy if TSB ≥ <b>'+pt+' mg/dL</b> · Exchange if ≥ <b>'+ex+' mg/dL</b>'+adj+'</div>'; }
+              out+='<div class="note">Simplified term guide (NNF). ⚠️ Use <b>AAP hour-specific nomogram</b> + risk factors (sepsis, hemolysis, asphyxia, low albumin) for precision. Prolonged (&gt;2 wk) → check conjugated bilirubin.</div>';
+              return out;
+            }},
+          { name:"📏 Growth — Expected Weight/Height for Age", category:"Calculators", tags:"growth weight height expected percentile nutrition malnutrition gomez",
+            calc:function(w,a,u){
+              var mo = u==='Days'?a/30 : u==='Months'?a : a*12; if(!(mo>0)) return '<div class="note">Enter age.</div>';
+              var y=mo/12, ew, eh;
+              if(mo<=12) ew=(mo+9)/2; else if(y<=6) ew=y*2+8; else ew=(y*7-5)/2;
+              if(y<1) eh=50+mo*2; else if(y<2) eh=75+(mo-12); else eh=y*6+77;
+              var out='<div class="result-box"><b>Expected weight:</b> ~'+ew.toFixed(1)+' kg · <b>Expected height:</b> ~'+eh.toFixed(0)+' cm <span style="font-size:11px;">(median for age)</span></div>';
+              if(w>0){ var pct=w/ew*100; var grade=pct>=90?'🟢 Normal':pct>=75?'🟡 Grade I (mild)':pct>=60?'🟧 Grade II (moderate)':'🔴 Grade III (severe)';
+                out+='<div class="highlight">Weight = <b>'+pct.toFixed(0)+'%</b> of expected → '+grade+' <span style="font-size:11px;">(Gomez: ≥90 normal · 75–89 mild · 60–74 mod · &lt;60 severe)</span></div>'; }
+              out+='<div class="note">Rough median estimate. ⚠️ For exact percentile/z-score plot on <b>WHO (&lt;5 y) / IAP (5–18 y)</b> growth chart.</div>';
+              return out;
+            }},
+          { name:"🩸 BP Check — Hypo / Normal / HTN (+ MAP)", category:"Calculators", tags:"blood pressure hypertension hypotension percentile screen bp mean map arterial",
+            calc:function(w,a,u){
+              var y = u==='Years'?a : u==='Months'?a/12 : a/365; var norm='';
+              if(!(y>0)){ norm='<div class="note">Enter age (top) for norms.</div>'; }
+              else if(y<1){ var ga=val('gaWeeks'); norm='<div class="result-box"><b>Target MAP:</b> ≥ '+(ga>0?ga+' (GA wk)':'GA in weeks')+' · term hypotension SBP&lt;60 / MAP&lt;30</div>'; }
+              else { var yr=Math.min(y,17); var sbp50=Math.round(90+2*yr),dbp50=Math.round(55+yr),sbp95=Math.round(100+2*yr),map50=Math.round((sbp50+2*dbp50)/3),mapMin=Math.round(40+1.5*yr);
+                norm='<div class="result-box"><b>Normal ~</b>'+sbp50+'/'+dbp50+' · <b>MAP ~</b>'+map50+' · <b>HTN ≥</b>'+sbp95+' · <b>hypo-MAP &lt;</b>'+mapMin+'</div>'; }
+              return norm
+                +'<div style="display:flex; gap:6px; margin:6px 0;"><input type="number" id="bpSys" placeholder="Measured SBP" oninput="runBP()" style="width:100%; padding:8px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; background:var(--bg-card); color:var(--text-main);"><input type="number" id="bpDia" placeholder="DBP" oninput="runBP()" style="width:100%; padding:8px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; background:var(--bg-card); color:var(--text-main);"></div>'
+                +'<div id="bpRes" class="highlight">Enter measured BP → hypo / normal / HTN.</div>'
+                +'<div class="note" style="font-size:11px;">MAP = (SBP + 2×DBP)/3. ⚠️ Confirm with age/sex/height-percentile AAP table.</div>';
+            }},
+          { name:"💉 Vaccination Scheduler (DOB → due dates)", category:"Calculators", tags:"vaccine schedule immunization due dates dob iap birthday",
+            calc:function(){ return '<label style="font-size:13px; font-weight:bold; color:var(--text-muted);">Date of Birth</label><input type="date" id="vsDob" onchange="runVaccineSched()" style="width:100%; padding:9px; border:2px solid var(--border); border-radius:8px; box-sizing:border-box; margin:4px 0 8px; background:var(--bg-card); color:var(--text-main);"><div id="vsRes" class="note">Enter Date of Birth → due dates.</div>'; }}
+        );
+
+        // ===== BATCH 1: Pediatric reference calculators & scores (Calculators section) =====
+        drugs.push(
+          { name:"📊 Normal Vitals by Age (HR/RR/BP)", category:"Calculators", tags:"vitals normal heart rate respiratory blood pressure reference age hr rr bp",
+            calc:function(w,a,u){
+              var rows=[['Newborn','100–160','30–60','60–90 / 20–60'],['1–12 mo','100–150','25–40','70–100 / 50–65'],['1–3 y','90–140','20–30','80–110 / 55–75'],['3–6 y','80–120','20–25','80–110 / 55–75'],['6–12 y','70–110','16–22','85–120 / 60–80'],['>12 y','60–100','12–20','100–130 / 65–85']];
+              var ageY = u==='Years'?a : u==='Months'?a/12 : a/365; var idx=-1;
+              if(a>0){ if(ageY<1/12)idx=0; else if(ageY<1)idx=1; else if(ageY<3)idx=2; else if(ageY<6)idx=3; else if(ageY<12)idx=4; else idx=5; }
+              var h='<table style="width:100%; border-collapse:collapse; font-size:12px;"><tr style="background:var(--bg-main); font-weight:bold;"><td style="padding:4px;">Age</td><td>HR</td><td>RR</td><td>SBP/DBP</td></tr>';
+              rows.forEach(function(r,i){ h+='<tr style="border-top:1px solid var(--border);'+(i===idx?'background:#c6f6d5; color:#22543d; font-weight:bold;':'')+'"><td style="padding:4px;">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>'; });
+              h+='</table><div class="note">⚠️ Hypotension (5th %ile SBP): &lt;60 term neonate · &lt;70 (1–12 mo) · &lt;70+2×age(yr) (1–10 y) · &lt;90 (&gt;10 y).</div>';
+              return h;
+            }},
+          { name:"🔧 Equipment Sizer (ETT / NG / Blade)", category:"Calculators", tags:"ett tube size airway equipment ng catheter blade laryngoscope intubation lma depth",
+            calc:function(w,a,u){
+              var ageY = u==='Years'?a : u==='Months'?a/12 : a/365; var mo=ageY*12; var out=''; var ett=0, depth=0;
+              if(a>0 && ageY>=1){ ett=ageY/4+4; depth=ageY/2+12;
+                out='<div class="result-box"><b>ETT uncuffed:</b> '+ett.toFixed(1)+' mm · <b>cuffed:</b> '+(ageY/4+3.5).toFixed(1)+' mm · <b>depth:</b> '+depth.toFixed(0)+' cm</div>';
+              } else if(w>0){ ett=w<1?2.5:w<2?3.0:3.5; depth=w+6;
+                out='<div class="result-box"><b>ETT (neonate):</b> '+ett.toFixed(1)+' mm · <b>depth:</b> '+depth.toFixed(0)+' cm (wt+6)</div>';
+              } else { return '<div class="note">Enter age (or weight for neonate).</div>'; }
+              if(ett>0 && ett<=4.6){ var cut,est=''; if(ett<=2.6)cut='37.2'; else if(ett<=3.1)cut='35.5'; else if(ett<=3.6)cut='33.5'; else { cut=(46.6-3.7*ett).toFixed(1); est=' (est.)'; } var sfr=ett<=2.6?'5–6':ett<=3.1?'6':ett<=3.6?'6–7':Math.round(ett*2)+'';
+                out+='<div class="highlight" style="background:#ebf8ff; color:#2b6cb0; border-color:#90cdf4;">🫙 <b>ET Suction:</b> ETT '+ett.toFixed(1)+' → feeding tube <b>'+sfr+' Fr</b>, cut at <b>'+cut+' cm</b>'+est+'.</div>'; }
+              var feedFr = w>0 ? (w<1?'4–5':w<2.5?'5':w<10?'6':'8') : (mo<6?'6':mo<24?'8':'8–10');
+              var ngFr = mo<1?'6–8':mo<12?'8':ageY<5?'10':ageY<10?'12':'14–16';
+              var catFr = mo<1?'5–6':mo<12?'6–8':ageY<3?'8':ageY<7?'10':ageY<12?'10–12':'12–14';
+              out+='<div class="highlight" style="background:#f0fff4; color:#22543d; border-color:#9ae6b4;"><b>🍼 Feeding tube:</b> '+feedFr+' Fr · <b>👃 NG / Ryle&#39;s:</b> '+ngFr+' Fr · <b>💧 Urinary catheter:</b> '+catFr+' Fr</div>';
+              out+='<div class="note"><b>Blade:</b> &lt;1 y = 0–1 straight (Miller) · &gt;1 y = 2 Mac · &gt;8 y = 3 · <b>LMA:</b> &lt;5 kg=1 · 5–10=1.5 · 10–20=2 · 20–30=2.5.</div>';
+              return out;
+            }},
+          { name:"😖 Pain Scales (FLACC · Wong-Baker)", category:"Calculators", tags:"pain flacc wong baker faces scale assessment",
+            calc:function(){ return '<div class="highlight"><b>FLACC</b> (2 mo–7 y / non-verbal) — each 0–2, total 0–10:</div>'
+              +'<div class="note"><b>Face:</b> 0 none · 1 occasional grimace · 2 frequent frown/clenched jaw<br><b>Legs:</b> 0 relaxed · 1 uneasy · 2 kicking/drawn up<br><b>Activity:</b> 0 calm · 1 squirming · 2 arched/rigid/jerking<br><b>Cry:</b> 0 none · 1 moans · 2 crying/screaming<br><b>Consolability:</b> 0 content · 1 reassured by touch · 2 hard to console</div>'
+              +'<div class="highlight" style="margin-top:6px;"><b>Wong-Baker FACES</b> (≥3 y): 😀0 😊2 😐4 😟6 😣8 😭10</div><div class="note">0 none · 1–3 mild · 4–6 moderate · 7–10 severe.</div>'; }},
+          { name:"👶 APGAR Score", category:"Calculators", tags:"apgar newborn resuscitation score birth minute",
+            calc:function(){ return '<div class="highlight">Assess at <b>1 &amp; 5 min</b> — each 0/1/2 (total 0–10):</div>'
+              +'<table style="width:100%; border-collapse:collapse; font-size:12px;"><tr style="background:var(--bg-main); font-weight:bold;"><td style="padding:4px;">Sign</td><td>0</td><td>1</td><td>2</td></tr>'
+              +'<tr style="border-top:1px solid var(--border);"><td style="padding:4px;"><b>A</b>ppearance</td><td>Blue/pale</td><td>Body pink,limbs blue</td><td>All pink</td></tr>'
+              +'<tr style="border-top:1px solid var(--border);"><td style="padding:4px;"><b>P</b>ulse</td><td>Absent</td><td>&lt;100</td><td>≥100</td></tr>'
+              +'<tr style="border-top:1px solid var(--border);"><td style="padding:4px;"><b>G</b>rimace</td><td>None</td><td>Grimace</td><td>Cry/cough</td></tr>'
+              +'<tr style="border-top:1px solid var(--border);"><td style="padding:4px;"><b>A</b>ctivity</td><td>Limp</td><td>Some flexion</td><td>Active</td></tr>'
+              +'<tr style="border-top:1px solid var(--border);"><td style="padding:4px;"><b>R</b>espiration</td><td>Absent</td><td>Slow/irregular</td><td>Good cry</td></tr></table>'
+              +'<div class="note">7–10 normal · 4–6 moderate · 0–3 severe → resuscitate.</div>'; }},
+          { name:"🫁 Downes / Silverman Score (Resp Distress)", category:"Calculators", tags:"downes silverman respiratory distress score neonate rds grunting retraction",
+            calc:function(){ return '<div class="highlight"><b>Downes Score</b> — each 0/1/2:</div>'
+              +'<div class="note"><b>RR:</b> 0 &lt;60 · 1 60–80 · 2 &gt;80/apnea<br><b>Cyanosis:</b> 0 none · 1 in air · 2 in 40% O2<br><b>Air entry:</b> 0 good · 1 decreased · 2 barely audible<br><b>Grunting:</b> 0 none · 1 stethoscope · 2 audible<br><b>Retractions:</b> 0 none · 1 mild · 2 severe</div>'
+              +'<div class="note"><b>Score:</b> &lt;4 mild · 4–6 moderate distress (monitor) · ≥7 impending failure → CPAP/ventilation + ABG.</div>'; }},
+          { name:"🚸 PEWS (Pediatric Early Warning Score)", category:"Calculators", tags:"pews early warning score deterioration escalation rapid response",
+            calc:function(){ return '<div class="highlight">Score 3 domains 0–3 each:</div>'
+              +'<div class="note"><b>Behaviour:</b> 0 appropriate/playing · 1 sleeping · 2 irritable · 3 lethargic/confused or ↓pain response<br><b>Cardiovascular:</b> 0 pink, CRT 1–2s · 1 pale or CRT 3s · 2 grey/mottled or CRT 4s or HR↑20 · 3 grey+CRT≥5s or HR↑30 or bradycardia<br><b>Respiratory:</b> 0 normal · 1 RR↑10 or accessory muscles or FiO2≥30% · 2 RR↑20 or retractions or FiO2≥40% · 3 RR↓5 + retractions/grunting or FiO2≥50%</div>'
+              +'<div class="note"><b>Escalate:</b> total ≥3 OR any single 3 → urgent review; higher → rapid-response / PICU.</div>'; }}
+        );
+
+        // ===== INJECTION VIAL / CONCENTRATION SELECTOR (select vial → mg + ml + dilution) =====
+        window.INJ_PREPS = {
+          "Inj Ceftriaxone (Monocef)": { mgKg:50, mgKgMax:75, freq:'BD', def:2,
+            vials:[ {v:'250 mg', recon:'2.5 ml WFI', conc:100}, {v:'500 mg', recon:'5 ml WFI', conc:100}, {v:'1 g', recon:'10 ml WFI', conc:100}, {v:'2 g', recon:'20 ml WFI', conc:100} ],
+            dilute:'Then dilute in 10–20 ml NS/D5 → slow IV over 30 min.' },
+          "Inj Amikacin": { mgKg:15, freq:'OD', def:0,
+            vials:[ {v:'100 mg/2 mL', conc:50}, {v:'250 mg/2 mL', conc:125}, {v:'500 mg/2 mL', conc:250} ],
+            dilute:'Ready solution (no reconstitution). Dilute dose in 20–100 ml NS/D5 → infuse over 30–60 min. Monitor renal function / levels.' },
+          "Inj Cefotaxime (Taxim)": { mgKg:50, freq:'TDS', def:2,
+            vials:[ {v:'250 mg', recon:'2.5 ml WFI', conc:100}, {v:'500 mg', recon:'5 ml WFI', conc:100}, {v:'1 g', recon:'10 ml WFI', conc:100} ],
+            dilute:'Then dilute in NS → slow IV over 3–5 min or infuse. Safe in neonates.' },
+          "Inj Meropenem": { mgKg:20, freq:'TDS', def:1,
+            vials:[ {v:'500 mg', recon:'10 ml WFI', conc:50}, {v:'1 g', recon:'20 ml WFI', conc:50} ],
+            dilute:'Further dilute in NS → infuse over 15–30 min.' },
+          "Inj Vancomycin": { mgKg:15, freq:'TDS', def:0,
+            vials:[ {v:'500 mg', recon:'10 ml WFI', conc:50}, {v:'1 g', recon:'20 ml WFI', conc:50} ],
+            dilute:'⚠️ Dilute to &lt;5 mg/ml in NS → SLOW IV over ≥60 min (red-man syndrome).' },
+          "Inj Cefoperazone & Sulbactam (Zostum)": { mgKg:50, freq:'BD', def:0,
+            vials:[ {v:'1 g', recon:'10 ml WFI', conc:100}, {v:'1.5 g', recon:'15 ml WFI', conc:100}, {v:'2 g', recon:'20 ml WFI', conc:100} ],
+            dilute:'Then dilute in NS → infuse over 30–60 min.' },
+          "Inj Acyclovir (Acivir)": { mgKg:10, freq:'TDS', def:0,
+            vials:[ {v:'250 mg', recon:'10 ml WFI', conc:25}, {v:'500 mg', recon:'20 ml WFI', conc:25} ],
+            dilute:'Dilute to ≤7 mg/ml in NS → infuse over 1 hr. Ensure hydration.' },
+          "Inj Cefepime & Tazobactam (Magnex / Magnova)": { mgKg:50, freq:'BD', def:0,
+            vials:[ {v:'1 g', recon:'10 ml WFI', conc:100}, {v:'1.125 g (Forte)', recon:'11 ml WFI', conc:100}, {v:'2 g', recon:'20 ml WFI', conc:100} ],
+            dilute:'Then dilute in NS → infuse over 30 min.' },
+          "Inj Gentamycin": { mgKg:5, freq:'OD', def:0,
+            vials:[ {v:'Paeds 20 mg/2 mL', conc:10}, {v:'40 mg/mL (adult)', conc:40} ],
+            dilute:'Ready solution. Dilute in NS → infuse over 30 min. Monitor renal/levels.' },
+          "Inj Ampiclox (Ampicillin+Cloxacillin)": { mgKg:50, freq:'QDS', def:1,
+            vials:[ {v:'250 mg', recon:'2.5 ml WFI', conc:100}, {v:'500 mg', recon:'5 ml WFI', conc:100} ],
+            dilute:'Then slow IV over 3–5 min.' },
+          "Inj Amoxycillin - Clavulanic Acid (Augmentin)": { mgKg:30, freq:'TDS', def:1,
+            vials:[ {v:'600 mg', recon:'10 ml WFI', conc:60}, {v:'1.2 g', recon:'20 ml WFI', conc:60} ],
+            dilute:'Then slow IV over 3–4 min or infuse (use within 20 min).' },
+          "Inj Netilmicin Sulphate": { mgKg:5, freq:'OD', def:0,
+            vials:[ {v:'25 mg/mL', conc:25}, {v:'50 mg/mL', conc:50} ],
+            dilute:'Ready solution. Dilute in NS → infuse over 30 min. Monitor renal/levels.' },
+          "Inj Ceftazidime (Fortum / Tazicef)": { mgKg:50, freq:'q8h', def:2,
+            vials:[ {v:'250 mg', recon:'2.5 ml WFI', conc:100}, {v:'500 mg', recon:'5 ml WFI', conc:100}, {v:'1 g', recon:'10 ml WFI', conc:100}, {v:'2 g', recon:'20 ml WFI', conc:100} ],
+            dilute:'Then infuse over 30 min.',
+            info:'💡 <b>Indication:</b> Pseudomonas sepsis, melioidosis & CF exacerbations.<br>🏷️ <b>Brands:</b> Fortum / Tazicef / Ceftaz.' },
+          "Inj Cefepime (Cepime / Maxipime)": { mgKg:50, freq:'q8h', def:1,
+            vials:[ {v:'500 mg', recon:'5 ml WFI', conc:100}, {v:'1 g', recon:'10 ml WFI', conc:100}, {v:'2 g', recon:'20 ml WFI', conc:100} ],
+            dilute:'Then infuse over 30 min.',
+            info:'💡 <b>Indication:</b> Febrile neutropenia, nosocomial Pseudomonas sepsis & severe pneumonia.<br>🏷️ <b>Brands:</b> Cepime / Maxipime.' },
+          "Inj Piperacillin & Tazobactam (Piptaz)": { mgKg:100, freq:'TDS', def:1,
+            vials:[ {v:'1.125 g', recon:'10 ml WFI', conc:112.5}, {v:'2.25 g', recon:'20 ml WFI', conc:112.5}, {v:'4.5 g', recon:'40 ml WFI', conc:112.5} ],
+            dilute:'Then infuse over 30 min. (8:1 pip:tazo, dose as combined.)' },
+          "Inj Linezolid (Linospan)": { mgKg:10, freq:'TDS', def:0,
+            vials:[ {v:'600 mg / 300 mL bag', conc:2}, {v:'200 mg / 100 mL bag', conc:2} ],
+            dilute:'Ready IV (2 mg/ml, in D5) — no reconstitution. Infuse over 30–120 min. Both bags 2 mg/ml.',
+            info:'💡 Both IV bags are 2 mg/ml (600/300 & 200/100). Oral: Tab 600 mg · Susp 100 mg/5 ml.' },
+          "Inj Artesunate (Falcigo)": { mgKg:3, freq:'@ 0, 12, 24 h then OD', def:0,
+            vials:[ {v:'IV — 10 mg/ml', conc:10}, {v:'IM — 20 mg/ml', conc:20} ],
+            dilute:'Reconstitute vial with supplied 5% bicarbonate → then add NS: IV = 10 mg/ml, IM = 20 mg/ml. Use within 1 hr.',
+            info:'💡 Dose 3 mg/kg (2.4 mg/kg if ≥20 kg) at 0, 12, 24 h then OD. Vials 30/60/120 mg all give 10 mg/ml IV.' },
+          "Inj Magnesium Sulphate (MgSO4)": { mgKg:50, freq:'/dose (over 20 min)', def:0,
+            vials:[ {v:'50% (500 mg/ml)', conc:500}, {v:'25% (250 mg/ml)', conc:250} ],
+            dilute:'⚠️ Dilute before IV (to ≤200 mg/ml / ~10% for bolus, or in NS for infusion) → give over 20 min. Monitor HR, BP, reflexes, RR.',
+            info:'💡 Asthma / seizure prophylaxis 25–50 mg/kg/dose (max 2 g). 50% ampoule must be diluted.' }
+        };
+        window.runInjPrep = function(sel){
+          var name=sel.getAttribute('data-drug'); var p=INJ_PREPS[name]; if(!p) return;
+          var res=document.getElementById(sel.getAttribute('data-res')); if(!res) return;
+          var wt=val('weight'); var vial=p.vials[parseInt(sel.value)||0]; var doseMg=wt*p.mgKg;
+          var ml=doseMg>0?(doseMg/vial.conc).toFixed(2):'—'; var rc=vial.recon?(' + '+vial.recon):'';
+          res.innerHTML='<b>'+vial.v+'</b>'+rc+' → <b>'+vial.conc+' mg/ml</b>. Dose <b>'+doseMg.toFixed(1)+' mg</b> = <b>'+ml+' ml</b> '+(p.freq||'')+'. '+(p.dilute||'');
+        };
+        window.injPrepCard = function(name, badge){
+          var p=INJ_PREPS[name]; if(!p) return '<div class="note">—</div>';
+          var wt=val('weight'); var doseMg=wt*p.mgKg; var rid='prep_'+name.replace(/[^a-z0-9]/gi,'');
+          var opts=p.vials.map(function(v,i){ return '<option value="'+i+'"'+(i===(p.def||0)?' selected':'')+'>'+v.v+' → '+v.conc+' mg/ml</option>'; }).join('');
+          var dv=p.vials[p.def||0]; var ml=doseMg>0?(doseMg/dv.conc).toFixed(2):'—'; var rc=dv.recon?(' + '+dv.recon):'';
+          var defRes='<b>'+dv.v+'</b>'+rc+' → <b>'+dv.conc+' mg/ml</b>. Dose <b>'+doseMg.toFixed(1)+' mg</b> = <b>'+ml+' ml</b> '+(p.freq||'')+'. '+(p.dilute||'');
+          return '<div class="badge">'+badge+'</div><br>'
+            +'<div class="highlight">Dose: '+doseMg.toFixed(1)+' mg '+(p.freq||'')+'</div>'
+            +'<div class="note"><b>Select vial:</b> <select data-drug="'+name+'" data-res="'+rid+'" onchange="runInjPrep(this)" style="padding:5px; border:2px solid var(--border); border-radius:6px; background:var(--bg-card); color:var(--text-main); max-width:100%;">'+opts+'</select></div>'
+            +'<div id="'+rid+'" class="highlight" style="background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;">'+defRes+'</div>'
+            +(p.info?'<div class="note">'+p.info+'</div>':'');
+        };
+
+        // Auto mg→ml for injections using market concentration (from MARKET_INFO). Additive + only when mg-only.
+        function _injVolLine(name, html){
+            if(window.INJ_PREPS && INJ_PREPS[name]) return '';   // has its own vial selector
+            if(/surfactant|insulin|heparin|albumin|immunoglobulin|ivig/i.test(name)) return '';   // not simple mg/ml dosing
+            var mi = MARKET_INFO[name]; if(!mi) return '';
+            var cm = String(mi).match(/([\d.]+)\s*mg\s*\/\s*ml/i); if(!cm) return '';
+            var conc = parseFloat(cm[1]); if(!(conc>0)) return '';
+            var txt = html.replace(/<[^>]+>/g,' ');
+            var re = /([\d.]+)\s*(?:[–-]\s*([\d.]+)\s*)?mg(?!\s*\/\s*(?:kg|ml|m2|min))/i;
+            var m = re.exec(txt); if(!m) return '';
+            if(/ml/i.test(txt.slice(m.index+m[0].length, m.index+m[0].length+16))) return '';   // this dose already shows ml
+            var lo=parseFloat(m[1]), hi=m[2]?parseFloat(m[2]):null; if(!(lo>0)) return '';
+            var ml = hi ? (lo/conc).toFixed(2)+'–'+(hi/conc).toFixed(2) : (lo/conc).toFixed(2);
+            return '<div class="note" style="background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;">💧 Volume ≈ <b>'+ml+' ml</b> (at '+conc+' mg/ml · verify vial).</div>';
+        }
+
+        // ORAL strength selector (syrups/drops/tabs that come in multiple strengths). perMl = mg/ml (liquid); mgTab = mg per tablet.
+        window.ORAL_PREPS = {
+          "Syp Calpol / Sumol (Paracetamol)": { mgKg:15, freq:'QDS (SOS · max 4×/day)', def:0, cap:'Max 15 mg/kg/dose · 60 mg/kg/day.',
+            forms:[ {label:'125 mg/5 ml (syrup)', perMl:25}, {label:'250 mg/5 ml (DS syrup)', perMl:50}, {label:'150 mg/ml (drops)', perMl:150}, {label:'100 mg/ml (drops)', perMl:100} ] },
+          "Syp Ibuprofen (Ibugesic)": { mgKg:10, freq:'TDS', def:0, cap:'Max 10 mg/kg/dose · 40 mg/kg/day. After food.',
+            forms:[ {label:'100 mg/5 ml (syrup)', perMl:20}, {label:'200 mg/5 ml (DS syrup)', perMl:40} ] },
+          "Syp Amoxicillin (Mox)": { mgKg:15, freq:'TDS', def:0, cap:'25–45 mg/kg/day.',
+            forms:[ {label:'125 mg/5 ml', perMl:25}, {label:'250 mg/5 ml', perMl:50} ] },
+          "Syp Azithromycin (Azee / Azithral)": { mgKg:10, freq:'OD ×3–5 d', def:1,
+            forms:[ {label:'100 mg/5 ml', perMl:20}, {label:'200 mg/5 ml', perMl:40} ] },
+          "Syp Cefuroxime (Ceftum / Pulmocef)": { mgKg:15, freq:'BD', def:0,
+            forms:[ {label:'125 mg/5 ml', perMl:25}, {label:'250 mg/5 ml', perMl:50} ] },
+          "Syp Claribid (Clarithromycin)": { mgKg:7.5, freq:'BD', def:0,
+            forms:[ {label:'125 mg/5 ml', perMl:25}, {label:'250 mg/5 ml', perMl:50} ] },
+          "Syp Zifi (Cefixime)": { mgKg:4, freq:'BD', def:0, cap:'8 mg/kg/day.',
+            forms:[ {label:'50 mg/5 ml', perMl:10}, {label:'100 mg/5 ml', perMl:20} ] },
+          "Syp Opox (Cefpodoxime)": { mgKg:5, freq:'BD', def:0, cap:'10 mg/kg/day.',
+            forms:[ {label:'50 mg/5 ml', perMl:10}, {label:'100 mg/5 ml', perMl:20} ] },
+          "Drop Zifi (Cefixime)": { mgKg:4, freq:'BD', def:0, cap:'8 mg/kg/day.',
+            forms:[ {label:'25 mg/ml (drops)', perMl:25}, {label:'50 mg/ml (drops)', perMl:50} ] },
+          "Sumol / Calpol Drops": { mgKg:15, freq:'QDS (SOS · max 4×/day)', def:0, cap:'Max 15 mg/kg/dose.',
+            forms:[ {label:'150 mg/ml (drops)', perMl:150}, {label:'100 mg/ml (drops)', perMl:100} ] },
+          "Tab Calpol / Sumol (Paracetamol)": { mgKg:15, freq:'TDS/SOS', def:1, cap:'Max 15 mg/kg/dose.',
+            forms:[ {label:'250 mg tab', mgTab:250}, {label:'500 mg tab', mgTab:500}, {label:'650 mg tab', mgTab:650} ] },
+          "Tab Ibugesic (Ibuprofen)": { mgKg:10, freq:'TDS/SOS', def:0, cap:'Max 10 mg/kg/dose. After food.',
+            forms:[ {label:'200 mg tab', mgTab:200}, {label:'400 mg tab', mgTab:400} ] },
+          "Tab Zifi (Cefixime)": { mgKg:4, freq:'BD', def:0, cap:'8 mg/kg/day.',
+            forms:[ {label:'100 mg tab', mgTab:100}, {label:'200 mg tab', mgTab:200} ] },
+          "Tab Opox (Cefpodoxime)": { mgKg:5, freq:'BD', def:0, cap:'10 mg/kg/day.',
+            forms:[ {label:'100 mg tab', mgTab:100}, {label:'200 mg tab', mgTab:200} ] },
+          "Tab Claribid (Clarithromycin)": { mgKg:7.5, freq:'BD', def:0,
+            forms:[ {label:'250 mg tab', mgTab:250}, {label:'500 mg tab', mgTab:500} ] }
+        };
+        function _oralResult(p, f, doseMg){
+          if(!(doseMg>0)) return '<b>'+f.label+'</b> — enter weight.';
+          if(f.mgTab){
+            var t=doseMg/f.mgTab; var rt=Math.round(t*4)/4;
+            return 'Dose <b>'+doseMg.toFixed(1)+' mg</b> = <b>'+t.toFixed(2)+' tab</b> (≈ '+rt+' tab) of '+f.label+' '+(p.freq||'')+'.'+(p.cap?' '+p.cap:'');
+          }
+          var ml=doseMg/f.perMl;
+          return 'Dose <b>'+doseMg.toFixed(1)+' mg</b> = <b>'+ml.toFixed(2)+' ml</b> of '+f.label+' '+(p.freq||'')+'.'+(p.cap?' '+p.cap:'');
+        }
+        window.runOralPrep = function(sel){
+          var name=sel.getAttribute('data-drug'); var p=ORAL_PREPS[name]; if(!p) return;
+          var res=document.getElementById(sel.getAttribute('data-res')); if(!res) return;
+          var wt=val('weight'); var f=p.forms[parseInt(sel.value)||0]; var doseMg=wt*p.mgKg;
+          res.innerHTML=_oralResult(p,f,doseMg);
+        };
+        window.oralPrepCard = function(name, badge){
+          var p=ORAL_PREPS[name]; if(!p) return '<div class="note">—</div>';
+          var wt=val('weight'); var doseMg=wt*p.mgKg; var rid='oral_'+name.replace(/[^a-z0-9]/gi,'');
+          var opts=p.forms.map(function(f,i){ return '<option value="'+i+'"'+(i===(p.def||0)?' selected':'')+'>'+f.label+'</option>'; }).join('');
+          var f0=p.forms[p.def||0];
+          return '<div class="badge">'+badge+'</div><br>'
+            +'<div class="highlight">Dose: '+doseMg.toFixed(1)+' mg '+(p.freq||'')+'</div>'
+            +'<div class="note"><b>Select strength:</b> <select data-drug="'+name+'" data-res="'+rid+'" onchange="runOralPrep(this)" style="padding:5px; border:2px solid var(--border); border-radius:6px; background:var(--bg-card); color:var(--text-main); max-width:100%;">'+opts+'</select></div>'
+            +'<div id="'+rid+'" class="highlight" style="background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;">'+_oralResult(p,f0,doseMg)+'</div>';
+        };
+
+        window._trainNicu={'NRP (NICU Resuscitation) Steps & Video':1,'Neonatal Cooling (Therapeutic Hypothermia)':1,'ICD Insertion (Pneumothorax) - Neonate':1};
+        window._trainPicu={'PALS (PICU Resuscitation) Steps & Video':1,'ICD Insertion (Pneumothorax) - Pediatric':1};
+        window._trainGroupOf=function(n){ if(!n)return 'ref'; if(n.indexOf('🍼')===0||_trainNicu[n])return 'nicu'; if(n.indexOf('🧒')===0||_trainPicu[n])return 'picu'; return 'ref'; };
+        window.setTrainTab=function(t){ window._trainTab=t; renderCards(); };
+        function _trainTabBar(){
+            var t=window._trainTab||'nicu';
+            function b(id,label){ var on=(t===id); return '<button onclick="setTrainTab(\''+id+'\')" style="flex:1; padding:9px 6px; border:2px solid '+(on?'var(--primary)':'var(--border)')+'; border-radius:8px; background:'+(on?'var(--primary)':'var(--bg-card)')+'; color:'+(on?'#fff':'var(--text-main)')+'; font-weight:700; font-size:13px; cursor:pointer;">'+label+'</button>'; }
+            return '<div style="display:flex; gap:6px; margin-bottom:10px;">'+b('nicu','🍼 NICU')+b('picu','🧒 PICU')+b('ref','📚 Reference')+'</div>';
+        }
         function renderCards() {
             // FIX: remove accidental duplicate drug entries (some new drugs were pushed inside _library.forEach → ×87)
             if(!window._drugsDeduped){ window._drugsDeduped=true; var _seen=Object.create(null), _uniq=[]; for(var _i=0;_i<drugs.length;_i++){ var _n=drugs[_i]&&drugs[_i].name; if(_n&&_seen[_n])continue; if(_n)_seen[_n]=1; _uniq.push(drugs[_i]); } drugs.length=0; Array.prototype.push.apply(drugs,_uniq); }
@@ -6167,7 +6587,7 @@
             if(currentCategory === 'TreatmentSheet'){ renderTxSheet(); return; }
 
             // --- FIX FOR EMPTY SECTIONS: ALLOW VACCINE, TRAINING & CALCS WITHOUT WEIGHT ---
-            if(w <= 0 && s === "" && currentCategory !== 'Training' && currentCategory !== 'Vaccine' && currentCategory !== 'Calculators' && currentCategory !== 'Library'){
+            if(w <= 0 && s === "" && currentCategory !== 'Training' && currentCategory !== 'NICU Procedures' && currentCategory !== 'PICU Procedures' && currentCategory !== 'Vaccine' && currentCategory !== 'Calculators' && currentCategory !== 'Library'){
                 d.innerHTML='<p style="text-align:center; color:var(--text-muted); margin-top:30px;">Please enter weight to see data.</p>';
                 return;
             }
@@ -6175,6 +6595,7 @@
             let grouped = {};
             drugs.forEach(x => {
                 if(currentCategory !== 'All' && x.category !== currentCategory) return;
+                if(currentCategory === 'Training'){ if(window._trainGroupOf(x.name) !== (window._trainTab||'nicu')) return; }
                 if(x.category === 'Library' && !window._nhCanLibrary) return;
                 if(s && !x.name.toLowerCase().includes(s) && !(x.tags||"").toLowerCase().includes(s)) return;
 
@@ -6196,20 +6617,33 @@
                 else if(x.category === "Calculators") cls += " tools";
                 else if(x.category === "Nebulizer") cls += " nebulizer";
                 else if(x.category === "Vaccine") cls += " vaccine";
-                else if(x.category === "Training") cls += " training";
+                else if(x.category === "Training" || x.category === "NICU Procedures" || x.category === "PICU Procedures") cls += " training";
 
                 let dn = x.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-                grouped[x.category].push(`
-                    <div class="${cls}" data-drug="${dn}">
-                        <div class="drug-name">${x.name}</div>
-                        ${x.calc(w, a, u)}
+                let _cHtml = x.calc(w, a, u);
+                let _inner = `${_cHtml}${(x.name.indexOf('Inj ')===0) ? _injVolLine(x.name, _cHtml) : ''}
                         ${MARKET_INFO[x.name] ? `<div class="note" style="background:#faf5ff; border-color:#d6bcfa; color:#553c9a;">📦 <b>Market / Dilution:</b> ${MARKET_INFO[x.name]}</div>` : ''}
                         <div style="display:flex; gap:6px; margin-top:8px;">
                             <button class="copy-all-btn" style="padding:6px; font-size:13px; flex:1; margin:0;" onclick="cp(this)">📋 Copy</button>
                             <button class="action-btn" style="background:#38a169; padding:6px 12px;" onclick="txBtn(this)" title="Add to Tx Sheet">➕ Tx</button>
-                        </div>
+                        </div>`;
+                if(x.category === 'Calculators' || x.category === 'Training' || x.category === 'NICU Procedures' || x.category === 'PICU Procedures'){
+                    // collapsible: show only heading, expand on click (procedures show name → click → steps+video)
+                    grouped[x.category].push(`
+                    <div class="${cls}" data-drug="${dn}">
+                        <details><summary class="drug-name" style="cursor:pointer; padding:4px 0;">${x.name}</summary>
+                        ${_inner}
+                        </details>
                     </div>
                 `);
+                } else {
+                    grouped[x.category].push(`
+                    <div class="${cls}" data-drug="${dn}">
+                        <div class="drug-name">${x.name}</div>
+                        ${_inner}
+                    </div>
+                `);
+                }
             });
 
             let html = "";
@@ -6241,6 +6675,7 @@
                     if(currentCategory === 'All' || s) {
                         html += `<div class="cat-header">${catTitles[c]}</div>`;
                     }
+                    if(c === 'Training' && currentCategory === 'Training' && !s){ html += _trainTabBar(); }
                     html += grouped[c].join("");
                 }
             });
@@ -6367,7 +6802,7 @@
       {n:'Dopamine', cat:'Inotropes', amp:'200mg/5mL (40mg/mL)', dMin:2, dMax:20, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:40, notes:'Renal dose 2-5, Cardiac 5-10, Vasopressor >10'},
       {n:'Dobutamine', cat:'Inotropes', amp:'250mg/20mL (12.5mg/mL)', dMin:2, dMax:20, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:12.5, notes:'Pure inotrope, no renal dose effect'},
       {n:'Adrenaline (Epinephrine)', cat:'Inotropes', amp:'1mg/1mL (1:1000)', dMin:0.01, dMax:1, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:1, notes:'Low dose β effect; High dose α effect'},
-      {n:'Noradrenaline', cat:'Inotropes', amp:'2mg/2mL (1mg/mL)', dMin:0.05, dMax:2, dUnit:'mcg/kg/min', dil:'D5W only', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:1, notes:'Pure vasopressor (α1 agonist)'},
+      {n:'Noradrenaline', cat:'Inotropes', amp:'4mg/2mL (2mg/mL)', dMin:0.05, dMax:2, dUnit:'mcg/kg/min', dil:'D5W only', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:2, notes:'Pure vasopressor (α1 agonist). Vial 4 mg / 2 mL (2 mg/mL)'},
       {n:'Milrinone', cat:'Inotropes', amp:'10mg/10mL (1mg/mL)', dMin:0.25, dMax:0.75, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:1, notes:'PDE3 inhibitor. Optional load: 50mcg/kg over 15min'},
       {n:'Vasopressin', cat:'Inotropes', amp:'20 units/1mL', dMin:0.0002, dMax:0.002, dUnit:'units/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.0001 units/kg/min', ampConc:20, notes:'Refractory septic shock', isUnits:true},
       {n:'PGE1 (Alprostadil)', cat:'Inotropes', amp:'500mcg/1mL', dMin:0.01, dMax:0.1, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:0.5, notes:'Maintain ductus arteriosus. Reduce to 0.01 once effective. ⚠️ Apnea risk'},
@@ -6375,21 +6810,21 @@
       {n:'Isoprenaline', cat:'Inotropes', amp:'1mg/5mL (0.2mg/mL)', dMin:0.05, dMax:2, dUnit:'mcg/kg/min', dil:'D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:0.2, notes:'β1 + β2 agonist. Complete heart block'},
 
       // B. SEDATION & ANALGESIA
-      {n:'Morphine', cat:'Sedation', amp:'15mg/1mL', dMin:5, dMax:40, dUnit:'mcg/kg/hr', dil:'D5W / NS', factor50:'wt', factor25:'wt/2', rateAt1:'20 mcg/kg/hr', ampConc:15, notes:'Neonate: 5-20 mcg/kg/hr; Child: 10-40 mcg/kg/hr', isMorphine:true},
+      {n:'Morphine', cat:'Sedation', amp:'15mg/1mL', dMin:5, dMax:40, dUnit:'mcg/kg/hr', dil:'D5W / NS', factor50:'wt', factor25:'wt/2', rateAt1:'20 mcg/kg/hr', ampConc:15, notes:'Neonate: 5-20 mcg/kg/hr; Child: 10-40 mcg/kg/hr', isMorphine:true, ampOpts:[{label:'10 mg/mL',conc:10},{label:'15 mg/mL',conc:15}]},
       {n:'Fentanyl', cat:'Sedation', amp:'100mcg/2mL (50mcg/mL)', dMin:0.5, dMax:5, dUnit:'mcg/kg/hr', dil:'D5W / NS', factor50:50, factor25:25, rateAt1:'1 mcg/kg/hr', ampConc:0.05, notes:'Bolus: 1-2 mcg/kg IV', isFentanyl:true},
-      {n:'Midazolam', cat:'Sedation', amp:'15mg/3mL (5mg/mL)', dMin:0.5, dMax:6, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:5, notes:'Bolus: 50-100 mcg/kg IV'},
+      {n:'Midazolam', cat:'Sedation', amp:'15mg/3mL (5mg/mL)', dMin:0.5, dMax:6, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:5, notes:'Bolus: 50-100 mcg/kg IV', ampOpts:[{label:'1 mg/mL',conc:1},{label:'5 mg/mL',conc:5}]},
       {n:'Ketamine', cat:'Sedation', amp:'500mg/10mL (50mg/mL)', dMin:5, dMax:20, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:50, notes:'Bolus: 1-2 mg/kg IV. Dissociative anesthesia'},
       {n:'Dexmedetomidine', cat:'Sedation', amp:'200mcg/2mL (100mcg/mL)', dMin:0.2, dMax:0.7, dUnit:'mcg/kg/hr', dil:'NS only', factor50:25, factor25:12.5, rateAt1:'0.5 mcg/kg/hr', ampConc:0.1, notes:'Optional load: 0.5-1 mcg/kg over 10min', isDex:true},
 
       // C. ANTIEPILEPTICS
-      {n:'Midazolam (Status)', cat:'Antiepileptic', amp:'5mg/mL', dMin:1, dMax:18, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:5, notes:'Bolus: 0.15 mg/kg IV. Refractory status epilepticus'},
-      {n:'Lignocaine (Lidocaine)', cat:'Antiepileptic', amp:'2% = 20mg/mL', dMin:2, dMax:6, dUnit:'mg/kg/hr', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mg/kg/hr', ampConc:20, notes:'Load: 2mg/kg IV over 10min. Neonatal refractory seizures. ⚠️ Not mcg!', isMgUnit:true},
-      {n:'Thiopentone', cat:'Antiepileptic', amp:'500mg/vial → 25mg/mL', dMin:1, dMax:5, dUnit:'mg/kg/hr', dil:'NS', factor50:3, factor25:1.5, rateAt1:'1 mg/kg/hr', ampConc:25, notes:'Refractory status. EEG monitoring required', isMgUnit:true},
+      {n:'Midazolam (Status)', cat:'Antiepileptic', amp:'5mg/mL', dMin:1, dMax:18, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:5, notes:'Bolus: 0.15 mg/kg IV. Refractory status epilepticus', ampOpts:[{label:'1 mg/mL',conc:1},{label:'5 mg/mL',conc:5}]},
+      {n:'Lignocaine (Lidocaine)', cat:'Antiepileptic', amp:'2% = 20mg/mL', dMin:2, dMax:6, dUnit:'mg/kg/hr', dil:'D5W / NS', factor50:25, factor25:12.5, rateAt1:'0.5 mg/kg/hr', ampConc:20, notes:'Load: 2mg/kg IV over 10min. Neonatal refractory seizures. ⚠️ Not mcg!', isMgUnit:true},
+      {n:'Thiopentone', cat:'Antiepileptic', amp:'500mg/vial → 25mg/mL', dMin:1, dMax:5, dUnit:'mg/kg/hr', dil:'NS', factor50:25, factor25:12.5, rateAt1:'0.5 mg/kg/hr', ampConc:25, notes:'Refractory status. EEG monitoring required', isMgUnit:true},
 
       // D. CARDIOVASCULAR
       {n:'Amiodarone', cat:'Cardiac', amp:'150mg/3mL (50mg/mL)', dMin:5, dMax:15, dUnit:'mcg/kg/min', dil:'D5W only (non-PVC)', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:50, notes:'Load: 5mg/kg over 20-60min. VT/VF/SVT'},
       {n:'Esmolol', cat:'Cardiac', amp:'100mg/10mL (10mg/mL)', dMin:100, dMax:500, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:10, notes:'Load: 500mcg/kg over 1min. SVT, hypertensive emergency', isEsmolol:true},
-      {n:'Labetalol', cat:'Cardiac', amp:'100mg/20mL (5mg/mL)', dMin:0.25, dMax:3, dUnit:'mg/kg/hr', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mg/kg/hr', ampConc:5, notes:'Hypertensive emergency. α + β blocker', isMgUnit:true},
+      {n:'Labetalol', cat:'Cardiac', amp:'100mg/20mL (5mg/mL)', dMin:0.25, dMax:3, dUnit:'mg/kg/hr', dil:'D5W / NS', factor50:10, factor25:5, rateAt1:'0.2 mg/kg/hr', ampConc:5, notes:'Hypertensive emergency. α + β blocker', isMgUnit:true},
       {n:'Nicardipine', cat:'Cardiac', amp:'10mg/10mL (1mg/mL)', dMin:0.5, dMax:4, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:1, notes:'Hypertensive emergency. Ca channel blocker'},
       {n:'GTN (Nitroglycerin)', cat:'Cardiac', amp:'50mg/10mL (5mg/mL)', dMin:0.5, dMax:5, dUnit:'mcg/kg/min', dil:'D5W only (non-PVC)', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:5, notes:'Afterload reduction, cardiac surgery'},
       {n:'Sodium Nitroprusside', cat:'Cardiac', amp:'50mg/vial (10mg/mL)', dMin:0.3, dMax:5, dUnit:'mcg/kg/min', dil:'D5W only ⚠️Light protect', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:10, notes:'Wrap in aluminium foil. Cyanide toxicity risk >48hr'},
@@ -6404,7 +6839,7 @@
       {n:'Hypertonic Saline 3%', cat:'Metabolic', amp:'Ready solution', dMin:2, dMax:5, dUnit:'mL/kg (seizures)', dil:'—', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:0.513, notes:'Give over 10-20min for seizures. Maintenance: 0.1-1 mL/kg/hr. Target Na rise ≤10-12 mEq/24h', isDirect:true},
 
       // F. RESPIRATORY
-      {n:'Aminophylline', cat:'Respiratory', amp:'250mg/10mL (25mg/mL)', dMin:0.5, dMax:0.9, dUnit:'mg/kg/hr', dil:'D5W / NS', factor50:3, factor25:1.5, rateAt1:'1 mg/kg/hr', ampConc:25, notes:'Load: 5-6 mg/kg over 20-30min. Neonate: 1-2 mg/kg q8-12h. Therapeutic: 5-15 mcg/mL', isMgUnit:true},
+      {n:'Aminophylline', cat:'Respiratory', amp:'250mg/10mL (25mg/mL)', dMin:0.5, dMax:0.9, dUnit:'mg/kg/hr', dil:'D5W / NS', factor50:5, factor25:2.5, rateAt1:'0.1 mg/kg/hr', ampConc:25, notes:'Load: 5-6 mg/kg over 20-30min. Neonate: 1-2 mg/kg q8-12h. Therapeutic: 5-15 mcg/mL', isMgUnit:true},
       {n:'Caffeine Citrate', cat:'Respiratory', amp:'60mg/3mL (20mg/mL)', dMin:5, dMax:10, dUnit:'mg/kg/day', dil:'D5W / NS', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:20, notes:'Load: 20 mg/kg IV over 30min. Apnea of prematurity. Can give undiluted', isDirect:true},
       {n:'IV Salbutamol', cat:'Respiratory', amp:'0.5mg/mL (5mL)', dMin:1, dMax:5, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:0.5, notes:'Load: 5-15 mcg/kg IV over 10min. Severe acute asthma'},
 
@@ -6415,16 +6850,16 @@
       {n:'Rocuronium', cat:'NMB', amp:'50mg/5mL (10mg/mL)', dMin:5, dMax:12, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:3, factor25:1.5, rateAt1:'1 mcg/kg/min', ampConc:10, notes:'Bolus: 0.6-1.2 mg/kg. RSI alternative'},
 
       // H. ANTICOAGULANT
-      {n:'Heparin (UFH)', cat:'Anticoagulant', amp:'5000 units/mL', dMin:10, dMax:25, dUnit:'units/kg/hr', dil:'NS', factor50:50, factor25:25, rateAt1:'1 unit/kg/hr', ampConc:5000, notes:'Load: 75 units/kg IV over 10min. Target aPTT 60-85s', isHeparin:true},
+      {n:'Heparin (UFH)', cat:'Anticoagulant', amp:'5000 units/mL', dMin:10, dMax:25, dUnit:'units/kg/hr', dil:'NS', factor50:50, factor25:25, rateAt1:'1 unit/kg/hr', ampConc:5000, notes:'Load: 75 units/kg IV over 10min. Target aPTT 60-85s', isHeparin:true, ampOpts:[{label:'1000 U/mL',conc:1000},{label:'5000 U/mL',conc:5000},{label:'25000 U/mL',conc:25000}]},
 
       // I. DIURETIC
-      {n:'Furosemide', cat:'Diuretic', amp:'20mg/2mL (10mg/mL)', dMin:0.1, dMax:0.4, dUnit:'mg/kg/hr', dil:'NS / D5W', factor50:20, factor25:10, rateAt1:'0.4 mg/kg/hr', ampConc:10, notes:'Bolus: 1-2 mg/kg IV. Neonate: 0.5-1 mg/kg. Light sensitive', isFuro:true},
+      {n:'Furosemide', cat:'Diuretic', amp:'20mg/2mL (10mg/mL)', dMin:0.1, dMax:0.4, dUnit:'mg/kg/hr', dil:'NS / D5W', factor50:20, factor25:10, rateAt1:'0.4 mg/kg/hr', ampConc:10, notes:'Bolus: 1-2 mg/kg IV. Neonate: 0.5-1 mg/kg. Light sensitive', isFuro:true, isMgUnit:true},
 
       // J. MISCELLANEOUS
-      {n:'Octreotide', cat:'Misc', amp:'100mcg/mL or 500mcg/mL', dMin:1, dMax:10, dUnit:'mcg/kg/hr', dil:'NS / D5W', factor50:50, factor25:25, rateAt1:'1 mcg/kg/hr', ampConc:0.1, notes:'Chylothorax, GI bleed, Hyperinsulinism', isOctreotide:true},
+      {n:'Octreotide', cat:'Misc', amp:'100mcg/mL or 500mcg/mL', dMin:1, dMax:10, dUnit:'mcg/kg/hr', dil:'NS / D5W', factor50:50, factor25:25, rateAt1:'1 mcg/kg/hr', ampConc:0.1, notes:'Chylothorax, GI bleed, Hyperinsulinism', isOctreotide:true, ampOpts:[{label:'50 mcg/mL',conc:0.05},{label:'100 mcg/mL',conc:0.1},{label:'500 mcg/mL',conc:0.5}]},
       {n:'Glucagon', cat:'Misc', amp:'1mg/vial (1mg/mL)', dMin:20, dMax:200, dUnit:'mcg/kg/hr', dil:'D5W', factor50:'wt', factor25:'wt/2', rateAt1:'20 mcg/kg/hr', ampConc:1, notes:'Refractory hypoglycemia (HI), Beta-blocker OD. Max 1mg/hr', isMorphine:true},
       {n:'N-Acetylcysteine (NAC)', cat:'Misc', amp:'200mg/mL', dMin:150, dMax:300, dUnit:'mg/kg total (3 bags)', dil:'D5W', factor50:'direct', factor25:'direct', rateAt1:'N/A', ampConc:200, notes:'Paracetamol OD: Bag1=150mg/kg/1hr, Bag2=50mg/kg/4hr, Bag3=100mg/kg/16hr. ≤20kg: D5W 3,7,14 mL/kg. 21-40kg: 100,250,500mL. >40kg: 200,500,1000mL', isDirect:true, isNAC:true},
-      {n:'Tranexamic Acid', cat:'Misc', amp:'500mg/5mL (100mg/mL)', dMin:5, dMax:10, dUnit:'mg/kg/hr', dil:'NS / D5W', factor50:250, factor25:125, rateAt1:'5 mg/kg/hr', ampConc:100, notes:'Load: 10mg/kg over 20min. Active hemorrhage', isTXA:true},
+      {n:'Tranexamic Acid', cat:'Misc', amp:'500mg/5mL (100mg/mL)', dMin:5, dMax:10, dUnit:'mg/kg/hr', dil:'NS / D5W', factor50:250, factor25:125, rateAt1:'5 mg/kg/hr', ampConc:100, notes:'Load: 10mg/kg over 20min. Active hemorrhage', isTXA:true, isMgUnit:true},
       {n:'Hydrocortisone', cat:'Misc', amp:'100mg/vial → 50mg/mL', dMin:0.15, dMax:2, dUnit:'mg/kg/hr', dil:'NS / D5W', factor50:7.5, factor25:3.75, rateAt1:'0.15 mg/kg/hr', ampConc:50, notes:'Bolus: 1-2 mg/kg. Refractory shock, Adrenal crisis. 100mg/m²/day ÷ q6h', isHC:true},
       {n:'Phentolamine', cat:'Misc', amp:'10mg/vial', dMin:1, dMax:5, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:10, notes:'Hypertensive emergency, Catecholamine excess, Extravasation antidote'}
     ];
@@ -6477,8 +6912,9 @@
         document.getElementById('infList').innerHTML=html;
     }
 
-    function selectInfDrug(idx){
-        var d=_infData[idx];
+    function selectInfDrug(idx, ovConc){
+        var base=_infData[idx];
+        var d = (ovConc!=null && !isNaN(ovConc)) ? Object.assign({}, base, {ampConc:ovConc}) : base;
         var w=parseFloat(document.getElementById('weight').value)||0;
         if(w<=0){ alert('⚠️ Please enter patient weight first!'); return; }
 
@@ -6489,6 +6925,9 @@
         html+='</div>';
         if(d.notes) html+='<div style="background:#eef6ff; border-left:4px solid #3182ce; padding:8px 10px; margin:8px 0; border-radius:6px; font-size:12px; color:#1a365d; line-height:1.5;">🎯 <b>Clinical Purpose / Indications (શા માટે વપરાય છે):</b><br><b>'+d.notes+'</b></div>';
         html+='<div class="inf-info-row"><span>📦 Ampoule:</span><span>'+d.amp+'</span></div>';
+        if(base.ampOpts){
+            html+='<div class="inf-info-row"><span>🎚️ Vial strength:</span><span><select onchange="selectInfDrug('+idx+', parseFloat(this.value))" style="padding:4px 6px; border:2px solid var(--primary); border-radius:6px; background:var(--bg-card); color:var(--text-main); font-weight:700; max-width:170px;">'+base.ampOpts.map(function(o){return '<option value="'+o.conc+'"'+(o.conc===d.ampConc?' selected':'')+'>'+o.label+'</option>';}).join('')+'</select></span></div>';
+        }
         html+='<div class="inf-info-row"><span>💧 Diluent:</span><span>'+d.dil+'</span></div>';
         html+='<div class="inf-info-row"><span>📊 Dose Range:</span><span><b>'+d.dMin+' – '+d.dMax+' '+d.dUnit+'</b></span></div>';
         html+='<div class="inf-info-row"><span>⚖️ Patient Weight:</span><span><b>'+w+' kg</b></span></div>';
@@ -6581,9 +7020,9 @@
                 } else if(d.isOctreotide){
                     drugMg = (factor * w) / 1000;
                 } else if(d.isTXA){
-                    drugMg = factor * w / 1000;
+                    drugMg = factor * w;   // FIX: was /1000 (gave 2.5 mg instead of 2500 mg)
                 } else if(d.isFuro){
-                    drugMg = factor * w / 1000;
+                    drugMg = factor * w;   // FIX: was /1000 (gave 0.2 mg instead of 200 mg)
                 } else {
                     drugMg = factor * w;
                 }
@@ -6601,6 +7040,7 @@
 
                 drawMl = drugMg / d.ampConc;
                 dilMl = vol - drawMl;
+                var overflow = dilMl < 0;
                 if(dilMl < 0) dilMl = 0;
                 conc = (drugMg * 1000) / vol; // mcg/mL
 
@@ -6609,7 +7049,11 @@
                 html+='<table class="inf-table">';
                 html+='<tr><td>Drug to add</td><td><b>'+drugMgDisplay.toFixed(2)+' '+drugUnit+'</b></td></tr>';
                 html+='<tr><td>Draw from ampoule</td><td><b>'+drawMl.toFixed(3)+' mL</b></td></tr>';
-                html+='<tr><td>Add '+d.dil+' to make</td><td><b>'+vol+' mL</b> (add '+(dilMl>0?dilMl.toFixed(2):vol)+' mL diluent)</td></tr>';
+                if(overflow){
+                    html+='<tr style="background:#fed7d7; color:#9b2c2c;"><td>⚠️ Won\'t fit</td><td><b>Drug alone = '+drawMl.toFixed(1)+' mL &gt; '+vol+' mL syringe.</b> Use a bigger syringe or run the drug more concentrated / neat. (Dose &amp; rate below still valid.)</td></tr>';
+                } else {
+                    html+='<tr><td>Add '+d.dil+' to make</td><td><b>'+vol+' mL</b> (add '+dilMl.toFixed(2)+' mL diluent)</td></tr>';
+                }
                 if(d.isMgUnit){
                     html+='<tr><td>Concentration</td><td><b>'+(drugMg/vol).toFixed(4)+' mg/mL</b></td></tr>';
                 } else if(d.isUnits){
