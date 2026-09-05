@@ -4201,7 +4201,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                         <div class="highlight" style="display:block;">3. Piptaz (100mg/kg): ${pipMg.toFixed(1)} mg -> Vol: ${pipVol} ml TDS<br><span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(Dilution: ${pipVial} SW)</span></div>
                         <div class="highlight" style="display:block;">4. Vancomycin (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${((wt * 15)/50).toFixed(2)} ml TDS (Slow IV)</div>
                         <div class="highlight" style="display:block;">5. Inj Emeset (0.15mg/kg): ${(wt*0.15).toFixed(2)} mg -> Vol: ${(wt*0.075).toFixed(2)} ml TDS</div>
-                        <div class="highlight" style="display:block;">6. Inj Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD</div>
+                        <div class="highlight" style="display:block;">6. Inj Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> Vol: ${(wt/25).toFixed(2)} ml (25mg/ml) q8h</div>
                         <div class="highlight" style="display:block;">7. Inj Febrinil (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/150).toFixed(2)} ml SOS</div>
                         <div class="highlight" style="display:block;">8. Amikacin (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/50).toFixed(2)} ml OD</div>
                     `;
@@ -4294,7 +4294,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                         <div class="badge" style="background:#bee3f8; color:#2a4365;">DKA MEDS</div>
                         <div class="highlight" style="display:block; font-size:13px;">1. Monocef (50mg/kg): ${(wt*50).toFixed(1)} mg -> Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
                         <div class="highlight" style="display:block; font-size:13px;">2. Emeset (0.15mg/kg): ${(wt*0.15).toFixed(2)} mg -> Vol: ${(wt*0.075).toFixed(2)} ml TDS</div>
-                        <div class="highlight" style="display:block; font-size:13px;">3. Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD</div>
+                        <div class="highlight" style="display:block; font-size:13px;">3. Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> Vol: ${(wt/25).toFixed(2)} ml (25mg/ml) q8h</div>
                         <div class="highlight" style="display:block; font-size:13px;">4. Febrinil (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/150).toFixed(2)} ml SOS</div>
                     `;
                 }
@@ -4329,7 +4329,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                     <div class="highlight" style="display:block;">1. IVF: 0.45 DNS + 5ml KCl + 10ml Ca-Gluconate + MVI</div>
                     <div class="highlight" style="display:block;">2. Inj Taxim (50mg/kg): ${(wt*50).toFixed(1)} mg -> Vol: ${(wt*0.5).toFixed(2)} ml BD</div>
                     <div class="highlight" style="display:block;">3. Inj Emeset (0.15mg/kg): ${(wt*0.15).toFixed(2)} mg -> Vol: ${(wt*0.075).toFixed(2)} ml TDS / SOS</div>
-                    <div class="highlight" style="display:block;">4. Inj Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> Vol: ${(wt*0.1).toFixed(2)} ml BD</div>
+                    <div class="highlight" style="display:block;">4. Inj Rantac (1mg/kg): ${(wt*1).toFixed(1)} mg -> Vol: ${(wt/25).toFixed(2)} ml (25mg/ml) q8h</div>
                     <div class="highlight" style="display:block;">5. Inj Febrinil (15mg/kg): ${(wt*15).toFixed(1)} mg -> Vol: ${(wt*15/150).toFixed(2)} ml SOS</div>
                 `
             },
@@ -4894,6 +4894,50 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                 tags: "meropenem",
                 calc: (wt) => injPrepCard("Inj Meropenem", "ANTIBIOTIC · Meropenem (20–40 mg/kg/dose)")
             },
+            {
+                name: "Inj Fosfomycin (Fosfocin)",
+                category: "Antibiotic",
+                tags: "fosfomycin fosfocin fosfotas remifost mdr cre esbl carbapenem resistant pseudomonas uti sepsis osteomyelitis",
+                calc: (wt) => injPrepCard("Inj Fosfomycin (Fosfocin)", "ANTIBIOTIC · Fosfomycin (100–200 mg/kg/day ÷ q6–8h)")
+            },
+            { name:"Inj Ampicillin (Roscilin)", category:"Antibiotic", tags:"ampicillin roscilin biocilin gbs listeria enterococcus neonatal sepsis meningitis penicillin culture",
+              calc:(wt)=>injPrepCard("Inj Ampicillin (Roscilin)","ANTIBIOTIC · Ampicillin (50 mg/kg/dose q6h)") },
+            { name:"Inj Cloxacillin (Bioclox)", category:"Antibiotic", tags:"cloxacillin bioclox klox oxacillin mssa staph skin osteomyelitis penicillin culture",
+              calc:(wt)=>injPrepCard("Inj Cloxacillin (Bioclox)","ANTIBIOTIC · Cloxacillin (50 mg/kg/dose q6h)") },
+            { name:"Inj Cefazolin (Reflin)", category:"Antibiotic", tags:"cefazolin reflin orizolin first generation cephalosporin surgical prophylaxis mssa culture",
+              calc:(wt)=>injPrepCard("Inj Cefazolin (Reflin)","ANTIBIOTIC · Cefazolin (25 mg/kg/dose q8h)") },
+            { name:"Inj Imipenem-Cilastatin (Cilanem)", category:"Antibiotic", tags:"imipenem cilastatin cilanem xylonem carbapenem mdr gram negative culture",
+              calc:(wt)=>injPrepCard("Inj Imipenem-Cilastatin (Cilanem)","ANTIBIOTIC · Imipenem (20 mg/kg/dose q6h)") },
+            { name:"Inj Ertapenem (Invanz)", category:"Antibiotic", tags:"ertapenem invanz carbapenem esbl once daily culture",
+              calc:(wt)=>injPrepCard("Inj Ertapenem (Invanz)","ANTIBIOTIC · Ertapenem (15 mg/kg/dose q12h)") },
+            { name:"Inj Aztreonam (Azenam)", category:"Antibiotic", tags:"aztreonam azenam trezam monobactam gram negative penicillin allergy pseudomonas culture",
+              calc:(wt)=>injPrepCard("Inj Aztreonam (Azenam)","ANTIBIOTIC · Aztreonam (30 mg/kg/dose q8h)") },
+            { name:"Inj Tobramycin (Tobracin)", category:"Antibiotic", tags:"tobramycin tobracin aminoglycoside pseudomonas gram negative cystic fibrosis culture",
+              calc:(wt)=>injPrepCard("Inj Tobramycin (Tobracin)","ANTIBIOTIC · Tobramycin (7 mg/kg OD)") },
+            { name:"Inj Chloramphenicol (Kemicetine)", category:"Antibiotic", tags:"chloramphenicol kemicetine paraxin meningitis enteric fever rickettsia reserve culture",
+              calc:(wt)=>injPrepCard("Inj Chloramphenicol (Kemicetine)","ANTIBIOTIC · Chloramphenicol (25 mg/kg/dose q6h)") },
+            { name:"Inj Daptomycin (Cubicin)", category:"Antibiotic", tags:"daptomycin cubicin daptomax mrsa vre resistant gram positive bacteremia endocarditis culture",
+              calc:(wt)=>injPrepCard("Inj Daptomycin (Cubicin)","ANTIBIOTIC · Daptomycin (6–10 mg/kg OD)") },
+            { name:"Inj Rifampicin (Rcin)", category:"Antibiotic", tags:"rifampicin rcin rifadin r-cin mrsa staph combination prosthetic meningococcal prophylaxis tb enzyme inducer culture",
+              calc:(wt)=>injPrepCard("Inj Rifampicin (Rcin)","ANTIBIOTIC · Rifampicin (10–20 mg/kg/day)") },
+            { name:"Syp / Cap Cephalexin (Sporidex)", category:"Antibiotic", tags:"cephalexin sporidex phexin ceff cephaxin first generation cephalosporin skin uti strep oral culture",
+              calc:(wt)=>oralPrepCard("Syp / Cap Cephalexin (Sporidex)","ANTIBIOTIC (oral) · Cephalexin (25–50 mg/kg/day)") },
+            { name:"Syp Cefaclor (Distaclor)", category:"Antibiotic", tags:"cefaclor distaclor keflor vercef second generation cephalosporin otitis respiratory oral culture",
+              calc:(wt)=>oralPrepCard("Syp Cefaclor (Distaclor)","ANTIBIOTIC (oral) · Cefaclor (20–40 mg/kg/day)") },
+            { name:"Syp / Tab Nitrofurantoin (Niftran)", category:"Antibiotic", tags:"nitrofurantoin niftran martifur uti urinary prophylaxis oral culture",
+              calc:(wt)=>oralPrepCard("Syp / Tab Nitrofurantoin (Niftran)","ANTIBIOTIC (oral) · Nitrofurantoin — UTI (5–7 mg/kg/day)") },
+            { name:"Tab Norfloxacin (Norflox)", category:"Antibiotic", tags:"norfloxacin norflox uroflox fluoroquinolone uti gastroenteritis oral culture",
+              calc:(wt)=>oralPrepCard("Tab Norfloxacin (Norflox)","ANTIBIOTIC (oral) · Norfloxacin (10–15 mg/kg/day)") },
+            { name:"Syp / Tab Nalidixic Acid (Gramoneg)", category:"Antibiotic", tags:"nalidixic acid gramoneg negram quinolone uti shigella dysentery oral culture",
+              calc:(wt)=>oralPrepCard("Syp / Tab Nalidixic Acid (Gramoneg)","ANTIBIOTIC (oral) · Nalidixic acid (50 mg/kg/day)") },
+            { name:"Cap / Syp Doxycycline (Doxt)", category:"Antibiotic", tags:"doxycycline doxt microdox scrub typhus rickettsia atypical mycoplasma tetracycline oral culture",
+              calc:(wt)=>oralPrepCard("Cap / Syp Doxycycline (Doxt)","ANTIBIOTIC (oral) · Doxycycline (2–4 mg/kg/day)") },
+            { name:"Syp / Tab Erythromycin (Althrocin)", category:"Antibiotic", tags:"erythromycin althrocin erythrocin macrolide pertussis atypical prokinetic oral culture",
+              calc:(wt)=>oralPrepCard("Syp / Tab Erythromycin (Althrocin)","ANTIBIOTIC (oral) · Erythromycin (30–50 mg/kg/day)") },
+            { name:"Cap Minocycline (Minoz)", category:"Antibiotic", tags:"minocycline minoz cynomycin acinetobacter mrsa tetracycline oral culture",
+              calc:(wt)=>oralPrepCard("Cap Minocycline (Minoz)","ANTIBIOTIC (oral) · Minocycline (2 mg/kg q12h)") },
+            { name:"Syp / Cap Rifampicin (Rcin)", category:"Antibiotic", tags:"rifampicin rcin rifadin tb mrsa staph combination prophylaxis meningococcal oral culture",
+              calc:(wt)=>oralPrepCard("Syp / Cap Rifampicin (Rcin)","ANTIBIOTIC (oral) · Rifampicin (10–20 mg/kg/day)") },
             {
                 name: "Inj Vancomycin",
                 category: "Antibiotic",
@@ -5831,9 +5875,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                 category: "GI",
                 tags: "pantocid pantoprazole acidity",
                 calc: (wt) => `
-                    <div class="badge">ANTACID (1 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*1).toFixed(1)} mg IV BD | Vol: ${(wt*1/10).toFixed(2)} ml</div>
-                    <div class="note">Strength: 4 mg/ml (Dilute 40mg with 10ml NS/DW).</div>
+                    <div class="badge">PPI · acid suppressant (1 mg/kg/dose)</div><br>
+                    <div class="highlight">Dose: ${(wt*1).toFixed(1)} mg IV OD–BD | Vol: ${(wt*1/4).toFixed(2)} ml (4 mg/ml)</div>
+                    <div class="note">Strength: <b>4 mg/ml</b> — reconstitute 40 mg vial with 10 ml NS/WFI. Slow IV over 2–15 min (or dilute further in 10–20 ml NS). Max 40 mg/dose.</div>
                 `
             },
             {
@@ -5855,9 +5899,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                 category: "GI",
                 tags: "rantac ranitidine acidity",
                 calc: (wt) => `
-                    <div class="badge">ANTACID (1 mg/kg/dose)</div><br>
-                    <div class="highlight">Dose: ${(wt*1).toFixed(1)} mg IV BD | Vol: ${(wt*0.1).toFixed(2)} ml IV BD</div>
-                    <div class="note">NICU Shortcut: 1 amp in 10 ml NS, give (weight) ml BD.</div>
+                    <div class="badge">H2 BLOCKER · acid suppressant (1 mg/kg/dose)</div><br>
+                    <div class="highlight">Dose: ${(wt*1).toFixed(1)} mg IV q8h | Vol: ${(wt/25).toFixed(2)} ml (undiluted 25 mg/ml)</div>
+                    <div class="note">Strength: <b>25 mg/ml (50 mg / 2 ml)</b>. Max 50 mg/dose. ✅ NICU shortcut — dilute 1 amp (50 mg) up to <b>50 ml NS = 1 mg/ml</b>, then give <b>${wt.toFixed(1)} ml</b> (= weight in ml) q8h. Dilute &amp; give slow IV.</div>
                 `
             },
             {
@@ -5865,9 +5909,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                 category: "GI",
                 tags: "ondansetron ondem vomiting periset",
                 calc: (wt) => `
-                    <div class="badge">ANTIEMETIC (0.15 mg/kg)</div><br>
-                    <div class="highlight">Dose: ${(wt*0.15).toFixed(2)} mg | Vol: ${(wt*0.075).toFixed(2)} ml BD/TDS</div>
-                    <div class="note">Strength: 2 mg/ml.</div>
+                    <div class="badge">ANTIEMETIC (0.15 mg/kg/dose · q8h)</div><br>
+                    <div class="highlight">Dose: ${Math.min(wt*0.15,16).toFixed(2)} mg | Vol: ${(Math.min(wt*0.15,16)/2).toFixed(2)} ml q8h</div>
+                    <div class="note">Strength: 2 mg/ml (2 ml amp = 4 mg). <b>Max 4 mg/dose</b> for N/V (up to 16 mg for chemo). Give slow IV / diluted.</div>
                 `
             },
             {
@@ -7562,7 +7606,32 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                     ['Head circ birth → 1 y','35 → 47 cm']
                 ])
                 +'<div class="note">⚠️ Refer if crossing ≥2 major centiles, wasting/overweight, or falling height velocity.</div>';
-            }}
+            }},
+
+          { name:"🩹 NEC — Modified Bell Staging", category:"Calculators", tags:"nec necrotizing enterocolitis bell staging pneumatosis portal venous gas perforation neonate feed intolerance abdominal distension",
+            calc:function(){ return '<div class="badge">🩹 MODIFIED BELL STAGING (NEC)</div>'
+              +_tbl(['Stage','Systemic','GI / Abdomen','X-ray','Action'], [
+                ['<b>I</b> suspected','Temp instability, apnoea, bradycardia, lethargy','↑ Gastric residuals, mild distension, occult blood in stool','Normal / mild ileus','NPO + OG decompression + IV antibiotics; monitor'],
+                ['<b>IIA</b> mild','As stage I','+ Absent bowel sounds, ± tenderness, grossly bloody stool','<b>Pneumatosis intestinalis</b>','NPO + antibiotics 7–10 d'],
+                ['<b>IIB</b> moderate','+ Mild acidosis, thrombocytopenia','+ Definite tenderness, ± RLQ mass / cellulitis','+ Portal venous gas ± ascites','NPO + antibiotics 14 d, NICU'],
+                ['<b>IIIA</b> severe (bowel intact)','+ Hypotension, shock, DIC, apnoea, resp/metabolic acidosis','+ Generalised peritonitis, marked distension','+ Definite ascites','NPO + antibiotics 14 d + fluids / inotropes; surgery if worsening'],
+                ['<b>IIIB</b> perforation','As IIIA','+ Bowel perforation','+ <b>Pneumoperitoneum</b>','Surgery — laparotomy / peritoneal drain']
+              ], '#c53030')
+              +'<div class="note">Empiric: <b>Ampicillin + Gentamicin + Metronidazole</b> (or per unit — cover anaerobes). NPO, OG tube, TPN, serial AXR + platelets/gas. Surgery for perforation / clinical deterioration.</div>'; }},
+
+          { name:"👶 Developmental Milestones & Red Flags", category:"Calculators", tags:"development milestones gross motor fine language social red flag delay refer age",
+            calc:function(){ return '<div class="badge">👶 DEVELOPMENTAL MILESTONES</div>'
+              +_tbl(['Age','Gross motor','Fine / Language / Social'], [
+                ['2 mo','Lifts head prone','Social smile, coos, follows to midline'],
+                ['4 mo','Head steady, rolls front→back','Reaches, laughs, follows 180°'],
+                ['6 mo','Sits with support, rolls both ways','Transfers objects, babbles, stranger awareness'],
+                ['9 mo','Sits alone, crawls, pulls to stand','Immature pincer, "mama/dada" nonspecific, waves bye'],
+                ['12 mo','Stands alone, first steps','Mature pincer, 1–2 words, points'],
+                ['18 mo','Walks well, runs','~10 words, scribbles, feeds self with spoon'],
+                ['2 y','Runs, up stairs (2 feet/step)','2-word phrases, ~50 words, 2-step commands'],
+                ['3 y','Tricycle, up stairs (alternating)','3-word sentences, copies circle, plays with others']
+              ])
+              +'<div class="note" style="color:#c53030;">🚩 <b>Red flags → refer:</b> no social smile by 3 mo · poor head control at 4 mo · not sitting by 9 mo · no words by 18 mo · not walking by 18 mo · <b>loss of any acquired milestone at any age</b>.</div>'; }}
         );
 
         // ===== INJECTION VIAL / CONCENTRATION SELECTOR (select vial → mg + ml + dilution) =====
@@ -7588,6 +7657,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
           "Inj Acyclovir (Acivir)": { mgKg:10, freq:'TDS', def:0,
             vials:[ {v:'250 mg', recon:'10 ml WFI', conc:25}, {v:'500 mg', recon:'20 ml WFI', conc:25} ],
             dilute:'Dilute to ≤7 mg/ml in NS → infuse over 1 hr. Ensure hydration.' },
+          "Inj Rifampicin (Rcin)": { mgKg:10, freq:'OD', def:1,
+            vials:[ {v:'450 mg', recon:'10 ml WFI', conc:45}, {v:'600 mg', recon:'10 ml WFI', conc:60} ],
+            dilute:'<b>2nd dilution:</b> dilute the dose in <b>100–250 ml D5W/NS</b> → infuse over <b>30 min–2 h</b>. Protect from light; turns urine/secretions orange.',
+            info:'💡 <b>Indication:</b> TB (part of ATT); <b>staphylococcal / MRSA COMBINATION</b> therapy (prosthetic / deep-seated — never alone → rapid resistance); meningococcal &amp; Hib prophylaxis. <b>Dose:</b> 10–20 mg/kg/day (max 600 mg); prophylaxis 10 mg/kg q12h × 2 d. ⚠️ Strong enzyme inducer (many drug interactions) — monitor LFTs.<br>📦 <b>Strength:</b> 150 / 300 / 450 / 600 mg vial.<br>🏷️ <b>Brands:</b> Rcin / R-Cin / Rifadin.' },
           "Inj Cefepime & Tazobactam (Magnex / Magnova)": { mgKg:50, freq:'BD', def:0,
             vials:[ {v:'1 g', recon:'10 ml WFI', conc:100}, {v:'1.125 g (Forte)', recon:'11 ml WFI', conc:100}, {v:'2 g', recon:'20 ml WFI', conc:100} ],
             dilute:'Then dilute in NS → infuse over 30 min.' },
@@ -7614,6 +7687,46 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
           "Inj Piperacillin & Tazobactam (Piptaz)": { mgKg:100, freq:'TDS', def:1,
             vials:[ {v:'1.125 g', recon:'10 ml WFI', conc:112.5}, {v:'2.25 g', recon:'20 ml WFI', conc:112.5}, {v:'4.5 g', recon:'40 ml WFI', conc:112.5} ],
             dilute:'Then infuse over 30 min. (8:1 pip:tazo, dose as combined.)' },
+          "Inj Fosfomycin (Fosfocin)": { mgKg:50, freq:'q8h', def:1,
+            vials:[ {v:'1 g', recon:'5 ml WFI', conc:200}, {v:'2 g', recon:'10 ml WFI', conc:200}, {v:'4 g', recon:'20 ml WFI', conc:200} ],
+            dilute:'<b>2nd dilution:</b> take the reconstituted dose &amp; dilute it in <b>50–100 ml D5W</b> (≤40 mg/ml) → <b>infuse over 30 min</b> (large doses over 1–2 h). ⚠️ D5W only, NOT saline (high Na).',
+            info:'💡 <b>Indication:</b> MDR / resistant gram-negative infections (CRE, ESBL, Pseudomonas), complicated UTI, osteomyelitis, sepsis — usually combined with another agent. <b>Dose:</b> child 100–200 mg/kg/day ÷ q6–8h (severe up to 300–400, max ~16 g/day); <b>neonate</b> 100 mg/kg/dose q12h (&lt;7 d) · 150 mg/kg/dose q12h (7–28 d). ⚠️ High Na (~14.5 mEq/g) — monitor Na/K/PO₄.<br>📦 <b>Strength:</b> 1 g / 2 g / 4 g vial (disodium) → ~200 mg/ml reconstituted.<br>🏷️ <b>Brands:</b> Fosfocin / Fosfotas / Remifost / Fosfozing.' },
+          "Inj Ampicillin (Roscilin)": { mgKg:50, freq:'q6h', def:1,
+            vials:[ {v:'250 mg', recon:'2.5 ml WFI', conc:100}, {v:'500 mg', recon:'5 ml WFI', conc:100}, {v:'1 g', recon:'10 ml WFI', conc:100} ],
+            dilute:'<b>2nd dilution:</b> either give the reconstituted dose <b>slow IV over 3–5 min</b>, OR dilute it in <b>20–50 ml NS</b> → <b>infuse over 15–30 min</b>. Use within 1 h (unstable in dextrose). Meningitis 75–100 mg/kg/dose q6h.',
+            info:'💡 <b>Indication:</b> Neonatal sepsis (with an aminoglycoside), Group B Strep, Listeria, Enterococcus, susceptible gram-negative &amp; meningitis. <b>Neonate:</b> 50 mg/kg/dose q8–12h.<br>📦 <b>Strength:</b> 250 mg / 500 mg / 1 g vial (powder).<br>🏷️ <b>Brands:</b> Roscilin / Biocilin / Ampilin.' },
+          "Inj Cloxacillin (Bioclox)": { mgKg:50, freq:'q6h', def:1,
+            vials:[ {v:'250 mg', recon:'2.5 ml WFI', conc:100}, {v:'500 mg', recon:'5 ml WFI', conc:100} ],
+            dilute:'<b>2nd dilution:</b> give the reconstituted dose <b>slow IV over 3–5 min</b>, OR dilute it in <b>20–50 ml NS</b> → <b>infuse over 20–30 min</b>. Severe / osteomyelitis: up to 150–200 mg/kg/day.',
+            info:'💡 <b>Indication:</b> MSSA / staphylococcal infections — skin &amp; soft tissue, osteomyelitis, septic arthritis, endocarditis. <b>Neonate:</b> 25–50 mg/kg/dose.<br>📦 <b>Strength:</b> 250 mg / 500 mg vial (powder).<br>🏷️ <b>Brands:</b> Bioclox / Klox / Cloxacillin.' },
+          "Inj Cefazolin (Reflin)": { mgKg:25, freq:'q8h', def:1,
+            vials:[ {v:'500 mg', recon:'5 ml WFI', conc:100}, {v:'1 g', recon:'10 ml WFI', conc:100} ],
+            dilute:'<b>2nd dilution:</b> dilute the dose in <b>NS to ≤20 mg/ml</b> (~50–100 ml) → <b>IV over 3–5 min or infuse over 10–30 min</b>. Surgical prophylaxis: 30 mg/kg 30–60 min pre-op.',
+            info:'💡 <b>Indication:</b> 1st-gen cephalosporin — MSSA, skin/soft-tissue, UTI, surgical prophylaxis. Max 100 mg/kg/day.<br>📦 <b>Strength:</b> 500 mg / 1 g vial.<br>🏷️ <b>Brands:</b> Reflin / Orizolin / Alcizon.' },
+          "Inj Imipenem-Cilastatin (Cilanem)": { mgKg:20, freq:'q6h', def:1,
+            vials:[ {v:'500 mg (250+250)', recon:'10 ml WFI', conc:50}, {v:'1 g (500+500)', recon:'20 ml WFI', conc:50} ],
+            dilute:'<b>2nd dilution:</b> dilute the dose in <b>~100 ml NS to ≤5 mg/ml</b> → <b>infuse over 30–40 min</b> (NOT a bolus — nausea if fast). Dose = imipenem component.',
+            info:'💡 <b>Indication:</b> Severe / MDR gram-negative &amp; mixed infections, febrile neutropenia (carbapenem). Max 4 g/day. ⚠️ Lowers seizure threshold — caution in CNS disease / renal impairment.<br>📦 <b>Strength:</b> 500 mg / 1 g vial (imipenem + cilastatin 1:1).<br>🏷️ <b>Brands:</b> Cilanem / Xylonem.' },
+          "Inj Ertapenem (Invanz)": { mgKg:15, freq:'q12h', def:0,
+            vials:[ {v:'1 g', recon:'10 ml WFI', conc:100} ],
+            dilute:'<b>2nd dilution:</b> dilute the dose in <b>50 ml NS</b> (≤20 mg/ml) → <b>infuse over 30 min</b>. Do NOT use dextrose. 3 mo–12 y: 15 mg/kg BD (max 1 g/day); ≥13 y: 1 g OD.',
+            info:'💡 <b>Indication:</b> ESBL / community &amp; intra-abdominal gram-negative — once/twice-daily carbapenem. ⚠️ NOT active vs Pseudomonas or Acinetobacter.<br>📦 <b>Strength:</b> 1 g vial.<br>🏷️ <b>Brands:</b> Invanz / Ertapen.' },
+          "Inj Aztreonam (Azenam)": { mgKg:30, freq:'q8h', def:1,
+            vials:[ {v:'500 mg', recon:'5 ml WFI', conc:100}, {v:'1 g', recon:'10 ml WFI', conc:100} ],
+            dilute:'<b>2nd dilution:</b> dilute the dose in <b>NS/D5 to ≤20 mg/ml</b> (~50–100 ml) → <b>infuse over 20–60 min</b> (small doses: slow IV over 3–5 min). Max 120 mg/kg/day (8 g/day).',
+            info:'💡 <b>Indication:</b> Aerobic gram-negative incl. Pseudomonas (monobactam) — <b>safe in penicillin / cephalosporin allergy</b>. No gram-positive or anaerobe cover.<br>📦 <b>Strength:</b> 500 mg / 1 g vial.<br>🏷️ <b>Brands:</b> Azenam / Trezam.' },
+          "Inj Tobramycin (Tobracin)": { mgKg:7, freq:'OD', def:1,
+            vials:[ {v:'20 mg/2 mL', conc:10}, {v:'80 mg/2 mL', conc:40} ],
+            dilute:'Ready solution (no reconstitution). <b>2nd dilution:</b> dilute the dose in <b>50–100 ml NS</b> → <b>infuse over 30–60 min</b>. Monitor renal function &amp; levels. Neonate 4–5 mg/kg.',
+            info:'💡 <b>Indication:</b> Gram-negative sepsis incl. Pseudomonas (aminoglycoside) — usually with a β-lactam; cystic fibrosis.<br>📦 <b>Strength:</b> 20 mg/2 mL · 80 mg/2 mL.<br>🏷️ <b>Brands:</b> Tobracin / Tobramycin / Tobaside.' },
+          "Inj Chloramphenicol (Kemicetine)": { mgKg:25, freq:'q6h', def:0,
+            vials:[ {v:'1 g', recon:'10 ml WFI', conc:100} ],
+            dilute:'<b>2nd dilution:</b> dilute the dose in <b>NS to ≤20 mg/ml</b> (~50–100 ml) → <b>slow IV / infuse over 30–60 min</b>. Meningitis 75–100 mg/kg/day, max 4 g/day. ⚠️ Monitor levels &amp; CBC; AVOID in neonates (grey-baby syndrome).',
+            info:'💡 <b>Indication:</b> Reserve — bacterial meningitis (β-lactam allergy), enteric fever, rickettsia, resistant infections. Marrow toxicity limits use.<br>📦 <b>Strength:</b> 1 g vial (succinate).<br>🏷️ <b>Brands:</b> Kemicetine / Paraxin.' },
+          "Inj Daptomycin (Cubicin)": { mgKg:8, freq:'OD', def:1,
+            vials:[ {v:'350 mg', recon:'7 ml WFI', conc:50}, {v:'500 mg', recon:'10 ml WFI', conc:50} ],
+            dilute:'Reconstitute gently (do NOT shake). <b>2nd dilution:</b> dilute the dose in <b>~50 ml NS</b> → <b>infuse over 30 min</b> (adult IV push over 2 min). NS only, not dextrose. Dose 6–10 mg/kg OD (younger children need higher).',
+            info:'💡 <b>Indication:</b> Resistant gram-positive — MRSA / VRE bacteraemia, skin, right-sided endocarditis. ⚠️ NOT for pneumonia (inactivated by lung surfactant); monitor CPK.<br>📦 <b>Strength:</b> 350 mg / 500 mg vial.<br>🏷️ <b>Brands:</b> Cubicin / Daptomax / Dapto.' },
           "Inj Linezolid (Linospan)": { mgKg:10, freq:'TDS', def:0,
             vials:[ {v:'600 mg / 300 mL bag', conc:2}, {v:'200 mg / 100 mL bag', conc:2} ],
             dilute:'Ready IV (2 mg/ml, in D5) — no reconstitution. Infuse over 30–120 min. Both bags 2 mg/ml.',
@@ -7694,7 +7807,34 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
           "Tab Opox (Cefpodoxime)": { mgKg:5, freq:'BD', def:0, cap:'10 mg/kg/day.',
             forms:[ {label:'100 mg tab', mgTab:100}, {label:'200 mg tab', mgTab:200} ] },
           "Tab Claribid (Clarithromycin)": { mgKg:7.5, freq:'BD', def:0,
-            forms:[ {label:'250 mg tab', mgTab:250}, {label:'500 mg tab', mgTab:500} ] }
+            forms:[ {label:'250 mg tab', mgTab:250}, {label:'500 mg tab', mgTab:500} ] },
+          "Syp / Cap Cephalexin (Sporidex)": { mgKg:12.5, freq:'q6h', def:0, cap:'25–50 mg/kg/day.',
+            forms:[ {label:'125 mg/5 ml', perMl:25}, {label:'250 mg/5 ml', perMl:50}, {label:'250 mg cap', mgTab:250}, {label:'500 mg cap', mgTab:500} ],
+            info:'💡 <b>Indication:</b> 1st-gen cephalosporin — skin/soft-tissue, UTI, strep throat, MSSA.<br>🏷️ <b>Brands:</b> Sporidex / Phexin / Ceff / Cephaxin.' },
+          "Syp Cefaclor (Distaclor)": { mgKg:10, freq:'q8h', def:0, cap:'20–40 mg/kg/day.',
+            forms:[ {label:'125 mg/5 ml', perMl:25}, {label:'250 mg/5 ml', perMl:50} ],
+            info:'💡 <b>Indication:</b> 2nd-gen cephalosporin — otitis media, pharyngitis, respiratory &amp; UTI.<br>🏷️ <b>Brands:</b> Distaclor / Keflor / Vercef.' },
+          "Syp / Tab Nitrofurantoin (Niftran)": { mgKg:1.5, freq:'q6h', def:0, cap:'Treatment 5–7 mg/kg/day ÷ q6h; prophylaxis 1–2 mg/kg OD. Max 400 mg/day.',
+            forms:[ {label:'25 mg/5 ml (susp)', perMl:5}, {label:'50 mg tab', mgTab:50}, {label:'100 mg tab', mgTab:100} ],
+            info:'💡 <b>Indication:</b> Uncomplicated UTI / prophylaxis ONLY (urine levels only — NOT for pyelonephritis or systemic infection). Give with food.<br>🏷️ <b>Brands:</b> Niftran / Martifur / Nitrofurantoin.' },
+          "Tab Norfloxacin (Norflox)": { mgKg:7.5, freq:'q12h', def:0, cap:'Max 800 mg/day.',
+            forms:[ {label:'400 mg tab', mgTab:400} ],
+            info:'💡 <b>Indication:</b> UTI &amp; bacterial gastroenteritis / shigella (fluoroquinolone). Limited paediatric use.<br>🏷️ <b>Brands:</b> Norflox / Uroflox.' },
+          "Syp / Tab Nalidixic Acid (Gramoneg)": { mgKg:12.5, freq:'q6h', def:0, cap:'50 mg/kg/day. Max 4 g/day. Avoid &lt;3 mo.',
+            forms:[ {label:'300 mg/5 ml', perMl:60}, {label:'500 mg tab', mgTab:500} ],
+            info:'💡 <b>Indication:</b> UTI &amp; shigella dysentery (older quinolone).<br>🏷️ <b>Brands:</b> Gramoneg / Negram / Nalidix.' },
+          "Cap / Syp Doxycycline (Doxt)": { mgKg:2, freq:'q12h', def:2, cap:'2–4 mg/kg/day (max 200 mg/day). Short course safe at any age for scrub typhus.',
+            forms:[ {label:'25 mg/5 ml', perMl:5}, {label:'50 mg/5 ml', perMl:10}, {label:'100 mg cap/DT', mgTab:100} ],
+            info:'💡 <b>Indication:</b> Scrub typhus (first-line, any age), rickettsia, atypical pneumonia (Mycoplasma), cholera, MDR infections.<br>🏷️ <b>Brands:</b> Doxt / Microdox / Doxy-1 / Biodoxi.' },
+          "Syp / Tab Erythromycin (Althrocin)": { mgKg:10, freq:'q6h', def:0, cap:'30–50 mg/kg/day. Max 2 g/day.',
+            forms:[ {label:'125 mg/5 ml', perMl:25}, {label:'250 mg/5 ml', perMl:50}, {label:'250 mg tab', mgTab:250} ],
+            info:'💡 <b>Indication:</b> Pertussis, atypical pneumonia, streptococcal (penicillin allergy), prokinetic. (IV lactobionate also available.)<br>🏷️ <b>Brands:</b> Althrocin / Erythrocin / Erysafe.' },
+          "Cap Minocycline (Minoz)": { mgKg:2, freq:'q12h', def:1, cap:'Load 4 mg/kg then 2 mg/kg q12h (max 200 mg/day). Age &gt;8 y.',
+            forms:[ {label:'50 mg cap', mgTab:50}, {label:'100 mg cap', mgTab:100} ],
+            info:'💡 <b>Indication:</b> Acinetobacter, MRSA / skin, atypicals. ⚠️ Teeth staining &lt;8 y, vertigo.<br>🏷️ <b>Brands:</b> Minoz / Cynomycin.' },
+          "Syp / Cap Rifampicin (Rcin)": { mgKg:10, freq:'OD', def:0, cap:'10–20 mg/kg/day (max 600 mg). Empty stomach. NEVER monotherapy for active infection.',
+            forms:[ {label:'100 mg/5 ml', perMl:20}, {label:'150 mg cap', mgTab:150}, {label:'300 mg cap', mgTab:300}, {label:'450 mg cap', mgTab:450} ],
+            info:'💡 <b>Indication:</b> TB (with HRZE), MRSA/staph combination therapy, meningococcal &amp; H. influenzae prophylaxis, prosthetic/biofilm infections. ⚠️ Orange secretions, strong enzyme inducer. (IV also available.)<br>🏷️ <b>Brands:</b> Rcin / Rifadin.' }
         };
         // --- Attach 💡 Indication to prep drugs that don't already carry an info line ---
         (function(){
@@ -7841,6 +7981,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
           "Inj Ceftazidime (Fortum / Tazicef)": "Meningitis / Pseudomonas <b>50 mg/kg q8h</b> (max 6 g/day).",
           "Inj Ampiclox (Ampicillin+Cloxacillin)": "Meningitis (ampicillin part) up to <b>300–400 mg/kg/day</b> ÷ q6h."
         };
+        // per-DOSE mg/kg + reconstituted conc (mg/ml) → lets us show the ml for the indication dose
+        window.INDICATION_MGKG = {
+          "Inj Ceftriaxone (Monocef)": {mgKgDose:50, freq:'q12h', conc:100},
+          "Inj Cefotaxime (Taxim)": {mgKgDose:50, freq:'q6h', conc:100},
+          "Inj Vancomycin": {mgKgDose:15, freq:'q6h', conc:50, note:' (from vial; then dilute &lt;5 mg/ml, infuse ≥60 min)'},
+          "Inj Meropenem": {mgKgDose:40, freq:'q8h', conc:50, note:' (then dilute in NS, infuse 15–30 min)'},
+          "Inj Cefepime (Cepime / Maxipime)": {mgKgDose:50, freq:'q8h', conc:100},
+          "Inj Ceftazidime (Fortum / Tazicef)": {mgKgDose:50, freq:'q8h', conc:100}
+        };
         // Renal / hepatic adjustment reminders (drugs that genuinely need it)
         window.RENAL_ADJ = {
           "Inj Amikacin": "Extend interval &amp; monitor levels (nephro/ototoxic) in renal impairment.",
@@ -7858,7 +8007,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         };
         window.nhDrugExtras = function(name, cat){
           var out='';
-          if(window.INDICATION_DOSE && INDICATION_DOSE[name]) out+='<div class="note" style="background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;">🎯 <b>Indication dose:</b> '+INDICATION_DOSE[name]+'</div>';
+          if(window.INDICATION_DOSE && INDICATION_DOSE[name]){
+            var _idml='';
+            var _mk = window.INDICATION_MGKG && INDICATION_MGKG[name];
+            var _iw = (typeof val==='function') ? val('weight') : 0;
+            if(_mk && _iw>0){
+              var _img=_iw*_mk.mgKgDose, _iml=_img/_mk.conc;
+              _idml=' <b>→ '+_img.toFixed(0)+' mg = '+_iml.toFixed(2)+' ml</b> '+_mk.freq+(_mk.note||'');
+            }
+            out+='<div class="note" style="background:#ebf8ff; border-color:#90cdf4; color:#2b6cb0;">🎯 <b>Indication dose:</b> '+INDICATION_DOSE[name]+_idml+'</div>';
+          }
           if(window.RENAL_ADJ && RENAL_ADJ[name]) out+='<div class="note" style="background:#fffaf0; border-color:#fbd38d; color:#9c4221;">🫘 <b>Renal/hepatic:</b> '+RENAL_ADJ[name]+'</div>';
           if(cat && ['Calculators','Training','NICU Procedures','PICU Procedures','Vaccine','Formula','Library'].indexOf(cat)<0){
             out+='<div style="font-size:10px; color:var(--text-muted); margin-top:4px;">📖 Ref: IAP · NNF · Dr. Meharban Singh — verify unit protocol.</div>';
@@ -8124,7 +8282,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
             if(html){
                 var _wp = (window.nhWeightPlausibility) ? nhWeightPlausibility(w, a, u) : '';
                 var _disc = '<div class="note" style="background:var(--bg-card); border:1px dashed var(--border); color:var(--text-muted); font-size:11px; line-height:1.5; margin-top:14px;">⚕️ <b>Disclaimer:</b> Educational aid only — <b>always verify every dose</b> against your unit protocol &amp; standard references (IAP · NNF · Dr. Meharban Singh <i>Care of the Newborn</i> · Ghai / Nelson · WHO). Not a substitute for clinical judgment.</div>';
-                var _favbar = (currentCategory==='Favourites') ? '<div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;"><input type="text" id="favPt" placeholder="Patient name / bed" value="'+String(window._txPatient||'').replace(/"/g,'&quot;')+'" oninput="nhSetTxPatient(this.value)" style="flex:1; padding:9px; border:2px solid var(--border); border-radius:8px; background:var(--bg-card); color:var(--text-main); box-sizing:border-box;"><button class="copy-all-btn" style="background:#25D366; margin:0; white-space:nowrap; padding:9px 13px;" onclick="shareFavs()">📲 Share PDF</button></div>' : '';
+                var _favbar = (currentCategory==='Favourites') ? '<div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;"><input type="text" id="favPt" placeholder="Patient name / bed" value="'+String(window._txPatient||'').replace(/"/g,'&quot;')+'" oninput="nhSetTxPatient(this.value)" style="flex:1; padding:9px; border:2px solid var(--border); border-radius:8px; background:var(--bg-card); color:var(--text-main); box-sizing:border-box;"><button class="copy-all-btn" style="background:#25D366; margin:0; white-space:nowrap; padding:9px 11px;" onclick="shareFavsText()">💬 WhatsApp</button><button class="copy-all-btn" style="background:#3182ce; margin:0; white-space:nowrap; padding:9px 11px;" onclick="shareFavs()">📄 PDF</button></div>' : '';
                 html = _wp + _favbar + html + _disc;
             }
             d.innerHTML = html || (currentCategory==='Favourites' ? '<p style="text-align:center; color:var(--text-muted); margin-top:30px;">⭐ No favourites yet. Tap the ☆ on any card to add it here.</p>' : '<p style="text-align:center; color:var(--text-muted); margin-top:30px;">No results found.</p>');
@@ -8274,7 +8432,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
             }
             h+='<div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">'
               +'<button class="copy-all-btn" style="background:#805ad5; flex:1 1 100%; margin:0;" onclick="nhAddMeds()">➕ Add Medicines</button>'
-              +'<button class="copy-all-btn" style="background:#25D366; flex:1 1 100%; margin:0; font-size:15px;" onclick="shareTxPt()">📲 Share / Save / Print PDF</button>'
+              +'<button class="copy-all-btn" style="background:#25D366; flex:1 1 100%; margin:0; font-size:15px;" onclick="shareTxText()">💬 Send to WhatsApp</button>'
+              +'<button class="copy-all-btn" style="background:#3182ce; flex:1 1 100%; margin:0;" onclick="shareTxPt()">📄 Share / Save / Print PDF</button>'
               +'<button class="action-btn" style="background:#e53e3e; flex:1 1 100%;" onclick="nhDeletePatient(\''+p.id+'\')">🗑️ Delete Patient</button>'
               +'</div></div>';
             return h;
@@ -8338,11 +8497,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                 +'<div style="font-weight:800; font-size:17px; margin:8px 0 2px;">PDF ready</div>'
                 +'<div style="font-size:11.5px; color:#666; margin-bottom:16px; word-break:break-all;">'+fname+'</div>'
                 +(hasShare?'<button id="pdfShareBtn" style="display:block;width:100%;background:#25D366;color:#fff;border:none;border-radius:10px;padding:13px;font-weight:800;font-size:15px;margin-bottom:9px;cursor:pointer;">📲 Share (WhatsApp…)</button>':'')
-                +'<a href="'+url+'" target="_blank" rel="noopener" style="display:block;background:#3182ce;color:#fff;border-radius:10px;padding:13px;font-weight:700;font-size:14px;margin-bottom:9px;text-decoration:none;">📂 Open PDF</a>'
+                +'<button id="pdfOpenBtn" style="display:block;width:100%;background:#3182ce;color:#fff;border:none;border-radius:10px;padding:13px;font-weight:700;font-size:14px;margin-bottom:9px;cursor:pointer;">📂 Open PDF (then Print / Share)</button>'
                 +'<a href="'+url+'" download="'+fname+'" style="display:block;background:#2b6cb0;color:#fff;border-radius:10px;padding:13px;font-weight:700;font-size:14px;margin-bottom:9px;text-decoration:none;">⬇️ Download / Save</a>'
                 +'<button id="pdfCloseBtn" style="display:block;width:100%;background:#edf2f7;color:#333;border:none;border-radius:10px;padding:11px;font-weight:600;font-size:13px;cursor:pointer;">Close</button>'
-                +'<div style="font-size:11px;color:#999;margin-top:8px;">'+(hasShare?'Tap <b>Share</b> → choose WhatsApp. If it doesn\'t attach, tap <b>Open PDF</b> then use the browser\'s Share.':'Tap <b>Open PDF</b>, then use your browser\'s Share button to send on WhatsApp.')+'</div>'
+                +'<div style="font-size:11px;color:#999;margin-top:8px;">On the phone app, use <b>💬 Send to WhatsApp</b> for the fastest share. Or tap <b>Open PDF</b> → your browser opens it with Share / Print.</div>'
                 +'</div>';
+            var ob=document.getElementById('pdfOpenBtn');
+            if(ob){ ob.onclick=function(){ try{ window.location.href=url; }catch(e){ try{ window.open(url,'_blank'); }catch(e2){} } }; }
             var sb=document.getElementById('pdfShareBtn');
             if(sb){ sb.onclick=function(){
                 try{
@@ -8485,6 +8646,30 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         window.shareTxPt = function(){ var p=_ptGet(_ptActiveId()); if(!p){ alert('Open a patient first.'); return; } _sharePdf('Treatment Sheet', p.drugs, p); };
         window.printTxPt = window.shareTxPt;   // "Print" also goes through the share sheet (which has a Print option) using the SAME new PDF
         window.shareFavs = function(){ _sharePdf('Favourite Drugs', favs); };
+        // ---- WhatsApp TEXT share (works EVERYWHERE incl. WebView/standalone apps that lack navigator.share) ----
+        function _sheetPlainText(title, items, pt){
+            var wt,av,u,pname,wStr,aStr,dx;
+            if(pt){ wt=(pt.wt!=null?pt.wt:0); av=(pt.age!=null?pt.age:0); u=pt.unit||'Years'; pname=pt.name||''; wStr=(pt.wt!=null?pt.wt:''); aStr=(pt.age!=null?pt.age:''); dx=pt.dx||''; }
+            else { wt=val('weight'); av=val('age'); u=document.getElementById('ageUnit').value; pname=window._txPatient||''; wStr=document.getElementById('weight').value; aStr=document.getElementById('age').value; dx=''; }
+            var t='*'+title+'*\n';
+            t+='Name: '+(pname||'-')+'\n';
+            t+='Age: '+(aStr?aStr+' '+u:'-')+'   |   Wt: '+(wStr||'-')+' kg\n';
+            t+='Date: '+new Date().toLocaleDateString('en-GB')+'\n';
+            if(dx) t+='Diagnosis: '+dx+'\n';
+            t+='\n*Rx / Medicines:*\n\n';
+            (items||[]).forEach(function(nm,i){ var drug=drugs.filter(function(x){return x.name===nm;})[0]; if(!drug) return; t+='*'+(i+1)+'. '+nm+'*\n'+_drugDoseSummary(drug.calc(wt,av,u))+'\n\n'; });
+            t+='\nPlan / Events / Investigations:\n___________________________\n\nDr. ____________________\n_Educational aid only - verify against your unit protocol._';
+            return t;
+        }
+        function _shareText(title, items, pt){
+            if(!items || !items.length){ alert('No medicines added yet — add a medicine first.'); return; }
+            var txt=_sheetPlainText(title, items, pt);
+            // try native text share first (nicer), else open WhatsApp via deep link (works in WebView/standalone)
+            try{ if(navigator.share){ navigator.share({text:txt, title:title}).catch(function(){ window.location.href='https://wa.me/?text='+encodeURIComponent(txt); }); return; } }catch(e){}
+            window.location.href='https://wa.me/?text='+encodeURIComponent(txt);
+        }
+        window.shareTxText = function(){ var p=_ptGet(_ptActiveId()); if(!p){ alert('Open a patient first.'); return; } _shareText('Treatment Sheet', p.drugs, p); };
+        window.shareFavsText = function(){ _shareText('Favourite Drugs', favs); };
     // ===================== INFUSION CALCULATOR =====================
     var _infData = [
       // A. INOTROPES & VASOPRESSORS
@@ -8494,7 +8679,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       {n:'Noradrenaline', cat:'Inotropes', amp:'4mg/2mL (2mg/mL)', dMin:0.05, dMax:2, dUnit:'mcg/kg/min', dil:'D5W only', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:2, notes:'Pure vasopressor (α1 agonist). Vial 4 mg / 2 mL (2 mg/mL)'},
       {n:'Milrinone', cat:'Inotropes', amp:'10mg/10mL (1mg/mL)', dMin:0.25, dMax:0.75, dUnit:'mcg/kg/min', dil:'D5W / NS', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:1, notes:'PDE3 inhibitor. Optional load: 50mcg/kg over 15min'},
       {n:'Vasopressin', cat:'Inotropes', amp:'20 units/1mL', dMin:0.0002, dMax:0.002, dUnit:'units/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.0001 units/kg/min', ampConc:20, notes:'Refractory septic shock', isUnits:true},
-      {n:'PGE1 (Alprostadil)', cat:'Inotropes', amp:'500mcg/1mL', dMin:0.01, dMax:0.1, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:0.5, notes:'Maintain ductus arteriosus. Reduce to 0.01 once effective. ⚠️ Apnea risk'},
+      {n:'PGE1 (Alprostadil)', cat:'Inotropes', amp:'500mcg/1mL', dMin:0.01, dMax:0.1, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:0.03, factor25:0.015, rateAt1:'0.01 mcg/kg/min', ampConc:0.5, notes:'Maintain ductus arteriosus. Start 0.05, reduce to 0.01 once effective. ⚠️ Apnea risk — have airway ready'},
       {n:'Phenylephrine', cat:'Inotropes', amp:'10mg/1mL', dMin:0.1, dMax:0.5, dUnit:'mcg/kg/min', dil:'NS / D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:10, notes:'Pure α1 agonist'},
       {n:'Isoprenaline', cat:'Inotropes', amp:'1mg/5mL (0.2mg/mL)', dMin:0.05, dMax:2, dUnit:'mcg/kg/min', dil:'D5W', factor50:0.3, factor25:0.15, rateAt1:'0.1 mcg/kg/min', ampConc:0.2, notes:'β1 + β2 agonist. Complete heart block'},
 
